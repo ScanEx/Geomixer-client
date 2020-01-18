@@ -126,6 +126,7 @@ const DbSearchView = function (model, options, tools) {
             this.model.isDirty = true;
             this.show();
         }.bind(this));
+    _tools.historyInterval = dateInterval;
     const msd = 24*3600000;
     this.calendar = new nsGmx.CalendarWidget({
         dateInterval: dateInterval,
@@ -536,13 +537,9 @@ DbSearchView.prototype.hide = function () {
 DbSearchView.prototype.showTrack = function (vessels, onclick) {
 
     _tools.showTrack(vessels, onclick);   
-    if (!vessels)
-        return;
 
-    if (!Array.isArray(vessels)){
-        //this.withTrack = true;
+    if (!vessels || !Array.isArray(vessels))
         return;
-    }
 
     vessels.forEach(vessel => {
         let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
@@ -576,6 +573,14 @@ DbSearchView.prototype.positionMap = function (vessel, interval) {
     nsGmx.leafletMap.removeLayer(_highlight);
     _highlight.vessel = vessel;
     _highlight.setLatLng([ymax, xmax<0?(360+xmax):xmax]).addTo(nsGmx.leafletMap);
+};
+
+DbSearchView.prototype.formatDate = function (d, local){
+    return _tools.formatDate(d, local);
+};
+
+DbSearchView.prototype.formatPosition = function (obj, searcher){
+    return _tools.formatPosition(obj, searcher);
 };
 
 module.exports = DbSearchView;

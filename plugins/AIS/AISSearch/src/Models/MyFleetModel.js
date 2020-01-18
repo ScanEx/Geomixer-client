@@ -297,7 +297,8 @@ console.log("add group and style field");
     .then((response) => {
             let nickname = response.Result.Nickname;
             return new Promise((resolve, reject) => {				
-                if (nickname=='scf_captain' && _mapID=='KGEJB')
+                if ((nickname == 'scf_captain' || nickname == 'scf_captain2020' || nickname == 'scf_master2020')
+                 && _mapID=='KGEJB')
 					resolve({Status:"ok", Result:{count:1, layers:[{LayerID:"0A5CE9C59487441689ABF3031991BF2F"}]}});
 				else
                     sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
@@ -624,10 +625,11 @@ console.log("add group and style field");
 //console.log(this.data.groups[i].marker_style)
         },
         loadTracks: function(){
-            return Promise.all(_vessels.map(v=>new Promise((resolve) => {
-                
-                const di = nsGmx.widgets.commonCalendar.getDateInterval();
-                _aisLayerSearcher.searchPositionsAgg2(v.mmsi, {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')}, function (response) {
+console.log(_tools.historyInterval)                  
+            const di = _tools.historyInterval;
+            _vessels.forEach(v=>{ 
+                new Promise((resolve) => {
+                    _aisLayerSearcher.searchPositionsAgg2(v.mmsi, {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')}, function (response) {
 //console.log(response)       
                     if (parseResponse(response)) {
                         let position, positions = [],
@@ -647,10 +649,9 @@ console.log("add group and style field");
                                     p[d].count = p[d].count + 1;
                                 }
                                 else
-                                    p[d] = { mmsi: v.mmsi, ts_pos_utc: _tools.formatDate(d), positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
+                                    p[d] = { mmsi: v.mmsi, imo: obj['imo'], ts: obj['ts_pos_org'], positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
                                 return p;
                             }, {});
-//console.log(groups)       
                         let counter = 0;
                         for (var k in groups) {
                             groups[k]["n"] = counter++;
@@ -659,19 +660,16 @@ console.log("add group and style field");
                         resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
                     }
                     else
-                        resolve(response)
+                        resolve(response);
+                    });
                 })
-            })))
                 .then(function (response) {
-console.log(response) 
-                    // if (response.Status.toLowerCase() == "ok") {
-                    //     _this.data = { vessels: response.Result.values, total: response.Result.total }
-                    //     return Promise.resolve();
-                    // }
-                    // else {
-                    //     return Promise.reject(response);
-                    // }
-                });
+                    if (response.Status && response.Status.toLowerCase()=='ok' && response.Result && response.Result.values)
+                        _tools.showTrack(response.Result.values, console.log);
+                    else
+                        console.log(response);
+                })
+            });
         }
     };
 }

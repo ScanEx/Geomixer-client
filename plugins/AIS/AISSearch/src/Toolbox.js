@@ -1,3 +1,4 @@
+require('./Controls/L.CanvasOverlay');
 const Polyfill = require('./Polyfill');
 module.exports = function (options) {
     const _layersByID = nsGmx.gmxMap.layersByID;
@@ -74,6 +75,7 @@ module.exports = function (options) {
         }
 
     },
+    _historyInterval,
     _markers,
     _visibleMarkers = [],
     _icons = {},
@@ -210,6 +212,8 @@ module.exports = function (options) {
             //return !!(_lastPointLayerAlt && _lastPointLayerAlt._map); 
             return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); 
         },
+        get historyInterval(){return _historyInterval;},
+        set historyInterval(v){_historyInterval = v;},
         showTrack: function (vessels, onclick) {
             if (!vessels){
                 for (let t in _tracks){
@@ -220,7 +224,36 @@ module.exports = function (options) {
                 }
                 return;
             }
+            const drawRotatedImage = function (ctx, image, x, y, angle) { 
+                ctx.save(); 
+                ctx.translate(x, y);
+                ctx.rotate(angle * Math.PI/180.0);
+                ctx.drawImage(image, -(image.width/2), -(image.height/2));
+                ctx.restore();
+                //ctx.drawImage(image, x, y); 
+            },
+            drawingOnCanvas = function (canvasOverlay, params){
+                var ctx = params.canvas.getContext('2d'),
+                data = params.options.data;
+                if (!data.length)
+                    return;
+console.log(//ctx, 
+    data, params.options.markers
+    //, 
+    //params.bounds.contains([data[0].ymax, data[0].xmax]),
+    //canvasOverlay._map.latLngToContainerPoint([data[0].ymax, data[0].xmax])
+);
+                 ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);  
+                        // var dot = canvasOverlay._map.latLngToContainerPoint([data[0].ymax, data[0].xmax]);
+                        // drawRotatedImage(ctx, data[0].img, dot.x, dot.y, 45);   
 
+                for (var i = 0; i < data.length; i++) {
+                    if (params.bounds.contains([data[i].ymax, data[i].xmax])) {
+                        var dot = canvasOverlay._map.latLngToContainerPoint([data[i].ymax, data[i].xmax]);
+                        drawRotatedImage(ctx, data[i].img, dot.x, dot.y, parseInt(data[i].cog));
+                    }
+                } 
+            };
             for (let i = 0; i < vessels.length; ++i){
                 let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
                     if (vessels[i].positions.length){
@@ -228,36 +261,50 @@ module.exports = function (options) {
 
                         }
                         else{
-                            let markers = [], markersAlt = [];
-                            for (let j = 0; j < vessels[i].positions.length; ++j) {
-                                let p = vessels[i].positions[j],                    
-                                    myIcon = L.divIcon({
-                                        className: 'ais-track-marker',
-                                        html: `<img src="${p.icon}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
-                                    }),
-                                    myIconAlt = L.divIcon({
-                                        className: 'ais-track-marker',
-                                        html: `<img src="${p.iconAlt}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
-                                    }),                                    
-                                    marker = L.marker([p.ymax, p.xmax], { icon: myIcon }),                                    
-                                    markerAlt = L.marker([p.ymax, p.xmax], { icon: myIconAlt });
-                                if (onclick){
-                                    marker.on('click', e=>{
-                                        onclick(p)
-                                    });
-                                    markerAlt.on('click', e=>{
-                                        onclick(p)
-                                    });
-                                }
-                                markers.push(marker);
-                                markersAlt.push(markerAlt);
-                            }
-                            _tracks[trackId] = L.layerGroup(markers);
-                            _tracksAlt[trackId] = L.layerGroup(markersAlt);
+                            _tracks[trackId] = L.canvasOverlay();
+                            _tracks[trackId].params({data: vessels[i].positions, markers: "TYPE"})
+                            .drawing(drawingOnCanvas); 
+                            _tracksAlt[trackId] = L.canvasOverlay();
+                            _tracksAlt[trackId].params({data: vessels[i].positions, markers: "SPEED"})
+                            .drawing(drawingOnCanvas);                         
                             if(!this.needAltLegend)
                                 nsGmx.leafletMap.addLayer(_tracks[trackId]);
                             else
                                 nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
+/*
+                       
+
+                            let markers = [], markersAlt = [];
+                            for (let j = 0; j < vessels[i].positions.length; ++j) {
+                                // let p = vessels[i].positions[j],                    
+                                //     myIcon = L.divIcon({
+                                //         className: 'ais-track-marker',
+                                //         html: `<img src="${p.icon}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
+                                //     }),
+                                //     myIconAlt = L.divIcon({
+                                //         className: 'ais-track-marker',
+                                //         html: `<img src="${p.iconAlt}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
+                                //     }),                                    
+                                //     marker = L.marker([p.ymax, p.xmax<0?360+p.xmax:p.xmax], { icon: myIcon }),                                    
+                                //     markerAlt = L.marker([p.ymax, p.xmax<0?360+p.xmax:p.xmax], { icon: myIconAlt });
+                                // if (onclick){
+                                //     marker.on('click', e=>{
+                                //         onclick(p)
+                                //     });
+                                //     markerAlt.on('click', e=>{
+                                //         onclick(p)
+                                //     });
+                                // }
+                                // markers.push(marker);
+                                // markersAlt.push(markerAlt);
+                            } 
+                            */
+                            // _tracks[trackId] = L.layerGroup(markers);
+                            // _tracksAlt[trackId] = L.layerGroup(markersAlt);
+                            // if(!this.needAltLegend)
+                            //     nsGmx.leafletMap.addLayer(_tracks[trackId]);
+                            // else
+                            //     nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
                         }
                     }
                     else{

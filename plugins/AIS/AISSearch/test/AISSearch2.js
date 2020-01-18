@@ -1302,9 +1302,7 @@
 	    // tracks controller
 	    this.frame.find('.instruments .switch.all_tracks input[type="checkbox"]').on("click", function (e) {
 	        if (e.currentTarget.checked) {
-	            this.model.loadTracks().then(function (tracks) {
-	                _tools.showTracksOnMap(tracks);
-	            });
+	            this.model.loadTracks();
 	        } else _tools.showTracksOnMap("none");
 	        //console.log("showVesselsOnMap");            
 	    }.bind(this));
@@ -2085,7 +2083,7 @@
 	    }).then(function (response) {
 	        var nickname = response.Result.Nickname;
 	        return new Promise(function (resolve, reject) {
-	            if (nickname == 'scf_captain' && _mapID == 'KGEJB') resolve({ Status: "ok", Result: { count: 1, layers: [{ LayerID: "0A5CE9C59487441689ABF3031991BF2F" }] } });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
+	            if ((nickname == 'scf_captain' || nickname == 'scf_captain2020' || nickname == 'scf_master2020') && _mapID == 'KGEJB') resolve({ Status: "ok", Result: { count: 1, layers: [{ LayerID: "0A5CE9C59487441689ABF3031991BF2F" }] } });else sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + "Layer/Search2.ashx?page=0&pageSize=50&orderby=title &query=([Title]='myfleet" + _mapID + "' and [OwnerNickname]='" + nickname + "')", function (response) {
 	                if (response.Status.toLowerCase() == "ok" && response.Result.count > 0) resolve(response);else reject(response); // no my fleet layer
 	            });
 	        });
@@ -2371,10 +2369,10 @@
 	            //console.log(this.data.groups[i].marker_style)
 	        },
 	        loadTracks: function loadTracks() {
-	            return Promise.all(_vessels.map(function (v) {
-	                return new Promise(function (resolve) {
-	
-	                    var di = nsGmx.widgets.commonCalendar.getDateInterval();
+	            console.log(_tools.historyInterval);
+	            var di = _tools.historyInterval;
+	            _vessels.forEach(function (v) {
+	                new Promise(function (resolve) {
 	                    _aisLayerSearcher.searchPositionsAgg2(v.mmsi, { dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd') }, function (response) {
 	                        //console.log(response)       
 	                        if (parseResponse(response)) {
@@ -2396,10 +2394,9 @@
 	                                if (p[d]) {
 	                                    p[d].positions.push(_tools.formatPosition(obj, _aisLayerSearcher));
 	                                    p[d].count = p[d].count + 1;
-	                                } else p[d] = { mmsi: v.mmsi, ts_pos_utc: _tools.formatDate(d), positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
+	                                } else p[d] = { mmsi: v.mmsi, imo: obj['imo'], ts: obj['ts_pos_org'], positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
 	                                return p;
 	                            }, {});
-	                            //console.log(groups)       
 	                            var counter = 0;
 	                            for (var k in groups) {
 	                                groups[k]["n"] = counter++;
@@ -2408,16 +2405,9 @@
 	                            resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
 	                        } else resolve(response);
 	                    });
+	                }).then(function (response) {
+	                    if (response.Status && response.Status.toLowerCase() == 'ok' && response.Result && response.Result.values) _tools.showTrack(response.Result.values, console.log);else console.log(response);
 	                });
-	            })).then(function (response) {
-	                console.log(response);
-	                // if (response.Status.toLowerCase() == "ok") {
-	                //     _this.data = { vessels: response.Result.values, total: response.Result.total }
-	                //     return Promise.resolve();
-	                // }
-	                // else {
-	                //     return Promise.reject(response);
-	                // }
 	            });
 	        }
 	    };
@@ -2546,6 +2536,7 @@
 	        this.model.isDirty = true;
 	        this.show();
 	    }.bind(this));
+	    _tools.historyInterval = dateInterval;
 	    var msd = 24 * 3600000;
 	    this.calendar = new nsGmx.CalendarWidget({
 	        dateInterval: dateInterval,
@@ -2918,12 +2909,8 @@
 	DbSearchView.prototype.showTrack = function (vessels, onclick) {
 	
 	    _tools.showTrack(vessels, onclick);
-	    if (!vessels) return;
 	
-	    if (!Array.isArray(vessels)) {
-	        //this.withTrack = true;
-	        return;
-	    }
+	    if (!vessels || !Array.isArray(vessels)) return;
 	
 	    vessels.forEach(function (vessel) {
 	        var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
@@ -2953,6 +2940,14 @@
 	    nsGmx.leafletMap.removeLayer(_highlight);
 	    _highlight.vessel = vessel;
 	    _highlight.setLatLng([ymax, xmax < 0 ? 360 + xmax : xmax]).addTo(nsGmx.leafletMap);
+	};
+	
+	DbSearchView.prototype.formatDate = function (d, local) {
+	    return _tools.formatDate(d, local);
+	};
+	
+	DbSearchView.prototype.formatPosition = function (obj, searcher) {
+	    return _tools.formatPosition(obj, searcher);
 	};
 	
 	module.exports = DbSearchView;
@@ -3246,80 +3241,19 @@
 /* 21 */
 /***/ (function(module, exports) {
 
-	"use strict";
+	'use strict';
 	
 	module.exports = function (aisLayerSearcher) {
-	    var _actualUpdate = void 0,
-	        _round = function _round(d, p) {
-	        var isNeg = d < 0,
-	            power = Math.pow(10, p);
-	        return d ? (isNeg ? -1 : 1) * (Math.round((isNeg ? d = -d : d) * power) / power) : d;
-	    },
-	        _addUnit = function _addUnit(v, u) {
-	        return v != null && v != "" ? v + u : "";
-	    },
-	        _toDd = function _toDd(D, lng) {
-	        var dir = D < 0 ? lng ? 'W' : 'S' : lng ? 'E' : 'N',
-	            deg = Math.round((D < 0 ? D = -D : D) * 1000000) / 1000000;
-	        return deg.toFixed(2) + " " //"°"
-	        + dir;
-	    },
-	        _formatPosition = function _formatPosition(vessel) {
-	        vessel.cog_sog = vessel.cog && vessel.sog;
-	        vessel.heading_rot = vessel.heading && vessel.rot;
-	        vessel.x_y = vessel.longitude && vessel.latitude;
-	        var d = new Date(vessel.ts_pos_utc * 1000);
-	        var eta = new Date(vessel.ts_eta * 1000);
-	        vessel.tm_pos_utc = _formatTime(d);
-	        vessel.tm_pos_loc = _formatTime(d, true);
-	        vessel.dt_pos_utc = _formatDate(d);
-	        vessel.dt_pos_loc = _formatDate(d, true);
-	        vessel.eta_utc = aisLayerSearcher.formatDateTime(eta);
-	        vessel.eta_loc = aisLayerSearcher.formatDateTime(eta, true);
-	        vessel.icon_rot = Math.round(vessel.cog / 15) * 15;
-	        vessel.cog = _addUnit(_round(vessel.cog, 5), "°");
-	        vessel.rot = _addUnit(_round(vessel.rot, 5), "°/мин");
-	        vessel.heading = _addUnit(_round(vessel.heading, 5), "°");
-	        vessel.draught = _addUnit(_round(vessel.draught, 5), " м");
-	        //vessel.length = _addUnit(vessel.length, " м");
-	        //vessel.width = _addUnit(vessel.width, " м");
-	        //vessel.source = 'plugins/AIS/AISSearch/svg/satellite-ais.svg'//vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
-	        vessel.source_orig = vessel.source;
-	        vessel.source = vessel.source == 'T-AIS' ? 'plugins/AIS/AISSearch/svg/waterside-radar.svg' : 'plugins/AIS/AISSearch/svg/satellite-ais.svg';
-	
-	        vessel.xmin = vessel.longitude;
-	        vessel.xmax = vessel.longitude;
-	        vessel.ymin = vessel.latitude;
-	        vessel.ymax = vessel.latitude;
-	
-	        vessel.longitude = _toDd(vessel.longitude, true);
-	        vessel.latitude = _toDd(vessel.latitude);
-	        aisLayerSearcher.placeVesselTypeIcon(vessel);
-	        vessel.sog = _addUnit(_round(vessel.sog, 5), " уз");
-	
-	        return vessel;
-	    },
-	        _formatTime = function _formatTime(d, local) {
-	        var temp = new Date(d);
-	        if (!local) temp.setMinutes(temp.getMinutes() + temp.getTimezoneOffset());
-	        return temp.toLocaleTimeString();
-	    },
-	        _formatDate = function _formatDate(d, local) {
-	        var temp = new Date(d);
-	        if (!local) temp.setMinutes(temp.getMinutes() + temp.getTimezoneOffset());
-	        return temp.toLocaleDateString();
-	    };
+	    var _actualUpdate = void 0;
 	    return {
 	        searcher: aisLayerSearcher,
 	        filterString: "",
 	        isDirty: false,
 	        load: function load(actualUpdate) {
 	            if (!this.isDirty) return Promise.resolve();
-	            //return new Promise((resolve)=>setTimeout(resolve, 1000))
-	            //console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())     
+	
 	            var _this = this;
 	            return new Promise(function (resolve) {
-	                //aisLayerSearcher.searchPositionsAgg([_this.vessel.mmsi], _this.historyInterval, function (response) {
 	                aisLayerSearcher.searchPositionsAgg2(_this.vessel.mmsi, _this.historyInterval, function (response) {
 	                    //console.log(response)       
 	                    if (parseResponse(response)) {
@@ -3339,9 +3273,9 @@
 	                                }
 	                            }
 	                            if (p[d]) {
-	                                p[d].positions.push(_formatPosition(obj));
+	                                p[d].positions.push(_this.view.formatPosition(obj, aisLayerSearcher));
 	                                p[d].count = p[d].count + 1;
-	                            } else p[d] = { ts_pos_utc: _formatDate(d), positions: [_formatPosition(obj)], count: 1 };
+	                            } else p[d] = { ts_pos_utc: _this.view.formatDate(d), positions: [_this.view.formatPosition(obj, aisLayerSearcher)], count: 1 };
 	                            return p;
 	                        }, {});
 	                        //console.log(groups)       
@@ -4705,13 +4639,19 @@
 	        },
 	        placeVesselTypeIcon: function placeVesselTypeIcon(vessel) {
 	            var protocol = document.location.protocol,
-	                iconUrl = void 0;
+	                icon = void 0;
 	            // speed icon
-	            iconUrl = _vesselLegend.getIconAltUrl("vessel.vessel_name", vessel.sog);
-	            if (iconUrl) vessel.iconAlt = protocol + iconUrl;
+	            icon = _vesselLegend.getIconAlt("vessel.vessel_name", vessel.sog);
+	            if (icon) {
+	                vessel.iconAlt = protocol + icon.url;
+	                vessel.imgAlt = icon.img;
+	            }
 	            // type icon
-	            iconUrl = _vesselLegend.getIconUrl(vessel.vessel_type, vessel.sog);
-	            if (iconUrl) vessel.icon = protocol + iconUrl;
+	            icon = _vesselLegend.getIcon(vessel.vessel_type, vessel.sog);
+	            if (icon) {
+	                vessel.icon = protocol + icon.url;
+	                vessel.img = icon.img;
+	            }
 	        },
 	        searchPositionsAgg2: function searchPositionsAgg2(mmsi, dateInterval, callback) {
 	            fetch(_baseUrl + "plugins/AIS/SearchPositionsAsync.ashx?layer=" + _historyLayer + "&mmsi=" + mmsi + "&s=" + dateInterval.dateBegin.toISOString() + "&e=" + dateInterval.dateEnd.toISOString(), {
@@ -4850,18 +4790,20 @@
 	        _layers[0] && _layers[0]._gmx.properties.gmxStyles.styles.forEach(function (s) {
 	            var icon = {
 	                "filter": s.Filter,
-	                "url": s.RenderStyle.iconUrl.replace(/^https?:/, "").replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+	                "url": s.RenderStyle.iconUrl.replace(/^https?:/, "").replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
+	                "img": new Image()
 	            };
 	            _icons.push(icon);
-	            _iconsDict[icon.filter] = { url: icon.url, name: icon.name };
+	            _iconsDict[icon.filter] = { url: icon.url, name: icon.name, img: icon.img };
 	        });
 	        _layers[1] && _layers[1]._gmx.properties.gmxStyles.styles.forEach(function (s) {
 	            var icon = {
 	                "filter": s.Filter.replace(/([^<>=])=([^=])/g, "$1==$2").replace(/ *not ((.(?!( and | or |$)))+.)/ig, " !($1)").replace(/ or /ig, " || ").replace(/ and /ig, " && "),
-	                "url": s.RenderStyle.iconUrl.replace(/^https?:/, "").replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+	                "url": s.RenderStyle.iconUrl.replace(/^https?:/, "").replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
+	                "img": new Image()
 	            };
 	            _iconsAlt.push(icon);
-	            _iconsAltDict[icon.filter] = { url: icon.url, name: icon.name };
+	            _iconsAltDict[icon.filter] = { url: icon.url, name: icon.name, img: icon.img };
 	        });
 	        // console.log(_icons);
 	        // console.log(_iconsAlt);
@@ -4875,6 +4817,15 @@
 	                    var a = /\.cls-1{fill:(#[^};]+)/.exec(ic.svg);
 	                    ic.color = '#888';
 	                    if (a && a.length) ic.color = a[1];
+	
+	                    var svg = httpRequest.responseText;
+	                    var svg64 = btoa(unescape(encodeURIComponent(svg)));
+	                    var b64Start = 'data:image/svg+xml;base64,';
+	                    var image64 = b64Start + svg64;
+	                    //let img = new Image(); 
+	                    //img.src = image64;                              
+	                    //ic.img = img;                              
+	                    ic.img.src = image64;
 	                    resolve();
 	                }
 	            };
@@ -4985,6 +4936,7 @@
 	                    re2 = new RegExp(sog != 0 ? ">0" : "=0");
 	                //console.log(vessel_type+" "+sog+" "+f+" "+f.search(re1)+" "+f.search(re2))
 	                if (f.search(re1) != -1 && f.search(re2) != -1) {
+	                    //console.log( _iconsDict[f])
 	                    return _iconsDict[f];
 	                }
 	            }
@@ -5006,8 +4958,9 @@
 /* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
+	__webpack_require__(33);
 	var Polyfill = __webpack_require__(16);
 	module.exports = function (options) {
 	    var _layersByID = nsGmx.gmxMap.layersByID;
@@ -5081,6 +5034,7 @@
 	            }
 	        }
 	    },
+	        _historyInterval = void 0,
 	        _markers = void 0,
 	        _visibleMarkers = [],
 	        _icons = {},
@@ -5207,6 +5161,12 @@
 	            //return !!(_lastPointLayerAlt && _lastPointLayerAlt._map); 
 	            return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map);
 	        },
+	        get historyInterval() {
+	            return _historyInterval;
+	        },
+	        set historyInterval(v) {
+	            _historyInterval = v;
+	        },
 	        showTrack: function showTrack(vessels, onclick) {
 	            if (!vessels) {
 	                for (var t in _tracks) {
@@ -5217,44 +5177,78 @@
 	                }
 	                return;
 	            }
+	            var drawRotatedImage = function drawRotatedImage(ctx, image, x, y, angle) {
+	                ctx.save();
+	                ctx.translate(x, y);
+	                ctx.rotate(angle * Math.PI / 180.0);
+	                ctx.drawImage(image, -(image.width / 2), -(image.height / 2));
+	                ctx.restore();
+	                //ctx.drawImage(image, x, y); 
+	            },
+	                drawingOnCanvas = function drawingOnCanvas(canvasOverlay, params) {
+	                var ctx = params.canvas.getContext('2d'),
+	                    data = params.options.data;
+	                if (!data.length) return;
+	                console.log( //ctx, 
+	                data, params.options.markers
+	                //, 
+	                //params.bounds.contains([data[0].ymax, data[0].xmax]),
+	                //canvasOverlay._map.latLngToContainerPoint([data[0].ymax, data[0].xmax])
+	                );
+	                ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
+	                // var dot = canvasOverlay._map.latLngToContainerPoint([data[0].ymax, data[0].xmax]);
+	                // drawRotatedImage(ctx, data[0].img, dot.x, dot.y, 45);   
 	
+	                for (var i = 0; i < data.length; i++) {
+	                    if (params.bounds.contains([data[i].ymax, data[i].xmax])) {
+	                        var dot = canvasOverlay._map.latLngToContainerPoint([data[i].ymax, data[i].xmax]);
+	                        drawRotatedImage(ctx, data[i].img, dot.x, dot.y, parseInt(data[i].cog));
+	                    }
+	                }
+	            };
 	            for (var i = 0; i < vessels.length; ++i) {
 	                var trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
 	                if (vessels[i].positions.length) {
 	                    if (_tracks[trackId]) {} else {
-	                        var markers = [],
-	                            markersAlt = [];
-	
-	                        var _loop = function _loop(j) {
-	                            var p = vessels[i].positions[j],
-	                                myIcon = L.divIcon({
-	                                className: 'ais-track-marker',
-	                                html: "<img src=\"" + p.icon + "\" style=\"margin-left: -4px; margin-top: -5px; transform: rotate(" + p.cog.replace(/°/, '').replace(/,/, '.') + "deg);\">"
-	                            }),
-	                                myIconAlt = L.divIcon({
-	                                className: 'ais-track-marker',
-	                                html: "<img src=\"" + p.iconAlt + "\" style=\"margin-left: -4px; margin-top: -5px; transform: rotate(" + p.cog.replace(/°/, '').replace(/,/, '.') + "deg);\">"
-	                            }),
-	                                marker = L.marker([p.ymax, p.xmax], { icon: myIcon }),
-	                                markerAlt = L.marker([p.ymax, p.xmax], { icon: myIconAlt });
-	                            if (onclick) {
-	                                marker.on('click', function (e) {
-	                                    onclick(p);
-	                                });
-	                                markerAlt.on('click', function (e) {
-	                                    onclick(p);
-	                                });
-	                            }
-	                            markers.push(marker);
-	                            markersAlt.push(markerAlt);
-	                        };
-	
-	                        for (var j = 0; j < vessels[i].positions.length; ++j) {
-	                            _loop(j);
-	                        }
-	                        _tracks[trackId] = L.layerGroup(markers);
-	                        _tracksAlt[trackId] = L.layerGroup(markersAlt);
+	                        _tracks[trackId] = L.canvasOverlay();
+	                        _tracks[trackId].params({ data: vessels[i].positions, markers: "TYPE" }).drawing(drawingOnCanvas);
+	                        _tracksAlt[trackId] = L.canvasOverlay();
+	                        _tracksAlt[trackId].params({ data: vessels[i].positions, markers: "SPEED" }).drawing(drawingOnCanvas);
 	                        if (!this.needAltLegend) nsGmx.leafletMap.addLayer(_tracks[trackId]);else nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
+	                        /*
+	                                               
+	                        
+	                                                    let markers = [], markersAlt = [];
+	                                                    for (let j = 0; j < vessels[i].positions.length; ++j) {
+	                                                        // let p = vessels[i].positions[j],                    
+	                                                        //     myIcon = L.divIcon({
+	                                                        //         className: 'ais-track-marker',
+	                                                        //         html: `<img src="${p.icon}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
+	                                                        //     }),
+	                                                        //     myIconAlt = L.divIcon({
+	                                                        //         className: 'ais-track-marker',
+	                                                        //         html: `<img src="${p.iconAlt}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
+	                                                        //     }),                                    
+	                                                        //     marker = L.marker([p.ymax, p.xmax<0?360+p.xmax:p.xmax], { icon: myIcon }),                                    
+	                                                        //     markerAlt = L.marker([p.ymax, p.xmax<0?360+p.xmax:p.xmax], { icon: myIconAlt });
+	                                                        // if (onclick){
+	                                                        //     marker.on('click', e=>{
+	                                                        //         onclick(p)
+	                                                        //     });
+	                                                        //     markerAlt.on('click', e=>{
+	                                                        //         onclick(p)
+	                                                        //     });
+	                                                        // }
+	                                                        // markers.push(marker);
+	                                                        // markersAlt.push(markerAlt);
+	                                                    } 
+	                                                    */
+	                        // _tracks[trackId] = L.layerGroup(markers);
+	                        // _tracksAlt[trackId] = L.layerGroup(markersAlt);
+	                        // if(!this.needAltLegend)
+	                        //     nsGmx.leafletMap.addLayer(_tracks[trackId]);
+	                        // else
+	                        //     nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
 	                    }
 	                } else {
 	                    nsGmx.leafletMap.removeLayer(_tracks[trackId]);
@@ -5388,6 +5382,187 @@
 	        }
 	
 	    };
+	};
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports) {
+
+	"use strict";
+	
+	/*
+	
+	  inspired & portions taken from  :  http://bl.ocks.org/Sumbera/11114288, https://github.com/Leaflet/Leaflet.heat
+	  
+	*/
+	
+	L.CanvasOverlay = L.Class.extend({
+	
+	    _layerAdd: function _layerAdd(e) {
+	        L.DomUtil = L.DomUtil || {};
+	        L.DomUtil.getTranslateString = L.DomUtil.getTranslateString || function (t) {
+	            var e = L.Browser.webkit3d,
+	                i = "translate" + (e ? "3d" : "") + "(",
+	                n = (e ? ",0" : "") + ")";
+	            return i + t.x + "px," + t.y + "px" + n;
+	        };
+	
+	        var map = e.target;
+	
+	        // check in case layer gets added and then removed before the map is ready
+	        if (!map.hasLayer(this)) {
+	            return;
+	        }
+	
+	        this._map = map;
+	        this._zoomAnimated = map._zoomAnimated;
+	
+	        if (this.getEvents) {
+	            var events = this.getEvents();
+	            map.on(events, this);
+	            this.once('remove', function () {
+	                map.off(events, this);
+	            }, this);
+	        }
+	
+	        this.onAdd(map);
+	
+	        if (this.getAttribution && map.attributionControl) {
+	            map.attributionControl.addAttribution(this.getAttribution());
+	        }
+	
+	        this.fire('add');
+	        map.fire('layeradd', { layer: this });
+	    },
+	
+	    fire: function fire(en) {
+	        //console.log(en)
+	    },
+	
+	    initialize: function initialize(userDrawFunc, options) {
+	        this._userDrawFunc = userDrawFunc;
+	        L.setOptions(this, options);
+	    },
+	
+	    drawing: function drawing(userDrawFunc) {
+	        this._userDrawFunc = userDrawFunc;
+	        return this;
+	    },
+	
+	    params: function params(options) {
+	        L.setOptions(this, options);
+	        return this;
+	    },
+	
+	    canvas: function canvas() {
+	        return this._canvas;
+	    },
+	
+	    redraw: function redraw() {
+	        console.log('REDRAW', this._frame);
+	        if (!this._frame) {
+	            this._frame = L.Util.requestAnimFrame(this._redraw, this);
+	        }
+	        return this;
+	    },
+	
+	    onAdd: function onAdd(map) {
+	        this._map = map;
+	        this._canvas = L.DomUtil.create('canvas', 'leaflet-tracks-layer');
+	
+	        var size = this._map.getSize();
+	        this._canvas.width = size.x;
+	        this._canvas.height = size.y;
+	
+	        var animated = this._map.options.zoomAnimation && L.Browser.any3d;
+	        L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
+	
+	        map._panes.overlayPane.appendChild(this._canvas);
+	
+	        map.on('moveend', this._reset, this);
+	        map.on('resize', this._resize, this);
+	
+	        if (map.options.zoomAnimation && L.Browser.any3d) {
+	            map.on('zoomanim', this._animateZoom, this);
+	        }
+	        map.on('moveend', function (e) {
+	            console.log('> moveend', e);
+	        });
+	        this._reset();
+	    },
+	
+	    onRemove: function onRemove(map) {
+	        map.getPanes().overlayPane.removeChild(this._canvas);
+	
+	        map.off('moveend', this._reset, this);
+	        map.off('resize', this._resize, this);
+	
+	        if (map.options.zoomAnimation) {
+	            map.off('zoomanim', this._animateZoom, this);
+	        }
+	        this._canvas = null;
+	    },
+	
+	    addTo: function addTo(map) {
+	        map.addLayer(this);
+	        return this;
+	    },
+	
+	    _resize: function _resize(resizeEvent) {
+	        this._canvas.width = resizeEvent.newSize.x;
+	        this._canvas.height = resizeEvent.newSize.y;
+	        this._reset();
+	    },
+	    _reset: function _reset() {
+	        var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+	        //L.DomUtil.setPosition(this._canvas, topLeft);
+	        this._canvas.style['transform'] = L.DomUtil.getTranslateString(topLeft);
+	
+	        //console.log('RESET', topLeft, this._canvas.style.transform);
+	        this._redraw();
+	    },
+	
+	    _redraw: function _redraw() {
+	        var size = this._map.getSize();
+	        var bounds = this._map.getBounds();
+	        var zoomScale = size.x * 180 / (20037508.34 * (bounds.getEast() - bounds.getWest())); // resolution = 1/zoomScale
+	        var zoom = this._map.getZoom();
+	
+	        // console.time('process');
+	
+	        if (this._userDrawFunc) {
+	            this._userDrawFunc(this, {
+	                canvas: this._canvas,
+	                bounds: bounds,
+	                size: size,
+	                zoomScale: zoomScale,
+	                zoom: zoom,
+	                options: this.options
+	            });
+	        }
+	
+	        // console.timeEnd('process');
+	
+	        this._frame = null;
+	    },
+	
+	    _animateZoom: function _animateZoom(e) {
+	        var scale = this._map.getZoomScale(e.zoom),
+	
+	        //offset = this._map._getCenterOffset(e.center)._multiplyBy(-scale).subtract(this._map._getMapPanePos());
+	        w = this._canvas.offsetWidth,
+	            h = this._canvas.offsetHeight,
+	            offset;
+	
+	        if (scale == 2) offset = this._map.containerPointToLayerPoint([0, 0]).subtract({ x: w / 2, y: h / 2 });else offset = this._map.containerPointToLayerPoint([0, 0]).add({ x: w / 4, y: h / 4 });
+	
+	        //this._canvas.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
+	        this._canvas.style['transform'] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
+	    }
+	});
+	
+	L.canvasOverlay = function (userDrawFunc, options) {
+	    return new L.CanvasOverlay(userDrawFunc, options);
 	};
 
 /***/ })

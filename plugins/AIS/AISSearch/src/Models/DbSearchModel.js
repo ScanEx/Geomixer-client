@@ -1,66 +1,5 @@
 module.exports = function (aisLayerSearcher) {
-    let _actualUpdate,
-        _round = function (d, p) {
-            let isNeg = d < 0,
-                power = Math.pow(10, p)
-            return d ? ((isNeg ? -1 : 1) * (Math.round((isNeg ? d = -d : d) * power) / power)) : d
-        },
-        _addUnit = function (v, u) {
-            return v != null && v != "" ? v + u : "";
-        },
-        _toDd = function (D, lng) {
-            let dir = D < 0 ? lng ? 'W' : 'S' : lng ? 'E' : 'N',
-                deg = Math.round((D < 0 ? D = -D : D) * 1000000) / 1000000
-            return deg.toFixed(2) + " "//"°"
-                + dir
-        },
-        _formatPosition = function (vessel) {
-            vessel.cog_sog = vessel.cog && vessel.sog
-            vessel.heading_rot = vessel.heading && vessel.rot
-            vessel.x_y = vessel.longitude && vessel.latitude
-            let d = new Date(vessel.ts_pos_utc * 1000)
-            let eta = new Date(vessel.ts_eta * 1000)
-            vessel.tm_pos_utc = _formatTime(d);
-            vessel.tm_pos_loc = _formatTime(d, true);
-            vessel.dt_pos_utc = _formatDate(d);
-            vessel.dt_pos_loc = _formatDate(d, true);
-            vessel.eta_utc = aisLayerSearcher.formatDateTime(eta);
-            vessel.eta_loc = aisLayerSearcher.formatDateTime(eta, true);
-            vessel.icon_rot = Math.round(vessel.cog/15)*15;
-            vessel.cog = _addUnit(_round(vessel.cog, 5), "°");
-            vessel.rot = _addUnit(_round(vessel.rot, 5), "°/мин");
-            vessel.heading = _addUnit(_round(vessel.heading, 5), "°");
-            vessel.draught = _addUnit(_round(vessel.draught, 5), " м");
-            //vessel.length = _addUnit(vessel.length, " м");
-            //vessel.width = _addUnit(vessel.width, " м");
-            //vessel.source = 'plugins/AIS/AISSearch/svg/satellite-ais.svg'//vessel.source=='T-AIS'?_gtxt('AISSearch2.tais'):_gtxt('AISSearch2.sais');
-            vessel.source_orig = vessel.source;
-            vessel.source = vessel.source=='T-AIS'?'plugins/AIS/AISSearch/svg/waterside-radar.svg':'plugins/AIS/AISSearch/svg/satellite-ais.svg';
-	            
-            vessel.xmin = vessel.longitude;
-            vessel.xmax = vessel.longitude;           
-            vessel.ymin = vessel.latitude;
-            vessel.ymax = vessel.latitude; 
-
-            vessel.longitude = _toDd(vessel.longitude, true);
-            vessel.latitude = _toDd(vessel.latitude);
-            aisLayerSearcher.placeVesselTypeIcon(vessel);
-            vessel.sog = _addUnit(_round(vessel.sog, 5), " уз");
-
-            return vessel;
-        },
-        _formatTime = function (d, local) {
-            var temp = new Date(d)
-            if (!local)
-                temp.setMinutes(temp.getMinutes() + temp.getTimezoneOffset())
-            return temp.toLocaleTimeString();
-        },
-        _formatDate = function (d, local) {
-            var temp = new Date(d)
-            if (!local)
-                temp.setMinutes(temp.getMinutes() + temp.getTimezoneOffset())
-            return temp.toLocaleDateString();
-        }
+    let _actualUpdate;
     return {
         searcher: aisLayerSearcher,
         filterString: "",
@@ -68,11 +7,9 @@ module.exports = function (aisLayerSearcher) {
         load: function (actualUpdate) {
             if (!this.isDirty)
                 return Promise.resolve();
-            //return new Promise((resolve)=>setTimeout(resolve, 1000))
-            //console.log('LOAD ' + _historyInterval['dateBegin'].toUTCString() + ' ' + _historyInterval['dateEnd'].toUTCString())     
+ 
             var _this = this;
             return new Promise((resolve) => {
-                //aisLayerSearcher.searchPositionsAgg([_this.vessel.mmsi], _this.historyInterval, function (response) {
                 aisLayerSearcher.searchPositionsAgg2(_this.vessel.mmsi, _this.historyInterval, function (response) {
 //console.log(response)       
                     if (parseResponse(response)) {
@@ -89,11 +26,11 @@ module.exports = function (aisLayerSearcher) {
                                     }
                                 }
                                 if (p[d]) {
-                                    p[d].positions.push(_formatPosition(obj));
+                                    p[d].positions.push(_this.view.formatPosition(obj, aisLayerSearcher));
                                     p[d].count = p[d].count + 1;
                                 }
                                 else
-                                    p[d] = { ts_pos_utc: _formatDate(d), positions: [_formatPosition(obj)], count: 1 };
+                                    p[d] = { ts_pos_utc: _this.view.formatDate(d), positions: [_this.view.formatPosition(obj, aisLayerSearcher)], count: 1 };
                                 return p;
                             }, {});
 //console.log(groups)       

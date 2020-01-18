@@ -162,10 +162,7 @@ const MyFleetView = function (model, tools){
     this.frame.find('.instruments .switch.all_tracks input[type="checkbox"]').on("click", 
         function(e){
             if (e.currentTarget.checked) {                  
-                this.model.loadTracks()
-                .then(tracks=>{     
-                _tools.showTracksOnMap(tracks);
-                });
+                this.model.loadTracks();
             }
             else
                 _tools.showTracksOnMap("none"); 

@@ -6,10 +6,11 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                 let icon = {
                     "filter": s.Filter, 
                     "url": s.RenderStyle.iconUrl.replace(/^https?:/, "")
-                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
+                    "img": new Image()
                 };
                 _icons.push(icon);
-                _iconsDict[icon.filter] = {url:icon.url, name:icon.name};
+                _iconsDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img};
             });
             _layers[1] && _layers[1]._gmx.properties.gmxStyles.styles.forEach(s => {
                 let icon = {
@@ -17,10 +18,11 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                         .replace(/ *not ((.(?!( and | or |$)))+.)/ig, " !($1)")
                         .replace(/ or /ig, " || ").replace(/ and /ig, " && "), 
                     "url": s.RenderStyle.iconUrl.replace(/^https?:/, "")
-                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
+                    "img": new Image()
                 };
                 _iconsAlt.push(icon);
-                _iconsAltDict[icon.filter] = {url:icon.url, name:icon.name};
+                _iconsAltDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img};
             });
 // console.log(_icons);
 // console.log(_iconsAlt);
@@ -35,6 +37,15 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                         ic.color = '#888';
                         if (a && a.length)
                             ic.color = a[1];
+ 
+                        let svg = httpRequest.responseText;
+                        let svg64 = btoa(unescape(encodeURIComponent(svg)));
+                        let b64Start = 'data:image/svg+xml;base64,';
+                        let image64 = b64Start + svg64;                       
+                        //let img = new Image(); 
+                        //img.src = image64;                              
+                        //ic.img = img;                              
+                        ic.img.src = image64; 
                         resolve();
                     }
                 }
@@ -154,6 +165,7 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                 re2 = new RegExp(sog != 0 ? ">0" : "=0");
 //console.log(vessel_type+" "+sog+" "+f+" "+f.search(re1)+" "+f.search(re2))
                 if(f.search(re1)!=-1 && f.search(re2)!=-1){
+//console.log( _iconsDict[f])
                     return _iconsDict[f];
                 }
             }

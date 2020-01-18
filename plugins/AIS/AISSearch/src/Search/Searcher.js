@@ -108,15 +108,19 @@ module.exports = function (options) {
         },
         placeVesselTypeIcon: function(vessel){
             let protocol = document.location.protocol,
-            iconUrl;            
+            icon;            
             // speed icon
-            iconUrl = _vesselLegend.getIconAltUrl("vessel.vessel_name", vessel.sog);
-            if (iconUrl)
-                vessel.iconAlt = protocol + iconUrl;           
+            icon = _vesselLegend.getIconAlt("vessel.vessel_name", vessel.sog);
+            if (icon){
+                vessel.iconAlt = protocol + icon.url; 
+                vessel.imgAlt =  icon.img;
+            }         
             // type icon
-            iconUrl = _vesselLegend.getIconUrl(vessel.vessel_type, vessel.sog);
-            if (iconUrl)
-                vessel.icon = protocol + iconUrl;
+            icon = _vesselLegend.getIcon(vessel.vessel_type, vessel.sog);
+            if (icon){
+                vessel.icon = protocol + icon.url;
+                vessel.img =  icon.img;
+            }
         },
         searchPositionsAgg2: function (mmsi, dateInterval, callback) {
             fetch(`${_baseUrl}plugins/AIS/SearchPositionsAsync.ashx?layer=${_historyLayer}&mmsi=${mmsi}&s=${dateInterval.dateBegin.toISOString()}&e=${dateInterval.dateEnd.toISOString()}`, {
