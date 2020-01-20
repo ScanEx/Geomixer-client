@@ -114,12 +114,14 @@ module.exports = function (options) {
             if (icon){
                 vessel.iconAlt = protocol + icon.url; 
                 vessel.imgAlt =  icon.img;
+                vessel.colorAlt = icon.color;
             }         
             // type icon
             icon = _vesselLegend.getIcon(vessel.vessel_type, vessel.sog);
             if (icon){
                 vessel.icon = protocol + icon.url;
                 vessel.img =  icon.img;
+                vessel.color = icon.color;
             }
         },
         searchPositionsAgg2: function (mmsi, dateInterval, callback) {

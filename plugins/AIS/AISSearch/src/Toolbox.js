@@ -3,35 +3,23 @@ const Polyfill = require('./Polyfill');
 module.exports = function (options) {
     const _layersByID = nsGmx.gmxMap.layersByID;
       let _aisLayer = _layersByID[options.aisLayerID],
-          //_tracksLayer = _layersByID[options.tracksLayerID],
           _screenSearchLayer = _layersByID[options.searchLayer],
           _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
           _lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt];
-          //_tracksLayerAlt = _layersByID[options.tracksLayerAlt],
-          //_historyLayerAlt = _layersByID[options.historyLayerAlt];
 
     let   _almmsi, _tlmmsi, _aldt, _tldt;
     try{
           _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, 
-          //_tlmmsi = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "mmsi"==p.toLowerCase();}) + 1,
           _aldt = _aisLayer.getGmxProperties().attributes.indexOf("ts_pos_utc") + 1;
-          //_tldt = Polyfill.findIndex(_tracksLayer.getGmxProperties().attributes, function(p){return "date"==p.toLowerCase();}) + 1;
 // console.log(_almmsi+" "+_aldt)
 // console.log(_tlmmsi+" "+_tldt)
     }
     catch(ex){}
 
-    let //_displayedTrack = {mmsi:null},  
-    _displayedVessels = "all",  
+    let _displayedVessels = "all",  
     _notDisplayedVessels = [],
     _filterFunc = function (args) {
-        // let dates = _displayedTrack.dates ? _displayedTrack.dates.list : null,
         let mmsiArr = [];
-
-        // if (_displayedTrack.mmsi && _notDisplayedVessels.indexOf(_displayedTrack.mmsi.toString())<0 &&
-        //     (_displayedVessels=="all" || _displayedVessels.indexOf(_displayedTrack.mmsi.toString()) >= 0))
-        //     mmsiArr.push(_displayedTrack.mmsi);
-
         let mmsi = args.properties[args.properties.length > 20 ? _almmsi : _tlmmsi].toString(),
             dt = new Date(new Date(args.properties[args.properties.length>20 ? _aldt : _tldt]*1000).setUTCHours(0,0,0,0)),
             i, j;
@@ -205,8 +193,6 @@ module.exports = function (options) {
             _specialVesselFilters[key] = value;
             //_setVesselFilter();
         },
-        //get displayedTrack(){ return _displayedTrack; },
-        //set displayedTrack(value){ _displayedTrack = value; },
         get hasAlternativeLayers(){ return _lastPointLayerAlt; },
         get needAltLegend(){
             //return !!(_lastPointLayerAlt && _lastPointLayerAlt._map); 
@@ -237,30 +223,36 @@ module.exports = function (options) {
                 data = params.options.data;
                 if (!data.length)
                     return;
-console.log(//ctx, 
-    data, params.options.markers
-    //, 
-    //params.bounds.contains([data[0].ymax, data[0].xmax]),
-    //canvasOverlay._map.latLngToContainerPoint([data[0].ymax, data[0].xmax])
-);
-                 ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);  
-                        // var dot = canvasOverlay._map.latLngToContainerPoint([data[0].ymax, data[0].xmax]);
-                        // drawRotatedImage(ctx, data[0].img, dot.x, dot.y, 45);   
-
+// console.log(data, 
+//     params.options.markers);
+                ctx.clearRect(0, 0, params.canvas.width, params.canvas.height); 
+                ctx.beginPath();
+                if (data.length && params.options.markers == 'SPEED')
+                    ctx.strokeStyle = data[0].colorAlt.value;
+                else
+                    ctx.strokeStyle = data[0].color.value;
+                ctx.lineWidth = 2;
+                ctx.globalCompositeOperation = 'destination-over';
+                let startPt = null;
                 for (var i = 0; i < data.length; i++) {
-                    if (params.bounds.contains([data[i].ymax, data[i].xmax])) {
-                        var dot = canvasOverlay._map.latLngToContainerPoint([data[i].ymax, data[i].xmax]);
-                        drawRotatedImage(ctx, data[i].img, dot.x, dot.y, parseInt(data[i].cog));
-                    }
-                } 
+                    var y = data[i].ymax, x = data[i].xmax<0 ? 360 + data[i].xmax : data[i].xmax;
+                    //if (params.bounds.contains([y, x])) {
+                    if (params.buffer.contains([y, x])) {
+                        var dot = canvasOverlay._map.latLngToContainerPoint([y, x]);
+                        drawRotatedImage(ctx, params.options.markers=='SPEED'?data[i].imgAlt:data[i].img, dot.x, dot.y, parseInt(data[i].cog));
+                        if (!startPt){
+                            startPt = dot;
+                            ctx.moveTo(dot.x, dot.y);
+                        }
+                        else
+                            ctx.lineTo(dot.x, dot.y);                    }
+                }
+ctx.stroke(); 
             };
             for (let i = 0; i < vessels.length; ++i){
                 let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
                     if (vessels[i].positions.length){
-                        if (_tracks[trackId]){
-
-                        }
-                        else{
+                        if (!_tracks[trackId]){
                             _tracks[trackId] = L.canvasOverlay();
                             _tracks[trackId].params({data: vessels[i].positions, markers: "TYPE"})
                             .drawing(drawingOnCanvas); 
@@ -271,47 +263,15 @@ console.log(//ctx,
                                 nsGmx.leafletMap.addLayer(_tracks[trackId]);
                             else
                                 nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
-/*
-                       
-
-                            let markers = [], markersAlt = [];
-                            for (let j = 0; j < vessels[i].positions.length; ++j) {
-                                // let p = vessels[i].positions[j],                    
-                                //     myIcon = L.divIcon({
-                                //         className: 'ais-track-marker',
-                                //         html: `<img src="${p.icon}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
-                                //     }),
-                                //     myIconAlt = L.divIcon({
-                                //         className: 'ais-track-marker',
-                                //         html: `<img src="${p.iconAlt}" style="margin-left: -4px; margin-top: -5px; transform: rotate(${p.cog.replace(/°/, '').replace(/,/, '.')}deg);">`,
-                                //     }),                                    
-                                //     marker = L.marker([p.ymax, p.xmax<0?360+p.xmax:p.xmax], { icon: myIcon }),                                    
-                                //     markerAlt = L.marker([p.ymax, p.xmax<0?360+p.xmax:p.xmax], { icon: myIconAlt });
-                                // if (onclick){
-                                //     marker.on('click', e=>{
-                                //         onclick(p)
-                                //     });
-                                //     markerAlt.on('click', e=>{
-                                //         onclick(p)
-                                //     });
-                                // }
-                                // markers.push(marker);
-                                // markersAlt.push(markerAlt);
-                            } 
-                            */
-                            // _tracks[trackId] = L.layerGroup(markers);
-                            // _tracksAlt[trackId] = L.layerGroup(markersAlt);
-                            // if(!this.needAltLegend)
-                            //     nsGmx.leafletMap.addLayer(_tracks[trackId]);
-                            // else
-                            //     nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
                         }
                     }
                     else{
-                        nsGmx.leafletMap.removeLayer(_tracks[trackId]);
-                        nsGmx.leafletMap.removeLayer(_tracksAlt[trackId]);
-                        delete _tracks[trackId];
-                        delete _tracksAlt[trackId];
+                        //if (_tracks[trackId]){
+                            nsGmx.leafletMap.removeLayer(_tracks[trackId]);
+                            nsGmx.leafletMap.removeLayer(_tracksAlt[trackId]);
+                            delete _tracks[trackId];
+                            delete _tracksAlt[trackId];
+                        //}
                     }
             }
         },
@@ -326,17 +286,6 @@ console.log(//ctx,
         restoreDefault: function(){                   
             nsGmx.leafletMap.addLayer(_screenSearchLayer);
             _lastPointLayerAlt && nsGmx.leafletMap.removeLayer(_lastPointLayerAlt); 
-            //_historyLayerAlt && nsGmx.leafletMap.removeLayer(_historyLayerAlt); 
-            //if (_tracksLayer && _tracksLayerAlt && _tracksLayerAlt._gmx.layerID != _tracksLayer._gmx.layerID )
-            //    nsGmx.leafletMap.removeLayer(_tracksLayerAlt);
-        },
-        showTracksOnMap: function(vessels){  
-            if (vessels!='none'){
-console.log(vessels);
-            }            
-            else{
-
-            }
         },
         showVesselsOnMap: function (vessels) {            
             _displayedVessels = vessels!="all" ? vessels.map(v=>v) : "all";           
@@ -368,14 +317,6 @@ console.log(vessels);
             let temp = _screenSearchLayer;
             _screenSearchLayer = _lastPointLayerAlt;
             _lastPointLayerAlt = temp;
-            //_switchLayers(_aisLayer, _historyLayerAlt);
-            // temp = _aisLayer;
-            // _aisLayer = _historyLayerAlt;
-            // _historyLayerAlt = temp;
-            // _switchLayers(_tracksLayer, _tracksLayerAlt);
-            // temp = _tracksLayer;
-            // _tracksLayer = _tracksLayerAlt;
-            // _tracksLayerAlt = temp;
 
             _setVesselFilter();
             _legendSwitched(showAlternative);

@@ -1,7 +1,8 @@
 /*
+  - added _layerAdd
+  - modified _animateZoom, _reset
 
   inspired & portions taken from  :  http://bl.ocks.org/Sumbera/11114288, https://github.com/Leaflet/Leaflet.heat
-  
 */
 
 L.CanvasOverlay = L.Class.extend({
@@ -61,7 +62,7 @@ L.CanvasOverlay = L.Class.extend({
     canvas: function () {
         return this._canvas;
     },
-
+/*
     redraw: function () {
 console.log('REDRAW', this._frame)
         if (!this._frame) {
@@ -69,10 +70,10 @@ console.log('REDRAW', this._frame)
         }
         return this;
     },    
-  
+*/ 
     onAdd: function (map) {
         this._map = map;
-        this._canvas = L.DomUtil.create('canvas', 'leaflet-tracks-layer');
+        this._canvas = L.DomUtil.create('canvas', 'leaflet-aistracks-layer');
 
         var size = this._map.getSize();
         this._canvas.width = size.x;
@@ -89,7 +90,7 @@ console.log('REDRAW', this._frame)
         if (map.options.zoomAnimation && L.Browser.any3d) {
             map.on('zoomanim', this._animateZoom, this);
         }
-        map.on('moveend',         function (e) { console.log('> moveend',e); });
+        
         this._reset();
     },
 
@@ -137,6 +138,14 @@ console.log('REDRAW', this._frame)
                                 {
                                     canvas   :this._canvas,
                                     bounds   : bounds,
+                                    buffer: {
+                                        contains: function (pt) {
+                                            let w = bounds.getWest(), e = bounds.getEast(),
+                                                n = bounds.getNorth(), s = bounds.getSouth();
+                                            return s - 0.5 <= pt[0] && pt[0] <= n + 0.5 &&
+                                                w - 1 <= pt[1] && pt[1] <= e + 1;
+                                        }
+                                    },
                                     size     : size,
                                     zoomScale: zoomScale,
                                     zoom : zoom,

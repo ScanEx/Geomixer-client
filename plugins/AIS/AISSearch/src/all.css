@@ -167,3 +167,7 @@ margin: 25px;
   padding-left: 2px;
   padding-top: 0;
 }
+
+.leaflet-aistracks-layer{
+  pointer-events: none;
+}

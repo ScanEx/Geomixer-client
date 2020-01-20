@@ -7,10 +7,11 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                     "filter": s.Filter, 
                     "url": s.RenderStyle.iconUrl.replace(/^https?:/, "")
                         .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
-                    "img": new Image()
+                    "img": new Image(),
+                    "typeColor": {}
                 };
                 _icons.push(icon);
-                _iconsDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img};
+                _iconsDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img, color: icon.typeColor};
             });
             _layers[1] && _layers[1]._gmx.properties.gmxStyles.styles.forEach(s => {
                 let icon = {
@@ -19,10 +20,11 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                         .replace(/ or /ig, " || ").replace(/ and /ig, " && "), 
                     "url": s.RenderStyle.iconUrl.replace(/^https?:/, "")
                         .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
-                    "img": new Image()
+                    "img": new Image(),
+                    "typeColor": {}
                 };
                 _iconsAlt.push(icon);
-                _iconsAltDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img};
+                _iconsAltDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img, color: icon.typeColor};
             });
 // console.log(_icons);
 // console.log(_iconsAlt);
@@ -37,14 +39,13 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                         ic.color = '#888';
                         if (a && a.length)
                             ic.color = a[1];
+
+                        ic.typeColor.value = ic.color;
  
                         let svg = httpRequest.responseText;
                         let svg64 = btoa(unescape(encodeURIComponent(svg)));
                         let b64Start = 'data:image/svg+xml;base64,';
-                        let image64 = b64Start + svg64;                       
-                        //let img = new Image(); 
-                        //img.src = image64;                              
-                        //ic.img = img;                              
+                        let image64 = b64Start + svg64;              
                         ic.img.src = image64; 
                         resolve();
                     }

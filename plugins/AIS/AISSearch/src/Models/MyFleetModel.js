@@ -668,7 +668,7 @@ console.log(_tools.historyInterval)
                         _tools.showTrack(response.Result.values, console.log);
                     else
                         console.log(response);
-                })
+                });
             });
         }
     };

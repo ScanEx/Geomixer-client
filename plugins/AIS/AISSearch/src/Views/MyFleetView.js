@@ -164,9 +164,9 @@ const MyFleetView = function (model, tools){
             if (e.currentTarget.checked) {                  
                 this.model.loadTracks();
             }
-            else
-                _tools.showTracksOnMap("none"); 
-//console.log("showVesselsOnMap");            
+            else {
+                //this.model
+            }            
         }.bind(this)
     ); 
 
