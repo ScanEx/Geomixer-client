@@ -165,6 +165,7 @@ const MyFleetView = function (model, tools){
                 this.model.loadTracks();
             }
             else {
+                _tools.showMyFleetTrack();
                 //this.model
             }            
         }.bind(this)

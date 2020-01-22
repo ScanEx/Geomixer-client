@@ -134,6 +134,16 @@ module.exports = function (options) {
             .then(response => response.json())
             .then(callback);
         },
+        searchPositionsAgg2Mf: function (mmsi, dateInterval, callback) {
+            fetch(`${_baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=${_historyLayer}&mmsi=${mmsi}&s=${dateInterval.dateBegin.toISOString()}&e=${dateInterval.dateEnd.toISOString()}`, {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, cors, *same-origin
+                cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: 'include' // include, *same-origin, omit
+            })
+            .then(response => response.json())
+            .then(callback);
+        },
         searchPositionsAgg: function (vessels, dateInterval, callback) {
             //console.log(dateInterval);
             var request = {

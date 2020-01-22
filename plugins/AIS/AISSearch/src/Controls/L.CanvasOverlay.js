@@ -1,9 +1,11 @@
 /*
-  - added _layerAdd
+  - added _layerAdd, _canvasMargin
   - modified _animateZoom, _reset
 
   inspired & portions taken from  :  http://bl.ocks.org/Sumbera/11114288, https://github.com/Leaflet/Leaflet.heat
 */
+
+const _canvasMargin = 400;
 
 L.CanvasOverlay = L.Class.extend({
 
@@ -76,8 +78,8 @@ console.log('REDRAW', this._frame)
         this._canvas = L.DomUtil.create('canvas', 'leaflet-aistracks-layer');
 
         var size = this._map.getSize();
-        this._canvas.width = size.x;
-        this._canvas.height = size.y;
+        this._canvas.width = size.x + _canvasMargin;
+        this._canvas.height = size.y + _canvasMargin;   
 
         var animated = this._map.options.zoomAnimation && L.Browser.any3d;
         L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
@@ -112,12 +114,12 @@ console.log('REDRAW', this._frame)
     },
 
     _resize: function (resizeEvent) {
-        this._canvas.width  = resizeEvent.newSize.x;
-        this._canvas.height = resizeEvent.newSize.y;
+        this._canvas.width  = resizeEvent.newSize.x + _canvasMargin;
+        this._canvas.height = resizeEvent.newSize.y + _canvasMargin;
         this._reset();
     },
     _reset: function () {
-        var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+        var topLeft = this._map.containerPointToLayerPoint([0, 0]).subtract({x: _canvasMargin/2, y: _canvasMargin/2});
         //L.DomUtil.setPosition(this._canvas, topLeft);
         this._canvas.style['transform'] = L.DomUtil.getTranslateString(topLeft) ;
 
@@ -149,7 +151,8 @@ console.log('REDRAW', this._frame)
                                     size     : size,
                                     zoomScale: zoomScale,
                                     zoom : zoom,
-                                    options: this.options
+                                    options: this.options,
+                                    offset: _canvasMargin/2
                                });
         }
        
@@ -166,9 +169,9 @@ console.log('REDRAW', this._frame)
             offset;
         
         if (scale == 2)
-            offset = this._map.containerPointToLayerPoint([0, 0]).subtract({x: w/2, y: h/2});
+            offset = this._map.containerPointToLayerPoint([0, 0]).subtract({x: w/2, y: h/2}).subtract({x: _canvasMargin/2, y: _canvasMargin/2});
         else
-            offset = this._map.containerPointToLayerPoint([0, 0]).add({x: w/4, y: h/4});
+            offset = this._map.containerPointToLayerPoint([0, 0]).add({x: w/4, y: h/4}).subtract({x: _canvasMargin/2, y: _canvasMargin/2});
 
         //this._canvas.style[L.DomUtil.TRANSFORM] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
         this._canvas.style['transform'] = L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';

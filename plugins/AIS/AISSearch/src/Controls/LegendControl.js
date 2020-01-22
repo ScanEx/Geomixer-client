@@ -45,9 +45,27 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                         let svg = httpRequest.responseText;
                         let svg64 = btoa(unescape(encodeURIComponent(svg)));
                         let b64Start = 'data:image/svg+xml;base64,';
-                        let image64 = b64Start + svg64;              
-                        ic.img.src = image64; 
+                        let image64 = b64Start + svg64; 
+                        let imgSvg = new Image();             
+                        imgSvg.src = image64; 
+//console.log(imgSvg)
+                        imgSvg.onload = function(){
+                        let canvas = document.createElement("canvas");
+                        document.body.appendChild(canvas)
+                        canvas.width = imgSvg.width;
+                        canvas.height = imgSvg.height;
+                        let ctx = canvas.getContext("2d");
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(imgSvg, 0, 0);
+                        ic.img.src = canvas.toDataURL("image/png");
+                        //ic.img.onload = function(){
+//console.log(ic.img)
+                        document.body.removeChild(canvas);
+
+
                         resolve();
+                        //}
+                        }
                     }
                 }
                 httpRequest.open("GET", document.location.protocol + ic.url.replace(/^https?:/, ""));

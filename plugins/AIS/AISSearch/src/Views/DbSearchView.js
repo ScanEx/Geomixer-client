@@ -3,21 +3,7 @@ require("../Controls/SearchControl.css");
 const BaseView = require('./BaseView.js'),
 SearchControl = require('../Controls/SearchControl');
 
-let // _searchString = "",
-    // _setSearchInputValue = function (s) {
-    //     let searchBut = this.frame.find('.filter .search'),
-    //         removeBut = this.frame.find('.filter .remove'),
-    //         _searchString = s;
-            
-    //     this.searchInput.val(_searchString);
-    //     if (s != "") {
-    //         removeBut.show();
-    //         searchBut.hide();
-    //     }
-    //     else
-    //         removeBut.click();
-    // },
-    _searchLayer,
+let _searchLayer,
     _highlight,
     _tools,
     _displayedOnly = [];

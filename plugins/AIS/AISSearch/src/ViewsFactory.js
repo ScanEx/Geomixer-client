@@ -9,8 +9,9 @@ const ScreenSearchView = require('./Views/ScreenSearchView'),
 
 module.exports = function (options) {
     const _tools = options.tools,
+        _modulePath = options.modulePath,
         _searcher = new Searcher(options),
-        _mfm = new MyFleetModel({aisLayerSearcher:_searcher, toolbox:_tools}),
+        _mfm = new MyFleetModel({aisLayerSearcher:_searcher, toolbox:_tools, modulePath: _modulePath}),
         _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm, vesselLegend: options.vesselLegend }),
         _dbsm = new DbSearchModel(_searcher),
         _dbsv = new DbSearchView(_dbsm, options, _tools),
@@ -19,7 +20,7 @@ module.exports = function (options) {
         _idv = new InfoDialogView({
             tools:_tools,
             aisLayerSearcher: _searcher, 
-            modulePath: options.modulePath,
+            modulePath: _modulePath,
             aisView: _dbsv, 
             myFleetView: _mfv,
             menuId: options.menuId
