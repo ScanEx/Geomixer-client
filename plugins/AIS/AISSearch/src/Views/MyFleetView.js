@@ -150,7 +150,7 @@ const MyFleetView = function (model, tools){
             display = '{{{foo}}}';  
         this.model.markerTemplate =  this.model.markerTemplate.replace(/<td>\{\{\{.+\}\}\}<\/td>/, '<td>' + display + '</td>');
         if (_displayedOnly.length)          
-            _tools.showVesselsOnMap(_displayedOnly);
+            _tools.showVesselsOnMap(_displayedOnly, false, true);
         else
             _tools.showVesselsOnMap("all"); 
             
@@ -161,12 +161,12 @@ const MyFleetView = function (model, tools){
     // tracks controller
     this.frame.find('.instruments .switch.all_tracks input[type="checkbox"]').on("click", 
         function(e){
-            if (e.currentTarget.checked) {                  
+            if (e.currentTarget.checked) {    
+                this.inProgress(true);              
                 this.model.loadTracks();
             }
             else {
                 _tools.showMyFleetTrack();
-                //this.model
             }            
         }.bind(this)
     ); 
@@ -177,7 +177,7 @@ const MyFleetView = function (model, tools){
             _displayedOnly.length = 0;
             if (e.currentTarget.checked) {
                 _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());         
-                _tools.showVesselsOnMap(_displayedOnly);
+                _tools.showVesselsOnMap(_displayedOnly, false, true);
             }
             else
                 _tools.showVesselsOnMap("all"); 
@@ -223,7 +223,7 @@ MyFleetView.prototype.repaint = function () {
         this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]')[0].checked = false;    
     if (this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]')[0].checked) {
         _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());         
-        _tools.showVesselsOnMap(_displayedOnly);
+        _tools.showVesselsOnMap(_displayedOnly, false, true);
     } 
     else         
         _tools.showVesselsOnMap("all");
@@ -250,7 +250,7 @@ MyFleetView.prototype.repaint = function () {
         else
             _notDisplayed.length = 0;
         _tools.hideVesselsOnMap(uncheked);
-// console.log("hideVesselsOnMap");
+//console.log("hideVesselsOnMap");
     }
     this.groupList.onChangeGroup = ((mmsi, group)=>{
         let view = this;

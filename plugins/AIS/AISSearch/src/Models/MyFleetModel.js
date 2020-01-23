@@ -510,7 +510,6 @@ console.log("add group and style field");
                 if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
                     remove = _vessels[i].gmx_id;
                     _vessels.splice(i, 1);
-                    //_tools.eraseMyFleetMarker(vessel.mmsi);
                 }
             }
             return new Promise((resolve, reject) => {
@@ -544,7 +543,7 @@ console.log("add group and style field");
                                 }
                                 else
                                     reject(response);
-                            })
+                            });
                     else
                         sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
                             'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
@@ -554,7 +553,7 @@ console.log("add group and style field");
                                     resolve();
                                 else
                                     reject(response);
-                            })
+                            });
                 })
                 .then(
                 function () {
@@ -566,7 +565,17 @@ console.log("add group and style field");
                     console.log(response);
                     this.isDirty = true;
                     return Promise.resolve();
-                }.bind(this));
+                }.bind(this))
+                .then(
+                    function(){
+                        if (remove)
+                            _tools.removeMyFleetTrack(vessel.mmsi);
+                        else
+                            this.loadTrack(vessel.mmsi);
+                            
+                        return Promise.resolve();                       
+                    }.bind(this)
+                );
             });
         },
         changeGroup: function(mmsi, group)  {   
@@ -627,6 +636,40 @@ console.log("add group and style field");
 //console.log(group)
 //console.log(this.data.groups[i].marker_style)
         },
+        loadTrack: function(mmsi){
+            if (window.Worker) {
+                //_trackLoaders.forEach(w=>w.terminate());
+                //_trackLoaders.length = 0;   
+
+                const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
+                di = _tools.historyInterval,
+                interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
+                thisView = this.view;
+                let counter = _vessels.length;
+
+                let v = {mmsi: mmsi};
+                //_vessels.forEach(v=>{ 
+                    var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
+                    myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
+                    myWorker.onmessage = function(e) {
+//console.log('Message received from worker', e.data);
+                        _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false);
+                    }                
+                    myWorker.onerror = function(e) {
+                        console.log(e);
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false)
+                    }
+                    _trackLoaders.push(myWorker);
+                //});
+            }
+            else
+                console.log("NO WORKERS")
+        },
         loadTracks: function(){
             if (window.Worker) {
                 _trackLoaders.forEach(w=>w.terminate());
@@ -634,18 +677,25 @@ console.log("add group and style field");
 
                 const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
                 di = _tools.historyInterval,
-                interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')};
+                interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
+                thisView = this.view;
+                let counter = _vessels.length;
+
                 _vessels.forEach(v=>{ 
                     var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
                     myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
                     myWorker.onmessage = function(e) {
-                        console.log('Message received from worker', e.data);
-
+//console.log('Message received from worker', e.data);
                         _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
-
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false);
                     }                
                     myWorker.onerror = function(e) {
                         console.log(e);
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false)
                     }
                     _trackLoaders.push(myWorker);
                 });

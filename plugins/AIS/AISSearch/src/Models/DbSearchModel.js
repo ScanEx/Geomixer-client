@@ -13,7 +13,7 @@ module.exports = function (aisLayerSearcher) {
                 aisLayerSearcher.searchPositionsAgg2(_this.vessel.mmsi, _this.historyInterval, function (response) {
 //console.log(response)       
                     if (parseResponse(response)) {
-                        let position, positions = [],
+                        let position, positions = [], previous,
                             fields = response.Result.fields,
                             groups = response.Result.values.reduce((p, c) => {
                                 let obj = {}, d;
@@ -29,8 +29,12 @@ module.exports = function (aisLayerSearcher) {
                                     p[d].positions.push(_this.view.formatPosition(obj, aisLayerSearcher));
                                     p[d].count = p[d].count + 1;
                                 }
-                                else
+                                else{
                                     p[d] = { ts_pos_utc: _this.view.formatDate(d), positions: [_this.view.formatPosition(obj, aisLayerSearcher)], count: 1 };
+                                    if (previous) // todo check date diff!!
+                                        previous.lastPos = {xmax: p[d].positions[0].xmax, ymax: p[d].positions[0].ymax};
+                                }
+                                previous = p[d];
                                 return p;
                             }, {});
 //console.log(groups)       

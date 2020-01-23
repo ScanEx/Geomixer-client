@@ -1,6 +1,6 @@
-const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
+const LegendControl = function (tools, aisLastPointLayer, lastPointLayerAlt) {
     const _layersByID = nsGmx.gmxMap.layersByID,
-        _layers = [_layersByID[aisLastPointLaier], _layersByID[lastPointLayerAlt]],
+        _layers = [_layersByID[aisLastPointLayer], _layersByID[lastPointLayerAlt]],
         _getIcons = function () {
             _layers[0] && _layers[0]._gmx.properties.gmxStyles.styles.forEach(s => {
                 let icon = {
@@ -34,7 +34,7 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                 let httpRequest = new XMLHttpRequest();
                 httpRequest.onreadystatechange = function () {
                     if (httpRequest.readyState === 4) {
-                        ic["svg"] = httpRequest.responseText;
+                        ic.svg = httpRequest.responseText;
                         let a = /\.cls-1{fill:(#[^};]+)/.exec(ic.svg);
                         ic.color = '#888';
                         if (a && a.length)
