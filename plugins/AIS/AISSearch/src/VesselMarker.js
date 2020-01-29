@@ -5,13 +5,19 @@ L.Canvas.include({
         var p = layer._point,
             ctx = this._ctx,
             r = Math.max(Math.round(layer._radius), 1);
-
+//console.log(layer.options)
         this._drawnLayers[layer._leaflet_id] = layer;
+        if (layer.options.next){
+            var np = layer._map.latLngToLayerPoint(layer.options.next)
+            ctx.strokeStyle = layer.options.fillColor;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(np.x, np.y);
+            ctx.stroke();
+        }
 
-        ctx.strokeStyle = 'red'
         ctx.beginPath();
         ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
-        //ctx.stroke();
         this._fillStroke(ctx, layer);
 
         let img = layer.options.img,

@@ -187,11 +187,10 @@ module.exports = function (options) {
             + dir
     };
 
-    const _tracks = {}, _tracksAlt = {}; 
-    const _tracksMF = {}, _tracksAltMF = {}; 
-    const _canvas = L.canvas();
-    let _prevCursor = null;
-    const _addMarker = function(p, group, style, placeVesselTypeIcon){
+    const _tracks = {}, _tracksAlt = {}, 
+    _tracksMF = {}, _tracksAltMF = {}, 
+    _canvas = L.canvas(),
+    _addMarker = function(p, ep, group, style, placeVesselTypeIcon){
         if (placeVesselTypeIcon)
             placeVesselTypeIcon(p);
         var options = {
@@ -199,31 +198,43 @@ module.exports = function (options) {
             fillColor: style != 'SPEED' ? p.color.value : p.colorAlt.value,
             fillOpacity: 0.25,
             weight: 1,
-            color: "#000000",
+            color: 'SPEED' ? p.color.value : p.colorAlt.value,
             cog: parseInt(p.cog),
             img: style != 'SPEED' ? p.img : p.imgAlt,
             renderer: _canvas,
-            pid: p.id
+            pid: p.id,
+            next: !ep ? null : L.latLng(ep.ymax, ep.xmax < 0 ? 360 + ep.xmax : ep.xmax),
+            ts: new Date()
         },
-            m = vesselMarker(L.latLng(p.ymax, p.xmax < 0 ? 360 + p.xmax : p.xmax), options);
-        m.on('click', e => console.log(e.target.options.pid))
+        m = vesselMarker(L.latLng(p.ymax, p.xmax < 0 ? 360 + p.xmax : p.xmax), options);
+        m.on('click', e => console.log(e.target.options.pid, e.target.options.ts))
         group.addLayer(m);                
     },
-    _addMarkers = function (data, style, placeVesselTypeIcon) {
+    _addMarkers = function (data, next, style, placeVesselTypeIcon) {
         const group = L.layerGroup(null, {renderer: _canvas});
 
-        for (var i = 0; i < data.length; i++) {   
-            if (data[i].positions)            
+        for (var i = 0; i < data.length; i++) {               
+            if (data[i].positions)   {         
                 for (var j = 0; j < data[i].positions.length; j++) {
                     var p = data[i].positions[j];
-                    _addMarker(p, group, style, placeVesselTypeIcon);
+                    if (data[i].positions[j+1])
+                        _addMarker(p, data[i].positions[j+1], group, style, placeVesselTypeIcon);
+                    else
+                        _addMarker(p, null, group, style, placeVesselTypeIcon);
                 }
-            else
-                _addMarker(data[i], group, style, placeVesselTypeIcon);
+            }
+            else{
+                if (data[i+1])
+                    _addMarker(data[i], data[i+1], group, style, placeVesselTypeIcon);
+                else{
+                    _addMarker(data[i], next, group, style, placeVesselTypeIcon);
+                }
+            }
 
         }
         return group;
     }
+    let _prevCursor = null;
 
     document.body.addEventListener('mousemove', e=>{
         if (!_canvas._container)
@@ -323,8 +334,8 @@ module.exports = function (options) {
                 let trackId = vessels[0].mmsi.toString();
                 if (!_tracksMF[trackId] && vessels[0].positions.length) {
 
-                    _tracksMF[trackId] = _addMarkers(vessels, 'TYPE', aisLayerSearcher.placeVesselTypeIcon);
-                    _tracksAltMF[trackId] = _addMarkers(vessels, 'SPEED', aisLayerSearcher.placeVesselTypeIcon);
+                    _tracksMF[trackId] = _addMarkers(vessels, null, 'TYPE', aisLayerSearcher.placeVesselTypeIcon);
+                    _tracksAltMF[trackId] = _addMarkers(vessels, null,  'SPEED', aisLayerSearcher.placeVesselTypeIcon);
 //console.log(_tracksMF[trackId])
                     if (_canvas._container)
                         _canvas._container.style.pointerEvents = 'none';
@@ -476,9 +487,10 @@ console.log('remove ' + vessels[0].mmsi)
                 let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
                 if (vessels[i].positions.length) {
                     if (!_tracks[trackId]) {
-                        _tracks[trackId] = _addMarkers(vessels[i].positions, 'TYPE');
-                        _tracksAlt[trackId] = _addMarkers(vessels[i].positions, 'SPEED');
-//console.log(_tracksMF[trackId])
+                        let next = null;
+                        _tracks[trackId] = _addMarkers(vessels[i].positions, next, 'TYPE');
+                        _tracksAlt[trackId] = _addMarkers(vessels[i].positions, next, 'SPEED');
+//console.log(i, _tracks[trackId])
                         if (_canvas._container) 
                             _canvas._container.style.pointerEvents = 'none';
                             
