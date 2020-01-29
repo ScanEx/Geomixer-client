@@ -1,7 +1,10 @@
 require('./Controls/L.CanvasOverlay');
+const vesselMarker  = require('./VesselMarker');
 const Polyfill = require('./Polyfill');
+
 module.exports = function (options) {
-    const _layersByID = nsGmx.gmxMap.layersByID;
+    const _lmap = nsGmx.leafletMap,
+        _layersByID = nsGmx.gmxMap.layersByID;
       let _aisLayer = _layersByID[options.aisLayerID],
           _screenSearchLayer = _layersByID[options.searchLayer],
           _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
@@ -101,7 +104,7 @@ module.exports = function (options) {
     },
     _eraseMyFleetMarker = function(mmsi){
         if (!_markers)
-            _markers = L.layerGroup().addTo(nsGmx.leafletMap);
+            _markers = L.layerGroup().addTo(_lmap);
         else{
             let layers = _markers.getLayers(), layer;
             for (var i in layers)
@@ -159,10 +162,9 @@ module.exports = function (options) {
         //l1 && console.log(l1.getGmxProperties().name +" "+ !!(l1._map))
         if (!l2 || l2._map)
             return;
-        let lmap = nsGmx.leafletMap;
         if (l1 && l2){
-            lmap.removeLayer(l1);
-            lmap.addLayer(l2);
+            _lmap.removeLayer(l1);
+            _lmap.addLayer(l2);
         }
     },
     _legendSwitchedHandlers = [],
@@ -187,6 +189,65 @@ module.exports = function (options) {
 
     const _tracks = {}, _tracksAlt = {}; 
     const _tracksMF = {}, _tracksAltMF = {}; 
+    const _canvas = L.canvas();
+    let _prevCursor = null;
+    const _addMarker = function(p, group, style, placeVesselTypeIcon){
+        if (placeVesselTypeIcon)
+            placeVesselTypeIcon(p);
+        var options = {
+            radius: 10,
+            fillColor: style != 'SPEED' ? p.color.value : p.colorAlt.value,
+            fillOpacity: 0.25,
+            weight: 1,
+            color: "#000000",
+            cog: parseInt(p.cog),
+            img: style != 'SPEED' ? p.img : p.imgAlt,
+            renderer: _canvas,
+            pid: p.id
+        },
+            m = vesselMarker(L.latLng(p.ymax, p.xmax < 0 ? 360 + p.xmax : p.xmax), options);
+        m.on('click', e => console.log(e.target.options.pid))
+        group.addLayer(m);                
+    },
+    _addMarkers = function (data, style, placeVesselTypeIcon) {
+        const group = L.layerGroup(null, {renderer: _canvas});
+
+        for (var i = 0; i < data.length; i++) {   
+            if (data[i].positions)            
+                for (var j = 0; j < data[i].positions.length; j++) {
+                    var p = data[i].positions[j];
+                    _addMarker(p, group, style, placeVesselTypeIcon);
+                }
+            else
+                _addMarker(data[i], group, style, placeVesselTypeIcon);
+
+        }
+        return group;
+    }
+
+    document.body.addEventListener('mousemove', e=>{
+        if (!_canvas._container)
+            return;
+         _canvas._onMouseMove(e); 
+        if(_canvas._container.className.search(/interactive/)>-1){ 
+                if (_canvas._map._container.style.cursor != 'pointer'){
+                    _prevCursor = _canvas._map._container.style.cursor;
+                    _canvas._map._container.style.cursor = 'pointer'
+                } 
+            } 
+            else {
+                if (_prevCursor !== null){
+                    _canvas._map._container.style.cursor = _prevCursor;
+                    _prevCursor = null;
+                }
+            }
+    });
+    document.body.addEventListener('click', e=>{
+        if (!_canvas._container)
+            return;
+        if(_canvas._container.className.search(/interactive/)>-1)
+            _canvas._onClick(e);
+    });     
 
     return {
         set specialVesselFilters({key, value}) {
@@ -207,18 +268,93 @@ module.exports = function (options) {
         removeMyFleetTrack: function (mmsi){
             mmsi = mmsi.toString();
             if (_tracksMF[mmsi]){
-                nsGmx.leafletMap.removeLayer(_tracksMF[mmsi]);
-                nsGmx.leafletMap.removeLayer(_tracksAltMF[mmsi]);
+                _lmap.removeLayer(_tracksMF[mmsi]);
+                _lmap.removeLayer(_tracksAltMF[mmsi]);
                 delete _tracksMF[mmsi];
                 delete _tracksAltMF[mmsi];
             }
-        },        
+        },   
         showMyFleetTrack: function (vessels, onclick, aisLayerSearcher) {
+            //console.log(vessels);
+            if (!vessels) {
+                for (let t in _tracksMF) {   
+                    // if (_tracksMF[t].options.renderer)
+                    //     _lmap.removeLayer(_tracksMF[t].options.renderer)
+                    // if (_tracksAltMF[t].options.renderer)
+                    //     _lmap.removeLayer(_tracksAltMF[t].options.renderer)  
+                    _lmap.removeLayer(_tracksMF[t]);
+                    _lmap.removeLayer(_tracksAltMF[t]);
+                    delete _tracksMF[t];
+                    delete _tracksAltMF[t];
+                }
+                return;
+            }   
+/*
+            function addMarkers(data, style) {
+                //const canvas = L.canvas(),
+                const group = L.layerGroup(null, {renderer: _canvas});
+
+                for (var i = 0; i < data.length; i++)                
+                for (var j = 0; j < data[i].positions.length; j++) {
+
+                    var p = data[i].positions[j];
+                    aisLayerSearcher.placeVesselTypeIcon(p);
+                    var options = {
+                        radius: 10,
+                        fillColor: style != 'SPEED' ? p.color.value : p.colorAlt.value,
+                        fillOpacity: 0.25,
+                        weight: 1,
+                        color: "#000000",
+                        cog: parseInt(p.cog),
+                        img: style != 'SPEED' ? p.img : p.imgAlt,
+                        renderer: _canvas,
+                        pid: p.id
+                    },
+                    m = vesselMarker(L.latLng(p.ymax, p.xmax < 0 ? 360 + p.xmax : p.xmax), options);
+                    m.on('click', e=>console.log(e.target.options.pid))
+                    group.addLayer(m);
+                }
+                return group;
+            }
+*/
+            if (vessels.length && vessels[0].mmsi) {
+//console.log(vessels)
+//return;
+                let trackId = vessels[0].mmsi.toString();
+                if (!_tracksMF[trackId] && vessels[0].positions.length) {
+
+                    _tracksMF[trackId] = _addMarkers(vessels, 'TYPE', aisLayerSearcher.placeVesselTypeIcon);
+                    _tracksAltMF[trackId] = _addMarkers(vessels, 'SPEED', aisLayerSearcher.placeVesselTypeIcon);
+//console.log(_tracksMF[trackId])
+                    if (_canvas._container)
+                        _canvas._container.style.pointerEvents = 'none';
+                        
+                    let mmsi; 
+                    for (let t in _tracks){ 
+                        mmsi = t.replace(/_.+/, '')
+                        if (mmsi==trackId)
+                            break;
+                        else
+                            mmsi = false;
+                    }
+                    if (!mmsi){
+                        if (!this.needAltLegend)
+                            _lmap.addLayer(_tracksMF[trackId]);
+                        else
+                            _lmap.addLayer(_tracksAltMF[trackId]);
+                    }
+                    else
+                        console.log(mmsi + " hidden")
+                }
+            }
+        
+        },
+        showMyFleetTrack2: function (vessels, onclick, aisLayerSearcher) {
 //console.log(vessels);
             if (!vessels){
                 for (let t in _tracksMF){
-                    nsGmx.leafletMap.removeLayer(_tracksMF[t]);
-                    nsGmx.leafletMap.removeLayer(_tracksAltMF[t]);
+                    _lmap.removeLayer(_tracksMF[t]);
+                    _lmap.removeLayer(_tracksAltMF[t]);
                     delete _tracksMF[t];
                     delete _tracksAltMF[t];
                 }
@@ -284,21 +420,101 @@ module.exports = function (options) {
                     _tracksAltMF[trackId] = L.canvasOverlay();
                     _tracksAltMF[trackId].params({ data: vessels, markers: "SPEED" })
                         .drawing(drawingOnCanvas);
-                    if (!this.needAltLegend)
-                        nsGmx.leafletMap.addLayer(_tracksMF[trackId]);
+            
+                    let mmsi; 
+                    for (let t in _tracks){ 
+                        mmsi = t.replace(/_.+/, '')
+                        if (mmsi==trackId)
+                            break;
+                        else
+                            mmsi = false;
+                    }
+                    if (!mmsi){
+                        if (!this.needAltLegend)
+                            _lmap.addLayer(_tracksMF[trackId]);
+                        else
+                            _lmap.addLayer(_tracksAltMF[trackId]);
+                    }
                     else
-                        nsGmx.leafletMap.addLayer(_tracksAltMF[trackId]);
+                        console.log(mmsi + " hidden")
                 }
             }
         },
 
         ///////////////////////
 
+        
         showTrack: function (vessels, onclick) {
-            if (!vessels){
-                for (let t in _tracks){
-                    nsGmx.leafletMap.removeLayer(_tracks[t]);
-                    nsGmx.leafletMap.removeLayer(_tracksAlt[t]);
+            if (!vessels){               
+                let mmsi; 
+                for (let t in _tracks){   
+                    if (!mmsi){
+                        mmsi = t.replace(/_.+/, '')
+                        if(_tracksMF[mmsi]){
+console.log('add '+mmsi)
+                            if (!this.needAltLegend)
+                                _lmap.addLayer(_tracksMF[mmsi]);
+                            else
+                                _lmap.addLayer(_tracksAltMF[mmsi]);
+                        }
+                    }
+                    _lmap.removeLayer(_tracks[t]);
+                    _lmap.removeLayer(_tracksAlt[t]);
+                    delete _tracks[t];
+                    delete _tracksAlt[t];
+                }
+                return;
+            }
+           
+            if (vessels.length && _tracksMF[vessels[0].mmsi]){
+                _lmap.removeLayer(_tracksMF[vessels[0].mmsi]);
+                _lmap.removeLayer(_tracksAltMF[vessels[0].mmsi]);
+console.log('remove ' + vessels[0].mmsi)
+            }
+                
+            for (let i = 0; i < vessels.length; ++i){
+                let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
+                if (vessels[i].positions.length) {
+                    if (!_tracks[trackId]) {
+                        _tracks[trackId] = _addMarkers(vessels[i].positions, 'TYPE');
+                        _tracksAlt[trackId] = _addMarkers(vessels[i].positions, 'SPEED');
+//console.log(_tracksMF[trackId])
+                        if (_canvas._container) 
+                            _canvas._container.style.pointerEvents = 'none';
+                            
+                        if (!this.needAltLegend)
+                            _lmap.addLayer(_tracks[trackId]);
+                        else
+                            _lmap.addLayer(_tracksAlt[trackId]);
+                    }
+                }
+                else {
+                    //if (_tracks[trackId]){
+                    _lmap.removeLayer(_tracks[trackId]);
+                    _lmap.removeLayer(_tracksAlt[trackId]);
+                    delete _tracks[trackId];
+                    delete _tracksAlt[trackId];
+                    //}
+                }
+            }
+        },
+
+        showTrack2: function (vessels, onclick) {
+            if (!vessels){               
+                let mmsi; 
+                for (let t in _tracks){   
+                    if (!mmsi){
+                        mmsi = t.replace(/_.+/, '')
+                        if(_tracksMF[mmsi]){
+console.log('add '+mmsi)
+                            if (!this.needAltLegend)
+                                _lmap.addLayer(_tracksMF[mmsi]);
+                            else
+                                _lmap.addLayer(_tracksAltMF[mmsi]);
+                        }
+                    }
+                    _lmap.removeLayer(_tracks[t]);
+                    _lmap.removeLayer(_tracksAlt[t]);
                     delete _tracks[t];
                     delete _tracksAlt[t];
                 }
@@ -359,6 +575,12 @@ module.exports = function (options) {
                 ctx.stroke(); 
             };
 //console.log(vessels)
+            if (vessels.length && _tracksMF[vessels[0].mmsi]){
+                _lmap.removeLayer(_tracksMF[vessels[0].mmsi]);
+                _lmap.removeLayer(_tracksAltMF[vessels[0].mmsi]);
+console.log('remove ' + vessels[0].mmsi)
+            }
+                
             for (let i = 0; i < vessels.length; ++i){
                 let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
                 if (vessels[i].positions.length) {
@@ -370,15 +592,15 @@ module.exports = function (options) {
                         _tracksAlt[trackId].params({ data: vessels[i].positions, lastPos: vessels[i].lastPos, markers: "SPEED" })
                             .drawing(drawingOnCanvas);
                         if (!this.needAltLegend)
-                            nsGmx.leafletMap.addLayer(_tracks[trackId]);
+                            _lmap.addLayer(_tracks[trackId]);
                         else
-                            nsGmx.leafletMap.addLayer(_tracksAlt[trackId]);
+                            _lmap.addLayer(_tracksAlt[trackId]);
                     }
                 }
                 else {
                     //if (_tracks[trackId]){
-                    nsGmx.leafletMap.removeLayer(_tracks[trackId]);
-                    nsGmx.leafletMap.removeLayer(_tracksAlt[trackId]);
+                    _lmap.removeLayer(_tracks[trackId]);
+                    _lmap.removeLayer(_tracksAlt[trackId]);
                     delete _tracks[trackId];
                     delete _tracksAlt[trackId];
                     //}
@@ -386,76 +608,98 @@ module.exports = function (options) {
             }
         },
         hideVesselsOnMap: function (vessels) {
-            if (vessels && vessels.length){
-                _notDisplayedVessels.forEach(mmsi=>{
-                    if(_tracksMF[mmsi]){
-                        if (!this.needAltLegend)
-                        nsGmx.leafletMap.addLayer(_tracksMF[mmsi]);
-                        else
-                        nsGmx.leafletMap.addLayer(_tracksAltMF[mmsi]);
+console.log('hideOnMap', vessels)
+            const addLayers = function(mmsi){ // RESTORE PREV HIDDEN
+//console.log('hideOnMap', mmsi,trackMmsi)
+                    let trackMmsi;
+                    for (let k in _tracks){   
+                        trackMmsi = k.replace(/_.+/, '');    
+                        if (trackMmsi==mmsi)            
+                            if (!this.needAltLegend)
+                            _lmap.addLayer(_tracks[k]);
+                            else
+                            _lmap.addLayer(_tracksAlt[k]);
                     }
-                });
 
+                    if (trackMmsi!=mmsi){
+                        if(_tracksMF[mmsi]) {
+                            if (!this.needAltLegend)
+                            _lmap.addLayer(_tracksMF[mmsi]);
+                            else
+                            _lmap.addLayer(_tracksAltMF[mmsi]);
+                        }
+                    } 
+            };
+
+            if (vessels && vessels.length){
+                _notDisplayedVessels.forEach(mmsi=>addLayers.call(this, mmsi));
                 _notDisplayedVessels = vessels.map(v=>v);
                 _notDisplayedVessels.forEach(mmsi=>{
                     if(_tracksMF[mmsi]) {
-                        nsGmx.leafletMap.removeLayer(_tracksMF[mmsi]);
-                        nsGmx.leafletMap.removeLayer(_tracksAltMF[mmsi]);
+                        _lmap.removeLayer(_tracksMF[mmsi]);
+                        _lmap.removeLayer(_tracksAltMF[mmsi]);
+                    }
+                    for (let k in _tracks){   
+                        let trackMmsi = k.replace(/_.+/, '');    
+                        if (trackMmsi==mmsi) {
+                        _lmap.removeLayer(_tracks[k]);
+                        _lmap.removeLayer(_tracksAlt[k]);
+                        }
                     }
                 });
             }
             else{
-                _notDisplayedVessels.forEach(mmsi=>{
-                    if(_tracksMF[mmsi]) {
-                        if (!this.needAltLegend)
-                        nsGmx.leafletMap.addLayer(_tracksMF[mmsi]);
-                        else
-                        nsGmx.leafletMap.addLayer(_tracksAltMF[mmsi]);
-                    }
-                });
+                _notDisplayedVessels.forEach(mmsi=>addLayers.call(this, mmsi));
                 _notDisplayedVessels.length = 0;
             }
             _setVesselFilter();
         },
         restoreDefault: function(){                   
-            nsGmx.leafletMap.addLayer(_screenSearchLayer);
-            _lastPointLayerAlt && nsGmx.leafletMap.removeLayer(_lastPointLayerAlt); 
+            _lmap.addLayer(_screenSearchLayer);
+            _lastPointLayerAlt && _lmap.removeLayer(_lastPointLayerAlt); 
         },
-        showVesselsOnMap: function (vessels, leaveTracks, leaveMfTracks) {            
-            _displayedVessels = vessels!="all" ? vessels.map(v=>v) : "all"; 
-//console.log(_displayedVessels);
+        showVesselsOnMap: function (shownVessels, leaveTracks, leaveMfTracks) {  
+console.log('showOnMap', shownVessels, leaveTracks, leaveMfTracks)          
+            _displayedVessels = shownVessels!="all" ? shownVessels.map(v=>v) : "all"; 
             _setVesselFilter();
 
-            if (!leaveTracks) {
-                if (vessels != "all") {
+            // SHOW ALL TRACKS ON NOT DISPLAY ONLY OR ON LEAVING TAB 
+            if (shownVessels == "all") {
+                    let mmsi;                
                     for (let k in _tracks) {
-                        nsGmx.leafletMap.removeLayer(_tracks[k]);
-                        nsGmx.leafletMap.removeLayer(_tracksAlt[k]);
-                    }
-                }
-                else {
-                    for (let k in _tracks) {
+                        if (!mmsi)
+                            mmsi = k.replace(/_.+/, '');
                         if (!this.needAltLegend)
-                            nsGmx.leafletMap.addLayer(_tracks[k]);
+                            _lmap.addLayer(_tracks[k]);
                         else
-                            nsGmx.leafletMap.addLayer(_tracksAlt[k]);
+                            _lmap.addLayer(_tracksAlt[k]);
                     }
-                }
+                    for (let k in _tracksMF) {
+                        if (!mmsi || k!=mmsi) {
+                            if (!this.needAltLegend)
+                                _lmap.addLayer(_tracksMF[k]);
+                            else
+                                _lmap.addLayer(_tracksAltMF[k]);
+                        }
+                    }
             }
-            if (!leaveMfTracks) {
-                if (vessels != "all") {
-                    for (let k in _tracksMF) {
-                        nsGmx.leafletMap.removeLayer(_tracksMF[k]);
-                        nsGmx.leafletMap.removeLayer(_tracksAltMF[k]);
-                    }
+            if (shownVessels != "all") {
+                // HIDE OTHER TRACKS ON DISPLAY ONLY OR ON RETURN TO TAB (MY FLEET)
+                if (!leaveTracks) {
+                        for (let k in _tracks) {
+                            let mmsi = k.replace(/_.+/, '');
+                            if (shownVessels.indexOf(mmsi)<0){
+                                _lmap.removeLayer(_tracks[k]);
+                                _lmap.removeLayer(_tracksAlt[k]);
+                            }
+                        }
                 }
-                else {
-                    for (let k in _tracksMF) {
-                        if (!this.needAltLegend)
-                            nsGmx.leafletMap.addLayer(_tracksMF[k]);
-                        else
-                            nsGmx.leafletMap.addLayer(_tracksAltMF[k]);
-                    }
+                // HIDE OTHER TRACKS ON DISPLAY ONLY OR ON RETURN TO TAB (DBSEARCH)
+                if (!leaveMfTracks) {
+                        for (let k in _tracksMF) {
+                            _lmap.removeLayer(_tracksMF[k]);
+                            _lmap.removeLayer(_tracksAltMF[k]);
+                        }
                 }
             }
         },
@@ -492,23 +736,23 @@ module.exports = function (options) {
             for (let t in _tracks){
                 //if (_notDisplayedVessels.indexOf(t)<0)
                 if (this.needAltLegend){
-                    nsGmx.leafletMap.removeLayer(_tracks[t]);
-                    nsGmx.leafletMap.addLayer(_tracksAlt[t]);
+                    _lmap.removeLayer(_tracks[t]);
+                    _lmap.addLayer(_tracksAlt[t]);
                 }
                 else{
-                    nsGmx.leafletMap.addLayer(_tracks[t]);
-                    nsGmx.leafletMap.removeLayer(_tracksAlt[t]);
+                    _lmap.addLayer(_tracks[t]);
+                    _lmap.removeLayer(_tracksAlt[t]);
                 }
             }
             for (let t in _tracksMF){
                 if (_notDisplayedVessels.indexOf(t)<0)
                 if (this.needAltLegend){
-                    nsGmx.leafletMap.removeLayer(_tracksMF[t]);
-                    nsGmx.leafletMap.addLayer(_tracksAltMF[t]);
+                    _lmap.removeLayer(_tracksMF[t]);
+                    _lmap.addLayer(_tracksAltMF[t]);
                 }
                 else{
-                    nsGmx.leafletMap.addLayer(_tracksMF[t]);
-                    nsGmx.leafletMap.removeLayer(_tracksAltMF[t]);
+                    _lmap.addLayer(_tracksMF[t]);
+                    _lmap.removeLayer(_tracksAltMF[t]);
                 }
             }
         },

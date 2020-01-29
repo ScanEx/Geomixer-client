@@ -193,7 +193,7 @@ const DbSearchView = function (model, options, tools) {
 
     this.searchInput = new SearchControl({tab:this.frame[0], container:this.frame.find('.search_input_container')[0], 
     searcher: {
-        searchpromise: function(params){
+        searchPromise: function(params){
             var request =  `layer=${_searchLayer}&columns=[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"vessel_type"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]&orderby=vessel_name&${params[0].name}=${params[0].value}`;
             //return Request.fetchRequest('/Plugins/AIS/SearchShip.ashx', request, 'POST');
             return fetch(document.location.protocol + window.serverBase.replace(/^https?:/, '') + 'Plugins/AIS/SearchShip.ashx', {                
@@ -231,6 +231,7 @@ const DbSearchView = function (model, options, tools) {
         else {
             _clean.call(this);
             _cleanMap.call(this);
+            this.vessel = null;
         }
     }).bind(this)
 });
@@ -482,12 +483,13 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
         return this.model.vessel;
     },
     set(v) {
+        this.model.vessel = v;
+        if (!v)
+            return;
+            
         this.searchInput.searchString = v.vessel_name;        
         let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
-        this.model.vessel = null;
         let checkInterval = this.calendar.getDateInterval();
-// console.log(positionDate.dateBegin + '<' + checkInterval.get('dateBegin'))
-// console.log(checkInterval.get('dateEnd') + '<' + positionDate.dateEnd)
         if (positionDate.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < positionDate.dateEnd){
             this.calendar.getDateInterval().set('dateBegin', positionDate.dateBegin);
             this.calendar.getDateInterval().set('dateEnd', positionDate.dateEnd);      
@@ -495,7 +497,6 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
         }
         else
             this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
-        this.model.vessel = v;
         this.model.isDirty = true;
     }
 });

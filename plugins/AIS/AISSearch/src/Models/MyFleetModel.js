@@ -686,6 +686,7 @@ console.log("add group and style field");
                     myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
                     myWorker.onmessage = function(e) {
 //console.log('Message received from worker', e.data);
+                        //if ( e.data.mmsi=='273444660')
                         _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
                         counter--;
                         if (!counter)

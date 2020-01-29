@@ -67,7 +67,7 @@ const SearchControl = function ({ tab, container, callback, searchparams, search
             // _sparams.split(' ').forEach(sp=>{       
             //     requests.push(fetch("//kosmosnimki.ru/demo/lloyds/api/v1/Ship/Search/" + sp + "/" + _searchString));
             // });
-            requests.push(new searcher.searchpromise([{name:'query', value: [_searchString]}]));
+            requests.push(new searcher.searchPromise([{name:'query', value: [_searchString]}]));
             Promise.all(requests)
             .then(a=>{
 //console.log(a)
