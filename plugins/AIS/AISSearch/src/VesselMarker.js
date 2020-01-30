@@ -2,13 +2,28 @@ L.Canvas.include({
     _updateVesselMarker: function (layer) {
         if (!this._drawing || layer._empty()) { return; }
 
+        this._drawnLayers[layer._leaflet_id] = layer;
+
         var p = layer._point,
             ctx = this._ctx,
             r = Math.max(Math.round(layer._radius), 1);
-//console.log(layer.options)
-        this._drawnLayers[layer._leaflet_id] = layer;
+        //ctx.globalCompositeOperation = 'destination-over';    
+        
+//         var bounds = this._redrawBounds;
+// console.log(bounds)
+// 		if (bounds) {
+// 			var size = bounds.getSize();
+//             //this._ctx.clearRect(bounds.min.x, bounds.min.y, size.x, size.y);
+ 
+//             ctx.strokeStyle = '#ff0000';           
+// 			ctx.beginPath();
+// 			ctx.rect(bounds.min.x, bounds.min.y, size.x, size.y);
+//             ctx.stroke();
+//         }
+
         if (layer.options.next){
-            var np = layer._map.latLngToLayerPoint(layer.options.next)
+            var np = layer._map.latLngToLayerPoint(layer.options.next);
+            ctx.lineWidth = layer.options.weight;
             ctx.strokeStyle = layer.options.fillColor;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
@@ -16,9 +31,9 @@ L.Canvas.include({
             ctx.stroke();
         }
 
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
-        this._fillStroke(ctx, layer);
+        //ctx.beginPath();
+        //ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
+        //this._fillStroke(ctx, layer);
 
         let img = layer.options.img,
         cog = layer.options.cog;

@@ -291,7 +291,7 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 		progress.append(gifLoader)
 
 		myFleetView.beforeExcludeMember(vessel.mmsi.toString());
-		myFleetModel.changeMembers(vessel).then(function () {
+		myFleetModel.changeMembers(vessel, myFleetView.infoDialogView).then(function () {
 			add = myFleetModel.findIndex(vessel) < 0;
 			var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
 			info.css('visibility', !add ? 'visible' : 'hidden');

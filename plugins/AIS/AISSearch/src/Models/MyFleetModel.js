@@ -504,7 +504,8 @@ console.log("add group and style field");
             ); 
         },
         set onChanged(callback){ _onChangedHandlers.push(callback) },
-        changeMembers: function (vessel) {
+        changeMembers: function (vessel, infoDialog) {
+console.log(infoDialog)
             var remove = false;
             for (var i = 0; i < _vessels.length; ++i) {
                 if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
@@ -571,7 +572,7 @@ console.log("add group and style field");
                         if (remove)
                             _tools.removeMyFleetTrack(vessel.mmsi);
                         else
-                            this.loadTrack(vessel.mmsi);
+                            this.view.displayTracks && this.loadTrack(vessel.mmsi, infoDialog);
                             
                         return Promise.resolve();                       
                     }.bind(this)
@@ -636,24 +637,28 @@ console.log("add group and style field");
 //console.log(group)
 //console.log(this.data.groups[i].marker_style)
         },
-        loadTrack: function(mmsi){
+        loadTrack: function(mmsi, infoDialog){
             if (window.Worker) {
-                //_trackLoaders.forEach(w=>w.terminate());
-                //_trackLoaders.length = 0;   
-
                 const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
                 di = _tools.historyInterval,
                 interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
                 thisView = this.view;
                 let counter = _vessels.length;
 
-                let v = {mmsi: mmsi};
-                //_vessels.forEach(v=>{ 
-                    var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
+                let v = {mmsi: mmsi},
+                    myWorker = new Worker(_modulePath + 'LoaderWorker.js');
                     myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
                     myWorker.onmessage = function(e) {
 //console.log('Message received from worker', e.data);
-                        _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
+                        _tools.showMyFleetTrack([e.data], ({pid})=>{
+                            _aisLayerSearcher.searchById([pid], response=>{
+                                if (response.Status && response.Status.toLowerCase()=='ok' && response.Result){
+                                    let v={}, res = response.Result;
+                                    res.fields.forEach((f, i)=>v[f] = res.values[0][i]);
+                                    infoDialog.show(v, false);
+                                }
+                            })
+                        }, _aisLayerSearcher);
                         counter--;
                         if (!counter)
                             thisView.inProgress(false);
@@ -665,12 +670,11 @@ console.log("add group and style field");
                             thisView.inProgress(false)
                     }
                     _trackLoaders.push(myWorker);
-                //});
             }
             else
                 console.log("NO WORKERS")
         },
-        loadTracks: function(){
+        loadTracks: function(infoDialog){
             if (window.Worker) {
                 _trackLoaders.forEach(w=>w.terminate());
                 _trackLoaders.length = 0;   
@@ -679,8 +683,48 @@ console.log("add group and style field");
                 di = _tools.historyInterval,
                 interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
                 thisView = this.view;
-                let counter = _vessels.length;
+//console.log(_vessels, _vessels.length)
+                Promise.all(_vessels.map(v=>new Promise((resolve, reject)=>{
+                    if (v.mmsi) {
+                        var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
+                        myWorker.postMessage({mmsi:v.mmsi, imo:v.imo, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
+                        myWorker.onmessage = function(e) {
+                            resolve(e.data);
+                        };                
+                        myWorker.onerror = function(e) {
+                            reject(e);
+                        };
+                        _trackLoaders.push(myWorker);
+                    }
+                    else{
+                        resolve();
+                    }
+                })))
+                .then(data=>{
+//console.log(data, data.length)
+                    data.reduce((p,c)=>p.then(()=>{
+                        if (!c) return Promise.resolve();
 
+                        _tools.showMyFleetTrack([c], ({pid})=>{
+                            _aisLayerSearcher.searchById([pid], response=>{
+                                if (response.Status && response.Status.toLowerCase()=='ok' && response.Result){
+                                    let v={}, res = response.Result;
+                                    res.fields.forEach((f, i)=>v[f] = res.values[0][i]);
+                                    infoDialog.show(v, false);
+                                }
+                            })
+                        }, _aisLayerSearcher);
+console.log(c,  c.positions ? Math.round(c.positions.length/3.5) : 0)
+                        return new Promise(resolve=>setTimeout(()=>resolve(), c.positions ? Math.round(c.positions.length/3.5) : 0));
+                    }) , Promise.resolve())
+                    .then(()=>thisView.inProgress(false));
+                })
+                .catch(e=>{
+                    console.log(e);
+                    thisView.inProgress(false);
+                });
+
+/*
                 _vessels.forEach(v=>{ 
                     var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
                     myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
@@ -700,6 +744,7 @@ console.log("add group and style field");
                     }
                     _trackLoaders.push(myWorker);
                 });
+                */
             }
             else
                 console.log("NO WORKERS")

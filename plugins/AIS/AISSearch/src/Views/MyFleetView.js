@@ -74,8 +74,7 @@ const MyFleetView = function (model, tools){
     '<td><div class="position">vessel_name</div><div>mmsi: mmsi imo: imo</div></td>' +
     '<td></td>' +  
     '<td><span class="date">ts_pos_utc</span></td>'+
-    //'<td><div class="info" vessel="aisjson this" title="i AISSearch2.info">' +
-    //'<img src="plugins/AIS/AISSearch/svg/info.svg"><div></td>' +
+
     '</tr></table>' +
     '</div>' +      
     '</div>' +
@@ -158,15 +157,17 @@ const MyFleetView = function (model, tools){
     }).bind(this));
   
        
-    // tracks controller
+    // tracks controller    
     this.frame.find('.instruments .switch.all_tracks input[type="checkbox"]').on("click", 
         function(e){
             if (e.currentTarget.checked) {    
                 this.inProgress(true);              
-                this.model.loadTracks();
+                this.model.loadTracks(this.infoDialogView);
+                this.displayTracks = true;
             }
             else {
                 _tools.showMyFleetTrack();
+                this.displayTracks = false;
             }            
         }.bind(this)
     ); 
@@ -277,7 +278,7 @@ MyFleetView.prototype.repaint = function () {
                 dlg.find('.button.addremove').click();
             }
             else{
-                thisView.model.changeMembers(vessel).then(function () {
+                thisView.model.changeMembers(vessel, this.infoDialogView).then(function () {
                     thisView.show();
                 })
             }        

@@ -7,7 +7,7 @@ onmessage = function(e) {
             result = response.Result,
             status = response.Status;
             if (status && status.toLowerCase()=='ok'){
-                let data = { mmsi: e.data.mmsi, positions: [], count: 0 },
+                let data = { mmsi: e.data.mmsi, imo:e.data.imo, positions: [], count: 0 },
                 fields = result.fields;
                 result.values.forEach(c => {
                     let obj = {};

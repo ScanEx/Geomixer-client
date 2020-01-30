@@ -174,7 +174,25 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
+                columns: `[{"Value":"id"},
+                        {"Value":"vessel_name"},
+                        {"Value":"mmsi"},
+                        {"Value":"imo"},
+                        {"Value":"flag_country"},
+                        {"Value":"callsign"},
+                        {"Value":"ts_pos_utc"},
+                        {"Value":"cog"},
+                        {"Value":"sog"},
+                        {"Value":"draught"},
+                        {"Value":"vessel_type"},
+                        {"Value":"destination"},
+                        {"Value":"ts_eta"},
+                        {"Value":"nav_status"},
+                        {"Value":"heading"},
+                        {"Value":"rot"},
+                        {"Value":"longitude"},
+                        {"Value":"latitude"},
+                        {"Value":"source"}]`,                
                 query: "([id] IN (" + aid.join(',') + "))"
             };
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);

@@ -190,14 +190,14 @@ module.exports = function (options) {
     const _tracks = {}, _tracksAlt = {}, 
     _tracksMF = {}, _tracksAltMF = {}, 
     _canvas = L.canvas(),
-    _addMarker = function(p, ep, group, style, placeVesselTypeIcon){
+    _addMarker = function(p, ep, group, onclick, style, placeVesselTypeIcon){
         if (placeVesselTypeIcon)
             placeVesselTypeIcon(p);
         var options = {
             radius: 10,
             fillColor: style != 'SPEED' ? p.color.value : p.colorAlt.value,
             fillOpacity: 0.25,
-            weight: 1,
+            weight: 2,
             color: 'SPEED' ? p.color.value : p.colorAlt.value,
             cog: parseInt(p.cog),
             img: style != 'SPEED' ? p.img : p.imgAlt,
@@ -207,27 +207,30 @@ module.exports = function (options) {
             ts: new Date()
         },
         m = vesselMarker(L.latLng(p.ymax, p.xmax < 0 ? 360 + p.xmax : p.xmax), options);
-        m.on('click', e => console.log(e.target.options.pid, e.target.options.ts))
+        m.on('click', e => onclick({p, pid: p.id}));
         group.addLayer(m);                
     },
-    _addMarkers = function (data, next, style, placeVesselTypeIcon) {
+    _addMarkers = function (data, next, onclick, style, placeVesselTypeIcon) {
         const group = L.layerGroup(null, {renderer: _canvas});
 
         for (var i = 0; i < data.length; i++) {               
             if (data[i].positions)   {         
                 for (var j = 0; j < data[i].positions.length; j++) {
                     var p = data[i].positions[j];
+                    p.mmsi = data[i].mmsi; p.imo = data[i].imo;
                     if (data[i].positions[j+1])
-                        _addMarker(p, data[i].positions[j+1], group, style, placeVesselTypeIcon);
+                        _addMarker(p, data[i].positions[j+1], group, onclick, style, placeVesselTypeIcon);
                     else
-                        _addMarker(p, null, group, style, placeVesselTypeIcon);
+                        _addMarker(p, null, group, onclick, style, placeVesselTypeIcon);
                 }
             }
             else{
                 if (data[i+1])
-                    _addMarker(data[i], data[i+1], group, style, placeVesselTypeIcon);
+                    _addMarker(data[i], data[i+1], group, onclick, style, placeVesselTypeIcon);
                 else{
-                    _addMarker(data[i], next, group, style, placeVesselTypeIcon);
+                    _addMarker(data[i], next, group, onclick, style, placeVesselTypeIcon);
+                    if (next)
+                       _addMarker(next, null, group, onclick, style, placeVesselTypeIcon);
                 }
             }
 
@@ -300,42 +303,15 @@ module.exports = function (options) {
                 }
                 return;
             }   
-/*
-            function addMarkers(data, style) {
-                //const canvas = L.canvas(),
-                const group = L.layerGroup(null, {renderer: _canvas});
 
-                for (var i = 0; i < data.length; i++)                
-                for (var j = 0; j < data[i].positions.length; j++) {
-
-                    var p = data[i].positions[j];
-                    aisLayerSearcher.placeVesselTypeIcon(p);
-                    var options = {
-                        radius: 10,
-                        fillColor: style != 'SPEED' ? p.color.value : p.colorAlt.value,
-                        fillOpacity: 0.25,
-                        weight: 1,
-                        color: "#000000",
-                        cog: parseInt(p.cog),
-                        img: style != 'SPEED' ? p.img : p.imgAlt,
-                        renderer: _canvas,
-                        pid: p.id
-                    },
-                    m = vesselMarker(L.latLng(p.ymax, p.xmax < 0 ? 360 + p.xmax : p.xmax), options);
-                    m.on('click', e=>console.log(e.target.options.pid))
-                    group.addLayer(m);
-                }
-                return group;
-            }
-*/
             if (vessels.length && vessels[0].mmsi) {
 //console.log(vessels)
 //return;
                 let trackId = vessels[0].mmsi.toString();
                 if (!_tracksMF[trackId] && vessels[0].positions.length) {
 
-                    _tracksMF[trackId] = _addMarkers(vessels, null, 'TYPE', aisLayerSearcher.placeVesselTypeIcon);
-                    _tracksAltMF[trackId] = _addMarkers(vessels, null,  'SPEED', aisLayerSearcher.placeVesselTypeIcon);
+                    _tracksMF[trackId] = _addMarkers(vessels, null, onclick, 'TYPE', aisLayerSearcher.placeVesselTypeIcon);
+                    _tracksAltMF[trackId] = _addMarkers(vessels, null,  onclick, 'SPEED', aisLayerSearcher.placeVesselTypeIcon);
 //console.log(_tracksMF[trackId])
                     if (_canvas._container)
                         _canvas._container.style.pointerEvents = 'none';
@@ -453,15 +429,14 @@ module.exports = function (options) {
         },
 
         ///////////////////////
-
         
         showTrack: function (vessels, onclick) {
-            if (!vessels){               
+            if (!vessels){ // CLEAN ALL              
                 let mmsi; 
                 for (let t in _tracks){   
                     if (!mmsi){
                         mmsi = t.replace(/_.+/, '')
-                        if(_tracksMF[mmsi]){
+                        if(_tracksMF[mmsi]){ // RESTORE IN MF
 console.log('add '+mmsi)
                             if (!this.needAltLegend)
                                 _lmap.addLayer(_tracksMF[mmsi]);
@@ -477,7 +452,7 @@ console.log('add '+mmsi)
                 return;
             }
            
-            if (vessels.length && _tracksMF[vessels[0].mmsi]){
+            if (vessels.length && _tracksMF[vessels[0].mmsi]){ // REPLACE IN MF
                 _lmap.removeLayer(_tracksMF[vessels[0].mmsi]);
                 _lmap.removeLayer(_tracksAltMF[vessels[0].mmsi]);
 console.log('remove ' + vessels[0].mmsi)
@@ -487,9 +462,8 @@ console.log('remove ' + vessels[0].mmsi)
                 let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
                 if (vessels[i].positions.length) {
                     if (!_tracks[trackId]) {
-                        let next = null;
-                        _tracks[trackId] = _addMarkers(vessels[i].positions, next, 'TYPE');
-                        _tracksAlt[trackId] = _addMarkers(vessels[i].positions, next, 'SPEED');
+                        _tracks[trackId] = _addMarkers(vessels[i].positions, vessels[i].end, p => onclick(p, false), 'TYPE');
+                        _tracksAlt[trackId] = _addMarkers(vessels[i].positions, vessels[i].end, p => onclick(p, false), 'SPEED');
 //console.log(i, _tracks[trackId])
                         if (_canvas._container) 
                             _canvas._container.style.pointerEvents = 'none';
@@ -500,7 +474,7 @@ console.log('remove ' + vessels[0].mmsi)
                             _lmap.addLayer(_tracksAlt[trackId]);
                     }
                 }
-                else {
+                else { // HIDE SOME
                     //if (_tracks[trackId]){
                     _lmap.removeLayer(_tracks[trackId]);
                     _lmap.removeLayer(_tracksAlt[trackId]);

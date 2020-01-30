@@ -404,11 +404,12 @@ DbSearchView.prototype.repaint = function () {
                     this.frame.find('.track:not(.all) input')[ind].checked = true; 
                     allTracksInput[0].checked = (this.frame.find('.track:not(.all) input:checked').length==this.model.data.vessels.length);  
 
-                    let v = this.model.data.vessels[ind];
+                    let v = this.model.data.vessels[ind], nv = this.model.data.vessels[ind+1];
                     this.showTrack([{
                         mmsi: v.positions[0].mmsi, imo: v.positions[0].imo, ts: v.positions[0].ts_pos_org,
-                        positions: v.positions
-                    }], showInfoDialog);
+                        positions: v.positions,
+                        end: nv && nv.positions ? nv.positions[0] : null
+                    }], ({p})=>showInfoDialog(p));
 
                     e.stopPropagation();
                 }).bind(this));
@@ -429,22 +430,28 @@ DbSearchView.prototype.repaint = function () {
             el.checked = e.target.checked;
         });
 
-        let vessels = this.model.data.vessels.map(v => { return { 
-            mmsi: v.positions[0].mmsi, imo: v.positions[0].imo, ts: v.positions[0].ts_pos_org, lastPos: v.lastPos,
-            positions: e.target.checked ? v.positions : [] } 
+        let vessels = [], dv = this.model.data.vessels;
+        dv.forEach((v, i) => { 
+            let nv = dv[i+1];
+            vessels.push({ 
+                mmsi: v.positions[0].mmsi, imo: v.positions[0].imo, ts: v.positions[0].ts_pos_org, lastPos: v.lastPos,
+                positions: e.target.checked ? v.positions : [],
+                end: nv && nv.positions ? nv.positions[0] : null
+            });
         });
-        this.showTrack(vessels, showInfoDialog);
+        this.showTrack(vessels, ({p})=>showInfoDialog(p));
     }).bind(this));
     tracksInputs.each(((i, el)=>{
-        let v = this.model.data.vessels[i];
+        let vessels = this.model.data.vessels, v = vessels[i], nv = vessels[i+1];
         el.addEventListener('click', ((e)=>{ 
             setMapCalendar(this.calendar);
-            allTracksInput[0].checked = (this.frame.find('.ais_positions_date .track:not(.all) input:checked').length==this.model.data.vessels.length);
+            allTracksInput[0].checked = (this.frame.find('.ais_positions_date .track:not(.all) input:checked').length==vessels.length);
             
             this.showTrack([{
                 mmsi: v.positions[0].mmsi, imo: v.positions[0].imo, ts: v.positions[0].ts_pos_org, lastPos: v.lastPos,
-                positions: e.target.checked ? v.positions : []
-            }], showInfoDialog);
+                positions: e.target.checked ? v.positions : [],
+                end: nv && nv.positions ? nv.positions[0] : null
+            }], ({p})=>showInfoDialog(p));
 
         }).bind(this));
     }).bind(this));
