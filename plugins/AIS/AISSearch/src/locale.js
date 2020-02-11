@@ -110,7 +110,9 @@
         'AISSearch2.twoimages_com':'Два изображения',
         'AISSearch2.close_com':'Закрыть',
         'AISSearch2.moving':'В движении',
-        'AISSearch2.standing':'Стоит\\дрейфует'
+        'AISSearch2.standing':'Стоит\\дрейфует',
+        'AISSearch2.myFleetInclude': 'добавить в мой флот',
+        'AISSearch2.myFleetExclude': 'удалить из моего флота',
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -223,5 +225,7 @@
         'AISSearch2.twoimages_com':'Two images',
         'AISSearch2.close_com':'Close',
         'AISSearch2.moving':'Moving',
-        'AISSearch2.standing':'Standing'
+        'AISSearch2.standing':'Standing',
+        'AISSearch2.myFleetInclude': 'include in my fleet',
+        'AISSearch2.myFleetExclude': 'exclude from my fleet',
     });

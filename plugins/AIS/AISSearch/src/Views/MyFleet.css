@@ -1,5 +1,5 @@
 
-.myfleet_view .instruments td table{
+.myfleet_view .instruments td table.newgroup{
     width:100%;
 }
 .myfleet_view .instruments td table td{
@@ -36,6 +36,14 @@
   .myfleet_view .instruments .setting label{
       cursor: pointer;
   }
+  
+.ais_view.myfleet_view .instruments .calendar input{
+    padding: 8px;
+    border-radius: 3px;
+}
+.ais_view.myfleet_view .instruments .CalendarWidget-inputCell{
+    border-radius: 3px;
+}
 
 .ais_view.myfleet_view table.results td:nth-of-type(1){
     width:18%

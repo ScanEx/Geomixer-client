@@ -391,12 +391,17 @@ console.log("add group and style field");
             });
         },
         update: function () {
+
+            //if (!this.isDirty)
+            //    return;
+
             _actualUpdate = new Date().getTime();
             let thisModel = this,
                 actualUpdate = _actualUpdate;
             this.view.inProgress(true);
             this.load(actualUpdate).then(
                 function () {
+console.log('UPDATE')
                     if (_actualUpdate == actualUpdate) {
                         thisModel.view.inProgress(false);
                         if (_data)
@@ -503,9 +508,11 @@ console.log("add group and style field");
                 }
             ); 
         },
-        set onChanged(callback){ _onChangedHandlers.push(callback) },
+        set onChanged(callback){ 
+            _onChangedHandlers.push(callback) 
+        },
         changeMembers: function (vessel, infoDialog) {
-console.log(infoDialog)
+//console.log(infoDialog)
             var remove = false;
             for (var i = 0; i < _vessels.length; ++i) {
                 if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
@@ -572,7 +579,8 @@ console.log(infoDialog)
                         if (remove)
                             _tools.removeMyFleetTrack(vessel.mmsi);
                         else
-                            this.view.displayTracks && this.loadTrack(vessel.mmsi, infoDialog);
+                            this.view.displayTracks && 
+                            this.loadTrack(vessel.mmsi, infoDialog);
                             
                         return Promise.resolve();                       
                     }.bind(this)
@@ -674,7 +682,7 @@ console.log(infoDialog)
             else
                 console.log("NO WORKERS")
         },
-        loadTracks: function(infoDialog){
+        loadTracks: function(infoDialog, viewState){
             if (window.Worker) {
                 _trackLoaders.forEach(w=>w.terminate());
                 _trackLoaders.length = 0;   
@@ -713,8 +721,8 @@ console.log(infoDialog)
                                     infoDialog.show(v, false);
                                 }
                             })
-                        }, _aisLayerSearcher);
-console.log(c,  c.positions ? Math.round(c.positions.length/3.5) : 0)
+                        }, _aisLayerSearcher, viewState);
+//console.log(c,  c.positions ? Math.round(c.positions.length/3.5) : 0)
                         return new Promise(resolve=>setTimeout(()=>resolve(), c.positions ? Math.round(c.positions.length/3.5) : 0));
                     }) , Promise.resolve())
                     .then(()=>thisView.inProgress(false));

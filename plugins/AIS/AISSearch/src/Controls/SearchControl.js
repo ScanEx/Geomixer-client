@@ -2,9 +2,13 @@
 
 let _searchString = "",
 _sparams = 'imo name mmsi';
+
+_translationsHash.addtext('rus', {'AISSearchControl.placeholder': 'Поиск'});
+_translationsHash.addtext('eng', {'AISSearchControl.placeholder': 'Search'});
+
 const SearchControl = function ({ tab, container, callback, searchparams, searcher }) {
 
-    container.innerHTML = '<div class="filter"><input type="text" placeholder="' + _gtxt("Lloyds.search_placeholder") + '"/>' +
+    container.innerHTML = '<div class="filter"><input type="text" placeholder="' + _gtxt("AISSearchControl.placeholder") + '"/>' +
         (!searchparams ? '' : '<div class="preferences"></div>') +
         '<div class="searchremove"><img class="search" src="plugins/AIS/AISSearch/svg/search.svg">' +
         '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg"></div>' +

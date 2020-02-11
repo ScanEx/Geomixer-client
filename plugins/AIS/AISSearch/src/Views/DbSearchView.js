@@ -6,7 +6,23 @@ SearchControl = require('../Controls/SearchControl');
 let _searchLayer,
     _highlight,
     _tools,
-    _displayedOnly = [];
+    _displayedOnly = [],
+    _displayed = [],
+    _viewState = {
+        get displayedOnly(){return _displayedOnly;},
+        get displayed(){
+            return _displayed;
+        },
+        showTracks: function(trackBuilder, needAlt){
+            trackBuilder.showHistoryTracks(this.displayed, needAlt);
+        },
+        hideTracks: function(trackBuilder, needAlt){
+            //trackBuilder.hideHistoryTracks(_notDisplayed, needAlt);
+        },
+        cleanTracks: function(trackBuilder){
+            _displayed = trackBuilder.cleanHistoryTracks();
+        }
+    };
 const _switchLegendIcon = function(showAlternative){
     let ic = this.frame.find('.legend_icon'),
     ica = this.frame.find('.legend_iconalt');
@@ -17,11 +33,12 @@ const _switchLegendIcon = function(showAlternative){
         ica.hide(); ic.show();
     }
 };
-const DbSearchView = function (model, options, tools) {
+const DbSearchView = function (model, options, tools, viewCalendar) {
     BaseView.call(this, model, tools);
     _searchLayer = options.aisLastPoint;
     _highlight = options.highlight;
     _tools = tools;
+    _viewState.view = this;
     this.frame = $(Handlebars.compile('<div class="ais_view search_view">' +
         '<table border=0 class="instruments">' +
         '<tr><td colspan="2" class="search_input_container">' + 
@@ -93,11 +110,28 @@ const DbSearchView = function (model, options, tools) {
         '<div id="voyage_info{{n}}"></div>' +
         '{{/each}}';
 
+        this.calendar = viewCalendar;
+        this.frame.find('.calendar').append(this.calendar.el.parentElement);
+        this.calendar.onChange = function(interval){
+            this.model.historyInterval = interval;
+            this.model.isDirty = true;
+            if (this.isActive)
+                this.show();            
+        }.bind(this);
+        this.frame.on('click', ((e) => {
+            if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
+                this.calendar.reset()
+            }
+            //suggestions.hide();
+        }).bind(this));
+/*
+
     const calendar = this.frame.find('.calendar'),
     daysLimit = 14;
 
     // walkaround with focus at first input in ui-dialog
-    calendar.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>')
+    calendar.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
+
     let mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
         dateInterval = new nsGmx.DateInterval();
     dateInterval
@@ -147,16 +181,14 @@ const DbSearchView = function (model, options, tools) {
         }
         //suggestions.hide();
     }).bind(this));
-
+*/
     this.frame.find('.time .only_this  input[type="checkbox"]').click((e=>{
         _displayedOnly.length = 0;
         if (e.currentTarget.checked && this.frame.find('.ais_positions_date:not(.header)')[0] ) {
-            _displayedOnly.push(this.model.data.vessels[0].positions[0].mmsi.toString());         
-            _tools.showVesselsOnMap(_displayedOnly, true);
-        }
-        else{            
-            _tools.showVesselsOnMap("all");  
-        }
+            _displayedOnly.push(this.model.data.vessels[0].positions[0].mmsi.toString()); 
+        }        
+        _tools.showVesselsOnMap(_viewState);
+ 
     }).bind(this));
 
     _tools.onLegendSwitched((()=>{
@@ -295,52 +327,20 @@ let _vi_template = '<table class="ais_positions">' +
     '{{/each}}' +
     '</table>';
 
-let _prepare_history = function(){   
-// console.log(_tools.displayedTrack)     
-//     if (this.model.data.vessels.length>0 && _tools.displayedTrack && 
-//         _tools.displayedTrack.mmsi==this.model.data.vessels[0].positions[0].mmsi){
-//         let checkTrack, modelDate, trackDate, checkAllTracks = this.frame.find('.ais_positions_date.header .track input')[0];
-//         checkAllTracks.checked = true;          
-//         this.frame.find('.ais_positions_date:not(.header)').each((i, el) => {
-//             if (_tools.displayedTrack.dates) {
-//                 modelDate = new Date(this.model.data.vessels[i].positions[0].ts_pos_org * 1000).setUTCHours(0, 0, 0, 0); 
-//                 checkTrack = false;
-//                 for (let j = 0; j < _tools.displayedTrack.dates.list.length; ++j) {
-//                     trackDate = _tools.displayedTrack.dates.list[j];
-//                     if (modelDate === trackDate.getTime()) {
-//                         checkTrack = $(el).find('.track:not(.all) input')[0];
-//                         checkTrack.checked = true;
-//                         break;
-//                     }
-//                 }
-//                 if (!checkTrack)
-//                     checkAllTracks.checked = false; 
-//             }
-//             else
-//                 $(el).find('.track input:not(.all)')[0].checked = true;
-//         });
-//     }
-// //console.log(this.model.data.vessels)
-    if (this.model.data.msg)
-    this.frame.find('.ais_positions_date.header').hide();
-}
-
 DbSearchView.prototype.repaint = function () {
     _clean.call(this);
-    BaseView.prototype.repaint.apply(this, arguments); 
+    BaseView.prototype.repaint.call(this); 
 
-    _prepare_history.call(this);
+    if (this.model.data.msg)
+        this.frame.find('.ais_positions_date.header').hide();
 
 // console.log("REPAINT") 
     _tools.clearMyFleetMarkers();
     _displayedOnly.length = 0; 
     if (this.frame.find('.time .only_this  input[type="checkbox"]')[0].checked) {
-        _displayedOnly.push(this.model.data.vessels[0].positions[0].mmsi.toString());         
-        _tools.showVesselsOnMap(_displayedOnly, true);
-    }     
-    else {  
-        _tools.showVesselsOnMap("all"); 
-    }  
+        _displayedOnly.push(this.model.data.vessels[0].positions[0].mmsi.toString());  
+    }         
+    _tools.showVesselsOnMap(_viewState);
 
     let openPos = this.frame.find('.open_positions'),    
         infoDialog = this.infoDialogView,
@@ -444,6 +444,7 @@ DbSearchView.prototype.repaint = function () {
     tracksInputs.each(((i, el)=>{
         let vessels = this.model.data.vessels, v = vessels[i], nv = vessels[i+1];
         el.addEventListener('click', ((e)=>{ 
+
             setMapCalendar(this.calendar);
             allTracksInput[0].checked = (this.frame.find('.ais_positions_date .track:not(.all) input:checked').length==vessels.length);
             
@@ -509,29 +510,20 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
 });
 
 DbSearchView.prototype.show = function () {
-    this.frame.show();
-    this.searchInput.focus();
-    BaseView.prototype.show.apply(this, arguments); 
-    if (!this.vessel)
-        return;
-     
-    //if (!_tools.displayedTrack)
-    //    this.frame.find('.ais_positions_date .track input[type="checkbox"]').each((i,e)=>{e.checked = false;});
-
-    if (_displayedOnly.length)        
-        _tools.showVesselsOnMap(_displayedOnly, true); 
-    else
-        _tools.showVesselsOnMap("all");
+    BaseView.prototype.show.call(this); 
+    this.searchInput.focus();       
+    _tools.showVesselsOnMap(_viewState); 
 };
 
 DbSearchView.prototype.hide = function () { 
-    BaseView.prototype.hide.apply(this, arguments); 
-    _tools.showVesselsOnMap("all");
+    BaseView.prototype.hide.call(this); 
+
+    _tools.cleanMap(_viewState);
 };
 
 DbSearchView.prototype.showTrack = function (vessels, onclick) {
 
-    _tools.showTrack(vessels, onclick);   
+    _displayed = _tools.showHistoryTrack(vessels, onclick);   
 
     if (!vessels || !Array.isArray(vessels))
         return;

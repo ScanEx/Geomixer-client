@@ -165,6 +165,10 @@ margin: 25px;
   padding-left: 2px;
   padding-top: 0;
 }
+
+.leaflet-aistracks-layer{
+  pointer-events: none;
+}
 .ais_view * {
     font-family: 'Roboto', sans-serif;
     font-weight: 400;
@@ -641,7 +645,7 @@ margin: 25px;
 .ais_view.myfleet_view .ais_vessel table td:nth-of-type(4){
   padding-right: 10px;
 }
-.myfleet_view .instruments td table{
+.myfleet_view .instruments td table.newgroup{
     width:100%;
 }
 .myfleet_view .instruments td table td{
@@ -678,6 +682,14 @@ margin: 25px;
   .myfleet_view .instruments .setting label{
       cursor: pointer;
   }
+  
+.ais_view.myfleet_view .instruments .calendar input{
+    padding: 8px;
+    border-radius: 3px;
+}
+.ais_view.myfleet_view .instruments .CalendarWidget-inputCell{
+    border-radius: 3px;
+}
 
 .ais_view.myfleet_view table.results td:nth-of-type(1){
     width:18%

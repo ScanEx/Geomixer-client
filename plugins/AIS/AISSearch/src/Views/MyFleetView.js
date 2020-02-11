@@ -22,9 +22,22 @@ _clean = function(){
 let _tools, 
 _displayedOnly=[], 
 _notDisplayed=[],
-_saveLabelSettingsPromise = Promise.resolve(0);
+_saveLabelSettingsPromise = Promise.resolve(0),
+_viewState = {
+    get displayedOnly(){return _displayedOnly;},
+    get notDisplayed(){return _notDisplayed;},
+    showTracks: function(trackBuilder, needAlt){
+        trackBuilder.showMyFleetTracks(_displayedOnly, needAlt);
+    },
+    hideTracks: function(trackBuilder, needAlt){
+        trackBuilder.hideMyFleetTracks(_notDisplayed, needAlt);
+    },
+    cleanTracks: function(trackBuilder, needAlt){
+        trackBuilder.cleanMyFleetTracks();
+    }
+};
 
-const MyFleetView = function (model, tools){
+const MyFleetView = function (model, tools, viewCalendar){
     BaseView.apply(this, arguments);
     _tools = tools; 
     _tools.onLegendSwitched(((showAlternative)=>{
@@ -38,7 +51,7 @@ const MyFleetView = function (model, tools){
 
     '<div style="width:140px; margin-bottom: 8px;">{{i "AISSearch2.DisplaySection"}}</div>' +
 
-        '<div style="margin-bottom: 5px;"><label class="sync-switch switch groups_vessels"><input type="checkbox">'+
+        '<div style="margin-bottom: 5px;"><label class="sync-switch switch only_myflot"><input type="checkbox">'+
         '<div class="sync-switch-slider switch-slider round"></div></label>' +
         '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span></div>'+  
 
@@ -57,11 +70,23 @@ const MyFleetView = function (model, tools){
     '<td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>' +
 
     '<tr><td colspan="3" style="padding-top:0">' +
-    '<table><tr><td>{{i "AISSearch2.NewGroup"}}</td>' +
+    '<table class="newgroup"><tr><td>{{i "AISSearch2.NewGroup"}}</td>' +
     '<td><div class="newgroupname"><input type="text" placeholder="{{i "AISSearch2.NewGroupName"}}"/></div></td>' +
     '<td><img class="create clicable" title="{{i "AISSearch2.CreateGroup"}}" src="plugins/AIS/AISSearch/svg/add.svg"></td>' +
     '</tr></table>' +
     '</td></tr>' +
+
+    '<tr><td colspan="2"><style>' + 
+    '#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}' +
+    '#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}' +
+    '#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}' +
+    '</style><div class="calendar"></div></td>' +
+    '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="clicable" title="{{i "AISSearch2.refresh"}}">' +
+    //'<div class="progress">' + this.gifLoader + '</div>' +
+    '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' +
+    '</div></td></tr>' +
+
+
     '</table>'+ 
 
     '<div class="ais_vessels">'+
@@ -85,6 +110,34 @@ const MyFleetView = function (model, tools){
     '</div></td></tr></table>' +
 
     '</div>')());    
+
+    this.calendar = viewCalendar;
+    this.frame.find('.calendar').append(this.calendar.el.parentElement);
+
+    const reloadTrack = function(){
+        if (!this.displayTracks)
+            return;              
+        if (this.isActive)        
+            this.inProgress(true);              
+        this.model.loadTracks(this.infoDialogView, _viewState);
+    };
+    this.calendar.onChange = reloadTrack.bind(this);    
+    this.frame.find('.reload').on('click', reloadTrack.bind(this))
+
+    this.frame.on('click', ((e) => {
+        if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
+            this.calendar.reset()
+        }
+        //suggestions.hide();
+    }).bind(this));
+
+    
+    Object.defineProperty(this, "displayTracks", {
+        get: function () {
+            const showTracsCtrl = this.frame.find('.instruments .switch.all_tracks input[type="checkbox"]')[0];
+            return showTracsCtrl.checked;
+        }
+    }); 
 
     Object.defineProperty(this, "topOffset", {
         get: function () {
@@ -148,10 +201,7 @@ const MyFleetView = function (model, tools){
         if (display=='')
             display = '{{{foo}}}';  
         this.model.markerTemplate =  this.model.markerTemplate.replace(/<td>\{\{\{.+\}\}\}<\/td>/, '<td>' + display + '</td>');
-        if (_displayedOnly.length)          
-            _tools.showVesselsOnMap(_displayedOnly, false, true);
-        else
-            _tools.showVesselsOnMap("all"); 
+        _tools.showVesselsOnMap(_viewState);
             
         _saveLabelSettingsPromise = _saveLabelSettingsPromise.then(((c)=>{return this.model.saveLabelSettings(c);}).bind(this));
     }).bind(this));
@@ -162,27 +212,22 @@ const MyFleetView = function (model, tools){
         function(e){
             if (e.currentTarget.checked) {    
                 this.inProgress(true);              
-                this.model.loadTracks(this.infoDialogView);
-                this.displayTracks = true;
+                this.model.loadTracks(this.infoDialogView, _viewState);
             }
             else {
                 _tools.showMyFleetTrack();
-                this.displayTracks = false;
             }            
         }.bind(this)
     ); 
 
     // visibility controller
-    this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]').on("click", 
+    this.frame.find('.instruments .switch.only_myflot input[type="checkbox"]').on("click", 
         function(e){
             _displayedOnly.length = 0;
-            if (e.currentTarget.checked) {
-                _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());         
-                _tools.showVesselsOnMap(_displayedOnly, false, true);
-            }
-            else
-                _tools.showVesselsOnMap("all"); 
-//console.log("showVesselsOnMap");            
+            if (e.currentTarget.checked)
+                _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());
+            _tools.showVesselsOnMap(_viewState);
+            _tools.hideVesselsOnMap(_viewState, 'click only'); 
         }.bind(this)
     ); 
 
@@ -218,20 +263,15 @@ MyFleetView.prototype.inProgress = function (state) {
 MyFleetView.prototype.repaint = function () {
     _clean.call(this);  
     BaseView.prototype.repaint.apply(this, arguments);
+
     // MEMBERS ON MAP
     _displayedOnly.length = 0;
     if (!this.model.vessels.length)
-        this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]')[0].checked = false;    
-    if (this.frame.find('.instruments .switch.groups_vessels input[type="checkbox"]')[0].checked) {
-        _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString());         
-        _tools.showVesselsOnMap(_displayedOnly, false, true);
-    } 
-    else         
-        _tools.showVesselsOnMap("all");
-
-    _tools.hideVesselsOnMap(_notDisplayed); 
-// console.log("showVesselsOnMap");     
-// console.log("hideVesselsOnMap");  
+        this.frame.find('.instruments .switch.only_myflot input[type="checkbox"]')[0].checked = false;    
+    if (this.frame.find('.instruments .switch.only_myflot input[type="checkbox"]')[0].checked)
+        _displayedOnly = this.model.vessels.map(v=>v.mmsi.toString()); 
+    _tools.showVesselsOnMap(_viewState);
+    _tools.hideVesselsOnMap(_viewState, 'repaint'); 
     ///////////////// 
 
     let labelSettings = this.model.markerTemplate.match(/(?!\{\{\{)[^\{\}]+(?=\}\}\})/g),
@@ -250,8 +290,7 @@ MyFleetView.prototype.repaint = function () {
             _notDisplayed=uncheked.map(mmsi=>mmsi);
         else
             _notDisplayed.length = 0;
-        _tools.hideVesselsOnMap(uncheked);
-//console.log("hideVesselsOnMap");
+        _tools.hideVesselsOnMap(_viewState, 'check item');
     }
     this.groupList.onChangeGroup = ((mmsi, group)=>{
         let view = this;
@@ -279,7 +318,8 @@ MyFleetView.prototype.repaint = function () {
             }
             else{
                 thisView.model.changeMembers(vessel, this.infoDialogView).then(function () {
-                    thisView.show();
+                    thisView.show();			
+                    _tools.eraseMyFleetMarker(vessel.mmsi);
                 })
             }        
     }).bind(this);    
@@ -306,8 +346,7 @@ MyFleetView.prototype.beforeExcludeMember = function (strMmsi) {
 
 MyFleetView.prototype.hide = function () {
     BaseView.prototype.hide.apply(this, arguments); 
-    _tools.showVesselsOnMap("all");
-    _tools.hideVesselsOnMap([]);
+    _tools.cleanMap(_viewState);
 }
 
 // MyFleetView.prototype.show = function () {
