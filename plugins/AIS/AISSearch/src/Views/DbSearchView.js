@@ -124,64 +124,7 @@ const DbSearchView = function (model, options, tools, viewCalendar) {
             }
             //suggestions.hide();
         }).bind(this));
-/*
-
-    const calendar = this.frame.find('.calendar'),
-    daysLimit = 14;
-
-    // walkaround with focus at first input in ui-dialog
-    calendar.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
-
-    let mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-        dateInterval = new nsGmx.DateInterval();
-    dateInterval
-        .set('dateBegin', mapDateInterval.get('dateBegin'))
-        .set('dateEnd', mapDateInterval.get('dateEnd'))
-        .on('change', function (e) {
-//console.log(this.model.historyInterval) 
-//console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
-            let d = new Date(e.attributes.dateEnd.getTime() - msd*daysLimit);
-            this.calendar._dateInputs.datepicker('option', 'minDate', d);
-
-            this.model.historyInterval = { dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') };
-            this.model.isDirty = true;
-            this.show();
-        }.bind(this));
-    _tools.historyInterval = dateInterval;
-    const msd = 24*3600000;
-    this.calendar = new nsGmx.CalendarWidget({
-        dateInterval: dateInterval,
-        name: 'searchInterval',
-        container: calendar,
-        //dateMin: new Date(0, 0, 0),        
-        dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd*(daysLimit-1)),
-        dateMax: new Date(3015, 1, 1),
-        dateFormat: 'dd.mm.yy',
-        minimized: false,
-        showSwitcher: false,
-        dateBegin: new Date(),
-        dateEnd: new Date(2000, 10, 10),
-        //buttonImage: 'img/calendar.png'
-    })
-
-    let td = calendar.find('tr:nth-of-type(1) td');
-    td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="'+_gtxt('AISSearch2.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-    calendar.find('.default_date').on('click', () => {
-        let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-        this.calendar.getDateInterval().set('dateBegin', db.dateBegin);
-        this.calendar.getDateInterval().set('dateEnd', db.dateEnd);
-        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
-    })
-
-    //sidebarControl && sidebarControl.on('closing', ()=>calendar.reset())
-    this.frame.on('click', ((e) => {
-        if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
-            this.calendar.reset()
-        }
-        //suggestions.hide();
-    }).bind(this));
-*/
+        
     this.frame.find('.time .only_this  input[type="checkbox"]').click((e=>{
         _displayedOnly.length = 0;
         if (e.currentTarget.checked && this.frame.find('.ais_positions_date:not(.header)')[0] ) {
@@ -262,7 +205,8 @@ const DbSearchView = function (model, options, tools, viewCalendar) {
         }
         else {
             _clean.call(this);
-            _cleanMap.call(this);
+            if (_displayedOnly.length) 
+                this.frame.find('.time .only_this  input[type="checkbox"]').click();
             this.vessel = null;
         }
     }).bind(this)
@@ -272,7 +216,7 @@ const DbSearchView = function (model, options, tools, viewCalendar) {
 
 DbSearchView.prototype = Object.create(BaseView.prototype);
 
-let _clean = function () {
+const _clean = function () {
     this.frame.find('.open_positions').off('click');
     this.frame.find('.ais_positions_date .track input[type="checkbox"]').off('click');
     let scrollCont = this.container.find('.mCSB_container')
@@ -284,10 +228,6 @@ let _clean = function () {
     this.startScreen.css({ visibility: "hidden" });
     nsGmx.leafletMap.removeLayer(_highlight);
     this.showTrack();
-},
-_cleanMap = function(){  
-    if (_displayedOnly.length) 
-        this.frame.find('.time .only_this  input[type="checkbox"]').click();
 };
 
 DbSearchView.prototype.inProgress = function (state) {
@@ -516,14 +456,16 @@ DbSearchView.prototype.show = function () {
 };
 
 DbSearchView.prototype.hide = function () { 
-    BaseView.prototype.hide.call(this); 
+    if (!this.isActive)
+        return;
 
+    BaseView.prototype.hide.call(this); 
     _tools.cleanMap(_viewState);
 };
 
 DbSearchView.prototype.showTrack = function (vessels, onclick) {
 
-    _displayed = _tools.showHistoryTrack(vessels, onclick);   
+    _displayed = _tools.showHistoryTrack(vessels, onclick); 
 
     if (!vessels || !Array.isArray(vessels))
         return;

@@ -234,14 +234,14 @@ module.exports = function (options) {
                 _notDisplayedVessels = viewState.notDisplayed.map(v => v);
             else
                 _notDisplayedVessels.length = 0;
-console.log('hideOnMap', comment, _notDisplayedVessels)           
+//console.log('hideOnMap', comment, _notDisplayedVessels)           
             _setVesselFilter();
             viewState.hideTracks(_trackBuilder, this.needAltLegend);
         },
 
         showVesselsOnMap: function (viewState) { 
             _displayedVessels = viewState.displayedOnly && viewState.displayedOnly.length ? viewState.displayedOnly.map(v=>v) : "all"; 
-console.log('showOnMap', _displayedVessels)           
+//console.log('showOnMap', _displayedVessels)           
             _setVesselFilter();
 
             viewState.showTracks(_trackBuilder, this.needAltLegend);

@@ -23,7 +23,8 @@ let _tools,
 _displayedOnly=[], 
 _notDisplayed=[],
 _saveLabelSettingsPromise = Promise.resolve(0),
-_viewState = {
+_viewState = {   
+    get isViewActive(){return !!this.view.isActive;},
     get displayedOnly(){return _displayedOnly;},
     get notDisplayed(){return _notDisplayed;},
     showTracks: function(trackBuilder, needAlt){
@@ -39,6 +40,7 @@ _viewState = {
 
 const MyFleetView = function (model, tools, viewCalendar){
     BaseView.apply(this, arguments);
+    _viewState.view = this;
     _tools = tools; 
     _tools.onLegendSwitched(((showAlternative)=>{
         _switchLegendIcon.call(this, _tools.needAltLegend);
@@ -345,6 +347,9 @@ MyFleetView.prototype.beforeExcludeMember = function (strMmsi) {
 }
 
 MyFleetView.prototype.hide = function () {
+    if (!this.isActive)
+        return;
+        
     BaseView.prototype.hide.apply(this, arguments); 
     _tools.cleanMap(_viewState);
 }

@@ -140,7 +140,7 @@ module.exports = function (options) {
                     _tracksMF[trackId] = _addMarkers(vessels, null, onclick, 'TYPE', aisLayerSearcher.placeVesselTypeIcon);
                     _tracksAltMF[trackId] = _addMarkers(vessels, null,  onclick, 'SPEED', aisLayerSearcher.placeVesselTypeIcon);
 
-                    if (!viewState || viewState.notDisplayed.indexOf(trackId)<0)
+                    if (viewState.isViewActive && viewState.notDisplayed.indexOf(trackId)<0)
                         if (!needAltLegend)
                             _lmap.addLayer(_tracksMF[trackId]);
                         else
@@ -184,7 +184,6 @@ module.exports = function (options) {
             }
         },
         showHistoryTracks: function(displayed, needAltLegend){
-//console.log('showHistoryTracks', displayed);
             const a = Object.keys(_tracks);
             a.forEach(id => {
                 if (displayed.indexOf(id) > -1) {

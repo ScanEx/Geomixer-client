@@ -401,7 +401,6 @@ console.log("add group and style field");
             this.view.inProgress(true);
             this.load(actualUpdate).then(
                 function () {
-console.log('UPDATE')
                     if (_actualUpdate == actualUpdate) {
                         thisModel.view.inProgress(false);
                         if (_data)

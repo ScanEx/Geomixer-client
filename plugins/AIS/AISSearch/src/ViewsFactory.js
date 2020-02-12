@@ -25,19 +25,13 @@ module.exports = function (options) {
     dateInterval
         .set('dateBegin', mapDateInterval.get('dateBegin'))
         .set('dateEnd', mapDateInterval.get('dateEnd'))
-        .on('change', function (e) {
-//console.log(this.model.historyInterval) 
-console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
-            let d = new Date(e.attributes.dateEnd.getTime() - msd*daysLimit);
-            
+        .on('change', function (e) { 
+//console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
+            let d = new Date(e.attributes.dateEnd.getTime() - msd*daysLimit);            
             _viewCalendar1._dateInputs.datepicker('option', 'minDate', d);
             _viewCalendar1.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') });
             _viewCalendar2._dateInputs.datepicker('option', 'minDate', d);
             _viewCalendar2.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') }) 
- 
-            // this.model.historyInterval = { dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') };
-            // this.model.isDirty = true;
-            // this.show();
         }.bind(this));
     _tools.historyInterval = dateInterval;
     const msd = 24*3600000,
@@ -95,8 +89,8 @@ console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + date
     });
 
     ///////////////////////////////////////////////
-    const //_tools = options.tools,
-        _modulePath = options.modulePath,
+    
+    const _modulePath = options.modulePath,
         _searcher = new Searcher(options),
         _mfm = new MyFleetModel({aisLayerSearcher:_searcher, toolbox:_tools, modulePath: _modulePath}),
         _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm, vesselLegend: options.vesselLegend }),
