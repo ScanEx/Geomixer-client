@@ -4,10 +4,14 @@ const ScreenSearchView = function (model, tools) {
     BaseView.apply(this, arguments);
     _tools = tools;          
     _tools.onLegendSwitched(((showAlternative)=>{
-        if (this.isActive)      
+        if (this.isActive) {    
             this.model.data && this.model.data.vessels && this.repaint();
-        else
+            if (this.hideAisSwitch[0].checked)
+                _tools.hideAisData(true);
+        }
+        else{
             _delayedRepaint = true;
+        }
     }).bind(this));
 
     this.frame = $(Handlebars.compile('<div class="ais_view screensearch_view">' +
@@ -20,12 +24,11 @@ const ScreenSearchView = function (model, tools) {
         '</div></div>' +
         '</td></tr>' + 
 
-        // '<tr><td>' + 
-        // '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>'+ 
-        // '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">'+
-        // '<div class="sync-switch-slider switch-slider round"></div></label>' +
-        // '<div>&nbsp;</div>'+
-        // '</td></tr>' + 
+        '<tr><td style="padding-top:0px">' +'<label class="sync-switch switch hide_ais" style="margin-left:5px"><input type="checkbox">'+
+        '<div class="sync-switch-slider switch-slider round"></div></label>' + 
+        '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.hideAisData"}}</span>'+ 
+        '<div>&nbsp;</div>'+
+        '</td></tr>' + 
 
         '</table>' +
 
@@ -136,14 +139,10 @@ const ScreenSearchView = function (model, tools) {
     nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
     nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
 
-    // this.frame.find('.instruments .all_tracks  input[type="checkbox"]').click((e=>{
-    //     if (e.currentTarget.checked) {       
-    //         _tools.showAllTracks(true);
-    //     }
-    //     else{            
-    //         _tools.showAllTracks(false);  
-    //     }
-    // }).bind(this));
+    this.hideAisSwitch = this.frame.find('.instruments .hide_ais  input[type="checkbox"]');
+    this.hideAisSwitch.click((e=>{
+        _tools.hideAisData(e.currentTarget.checked);
+    }).bind(this));
 };
 
 ScreenSearchView.prototype = Object.create(BaseView.prototype);
@@ -325,19 +324,25 @@ ScreenSearchView.prototype.repaint = function () {
 ScreenSearchView.prototype.show = function () {
     this.startShow = true;
     BaseView.prototype.show.apply(this, arguments);
+
     if (_delayedRepaint && !this.model.isDirty)
         this.repaint();
 
     this.frame.find('.filter input').focus();
-
-    // if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked)
-    //     _tools.showAllTracks(true);
 
     if (this.scroledPx) {
         this.container.mCustomScrollbar("scrollTo",
             this.scroledPx, { scrollInertia: 0, callbacks: false }
         );
     }  
+    
+    _tools.hideAisData(this.hideAisSwitch[0].checked);
+};
+ScreenSearchView.prototype.hide = function () {
+    if (!this.isActive)
+        return;
+    _tools.hideAisData(false);
+    BaseView.prototype.hide.call(this);
 };
 
 module.exports = ScreenSearchView;

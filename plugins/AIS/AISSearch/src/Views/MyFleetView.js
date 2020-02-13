@@ -71,7 +71,7 @@ const MyFleetView = function (model, tools, viewCalendar){
     '</td>' +
     '<td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>' +
 
-    '<tr><td colspan="3" style="padding-top:0">' +
+    '<tr><td colspan="3" style="padding-top:0; padding-bottom:5px">' +
     '<table class="newgroup"><tr><td>{{i "AISSearch2.NewGroup"}}</td>' +
     '<td><div class="newgroupname"><input type="text" placeholder="{{i "AISSearch2.NewGroupName"}}"/></div></td>' +
     '<td><img class="create clicable" title="{{i "AISSearch2.CreateGroup"}}" src="plugins/AIS/AISSearch/svg/add.svg"></td>' +

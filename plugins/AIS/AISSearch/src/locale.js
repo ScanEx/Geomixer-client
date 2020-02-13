@@ -113,6 +113,7 @@
         'AISSearch2.standing':'Стоит\\дрейфует',
         'AISSearch2.myFleetInclude': 'добавить в мой флот',
         'AISSearch2.myFleetExclude': 'удалить из моего флота',
+        'AISSearch2.hideAisData': 'скрыть данные AIS',
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -228,4 +229,5 @@
         'AISSearch2.standing':'Standing',
         'AISSearch2.myFleetInclude': 'include in my fleet',
         'AISSearch2.myFleetExclude': 'exclude from my fleet',
+        'AISSearch2.hideAisData': 'hide ais data',
     });

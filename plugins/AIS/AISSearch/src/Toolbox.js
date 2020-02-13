@@ -3,13 +3,16 @@ const Polyfill = require('./Polyfill');
 
 module.exports = function (options) {
     const _lmap = nsGmx.leafletMap,
-        _layersByID = nsGmx.gmxMap.layersByID;
-      let _aisLayer = _layersByID[options.aisLayerID],
-          _screenSearchLayer = _layersByID[options.searchLayer],
-          _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt],
-          _lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt];
+        _layersByID = nsGmx.gmxMap.layersByID,
+        _aisLayer = _layersByID[options.aisLayerID],
+        _screenSearchLayer = _layersByID[options.searchLayer],
+        //_lastPointLayerAltFact = _layersByID[options.lastPointLayerAlt],
+        _lastPointLayerAlt = _layersByID[options.lastPointLayerAlt];
 
-    let   _almmsi, _tlmmsi, _aldt, _tldt;
+    let _curLegendLayer = _screenSearchLayer, _prevLegendLayer = _lastPointLayerAlt;
+
+    let _almmsi, _tlmmsi, _aldt, _tldt;
+    let _needAltLegend = false;
     try{
           _almmsi = _aisLayer.getGmxProperties().attributes.indexOf("mmsi") + 1, 
           _aldt = _aisLayer.getGmxProperties().attributes.indexOf("ts_pos_utc") + 1;
@@ -41,15 +44,39 @@ module.exports = function (options) {
         return false;
     }, 
     _specialVesselFilters,
+    // _setVesselFilter = function(){
+    //     if (_screenSearchLayer) {
+    //         _screenSearchLayer.removeFilter();  
+
+    //         if (_displayedVessels!="all" || _notDisplayedVessels.length || _specialVesselFilters) {            
+    //             let ai = _screenSearchLayer._gmx.tileAttributeIndexes, fields = [];
+    //             for (var k in ai)
+    //                 fields[ai[k]] = k;
+    //             _screenSearchLayer.setFilter((args) => {
+
+    //                 for(var f in _specialVesselFilters)
+    //                         _specialVesselFilters[f](args, ai, _displayedVessels);
+
+    //                 let mmsi = args.properties[ai.mmsi].toString();
+    //                 if ((_displayedVessels=="all" || _displayedVessels.indexOf(mmsi) >= 0) && 
+    //                     _notDisplayedVessels.indexOf(mmsi) < 0)
+    //                     return true;
+    //                 else
+    //                     return false;
+    //             });
+    //         } 
+    //     }
+
+    // },
     _setVesselFilter = function(){
-        if (_screenSearchLayer) {
-            _screenSearchLayer.removeFilter();  
+        if (_curLegendLayer) {
+            _curLegendLayer.removeFilter();  
 
             if (_displayedVessels!="all" || _notDisplayedVessels.length || _specialVesselFilters) {            
-                let ai = _screenSearchLayer._gmx.tileAttributeIndexes, fields = [];
+                let ai = _curLegendLayer._gmx.tileAttributeIndexes, fields = [];
                 for (var k in ai)
                     fields[ai[k]] = k;
-                _screenSearchLayer.setFilter((args) => {
+                    _curLegendLayer.setFilter((args) => {
 
                     for(var f in _specialVesselFilters)
                             _specialVesselFilters[f](args, ai, _displayedVessels);
@@ -197,8 +224,8 @@ module.exports = function (options) {
         },
         get hasAlternativeLayers(){ return _lastPointLayerAlt; },
         get needAltLegend(){
-            //return !!(_lastPointLayerAlt && _lastPointLayerAlt._map); 
-            return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); 
+            //return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); 
+            return _needAltLegend;
         },
         get historyInterval(){return _historyInterval;},
         set historyInterval(v){_historyInterval = v;},
@@ -217,8 +244,10 @@ module.exports = function (options) {
         },
 
         restoreDefault: function(){                   
-            _lmap.addLayer(_screenSearchLayer);
-            _lastPointLayerAlt && _lmap.removeLayer(_lastPointLayerAlt); 
+            // _lmap.addLayer(_screenSearchLayer);
+            // _lastPointLayerAlt && _lmap.removeLayer(_lastPointLayerAlt);              
+            _lmap.addLayer(_curLegendLayer);
+            _prevLegendLayer && _lmap.removeLayer(_prevLegendLayer); 
         },
 
         cleanMap: function(viewState){
@@ -273,38 +302,23 @@ module.exports = function (options) {
         },
 
         switchLegend: function(showAlternative){
-            _switchLayers(_screenSearchLayer, _lastPointLayerAlt);
-            let temp = _screenSearchLayer;
-            _screenSearchLayer = _lastPointLayerAlt;
-            _lastPointLayerAlt = temp;
+            // _switchLayers(_screenSearchLayer, _lastPointLayerAlt);
+            // let temp = _screenSearchLayer;
+            // _screenSearchLayer = _lastPointLayerAlt;
+            // _lastPointLayerAlt = temp;
+            // _needAltLegend = !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map);
+            
+            _needAltLegend = showAlternative;
+
+            _switchLayers(_curLegendLayer, _prevLegendLayer);
+            let temp = _curLegendLayer;
+            _curLegendLayer = _prevLegendLayer;
+            _prevLegendLayer = temp;
 
             _setVesselFilter();
             _legendSwitched(showAlternative);
 
-//console.log(showAlternative, this.needAltLegend)
-            _trackBuilder.switchLegend(this.needAltLegend, _notDisplayedVessels);
-            // for (let t in _tracks){
-            //     //if (_notDisplayedVessels.indexOf(t)<0)
-            //     if (this.needAltLegend){
-            //         _lmap.removeLayer(_tracks[t]);
-            //         _lmap.addLayer(_tracksAlt[t]);
-            //     }
-            //     else{
-            //         _lmap.addLayer(_tracks[t]);
-            //         _lmap.removeLayer(_tracksAlt[t]);
-            //     }
-            // }
-            // for (let t in _tracksMF){
-            //     if (_notDisplayedVessels.indexOf(t)<0)
-            //     if (this.needAltLegend){
-            //         _lmap.removeLayer(_tracksMF[t]);
-            //         _lmap.addLayer(_tracksAltMF[t]);
-            //     }
-            //     else{
-            //         _lmap.addLayer(_tracksMF[t]);
-            //         _lmap.removeLayer(_tracksAltMF[t]);
-            //     }
-            // }
+            _trackBuilder.switchLegend(this.needAltLegend, _notDisplayedVessels);            
         },
 
         onLegendSwitched: function(handler){    
@@ -357,7 +371,23 @@ module.exports = function (options) {
             if (!local)
                 temp.setMinutes(temp.getMinutes() + temp.getTimezoneOffset())
             return temp.toLocaleDateString();
-        }
+        },
 
+        hideAisData: function(isNeeded){
+            if (isNeeded){
+                _lmap.removeLayer(_screenSearchLayer);
+                _lmap.removeLayer(_lastPointLayerAlt);
+                _markers && _lmap.removeLayer(_markers);
+            }
+            else{
+                _lmap.addLayer(_curLegendLayer);
+                _markers && _lmap.addLayer(_markers);
+                // if(!_needAltLegend)
+                // _lmap.addLayer(_screenSearchLayer);
+                // else
+                // //_lmap.addLayer(_lastPointLayerAltFact);
+                // _lmap.addLayer(_lastPointLayerAlt);
+            }
+        }
     };
 }

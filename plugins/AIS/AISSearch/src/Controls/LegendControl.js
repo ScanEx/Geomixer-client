@@ -92,7 +92,7 @@ const LegendControl = function (tools, aisLastPointLayer, lastPointLayerAlt) {
             let lswitchClick = e => {
                 let cl = e.target.classList;
                 if (!cl.contains('on')) {
-                    tools.switchLegend(cl.contains('.speed'));
+                    tools.switchLegend(cl.contains('speed'));
                     container.footer.querySelector('span.on').classList.remove('on');
                     cl.add('on');
                     if (legendDiv) {

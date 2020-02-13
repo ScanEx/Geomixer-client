@@ -150,6 +150,9 @@ const publicInterface = {
     }
 };
 
+// warm up db connection
+//fetch('//geomixer.scanex.ru/Plugins/AIS/SearchScreenAsync.ashx?minx=03&miny=0&maxx=0&maxy=0&layer=EE5587AF1F70433AA878462272C0274C&s=3020-02-13T00:00:00.000Z&e=3020-02-14T00:00:00.000Z', {credentials: 'include'});
+
 gmxCore.addModule(pluginName, publicInterface, {
     css: cssTable + '.css'
 });
