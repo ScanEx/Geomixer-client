@@ -30,7 +30,7 @@ const pluginName = PRODUCTION ? (BETA ? 'AISPluginBeta' : 'AISPlugin') : 'AISSea
     menuId = 'AISSearch',
     toolbarIconId = null, 
     cssTable = PRODUCTION ? (BETA ? 'AISPluginBeta' : 'AISPlugin') : 'AISSearch2',
-    modulePath = gmxCore.getModulePath(pluginName);
+    modulePath = gmxCore.getModulePath(pluginName).replace(/https*\:\/\/[^\/]+\/api\//, document.location.href.replace(/\/[^\/]+$/, '/'));
 
 const highlight = L.marker([0, 0], {icon:L.icon({
     className:"ais_highlight-icon", 

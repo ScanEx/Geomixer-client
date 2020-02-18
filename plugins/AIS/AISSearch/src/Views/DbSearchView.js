@@ -358,14 +358,14 @@ DbSearchView.prototype.repaint = function () {
     });
 
     const allTracksInput = this.frame.find('.ais_positions_date .track.all input[type="checkbox"]'),
-          tracksInputs = this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]'),
-          setMapCalendar = function(calendar){
-              let calendarInterval = calendar.getDateInterval(),
-                  interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
-              nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);              
-          };
+          tracksInputs = this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]')
+        //   ,setMapCalendar = function(calendar){
+        //       let calendarInterval = calendar.getDateInterval(),
+        //           interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
+        //       nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);              
+        //   };
     allTracksInput.click(((e) => {        
-        setMapCalendar(this.calendar);
+        //setMapCalendar(this.calendar);
         this.frame.find('.ais_positions_date .track:not(.all) input').each((i, el) => {
             el.checked = e.target.checked;
         });
@@ -385,7 +385,7 @@ DbSearchView.prototype.repaint = function () {
         let vessels = this.model.data.vessels, v = vessels[i], nv = vessels[i+1];
         el.addEventListener('click', ((e)=>{ 
 
-            setMapCalendar(this.calendar);
+            //setMapCalendar(this.calendar);
             allTracksInput[0].checked = (this.frame.find('.ais_positions_date .track:not(.all) input:checked').length==vessels.length);
             
             this.showTrack([{

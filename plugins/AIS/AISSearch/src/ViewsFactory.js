@@ -31,7 +31,10 @@ module.exports = function (options) {
             _viewCalendar1._dateInputs.datepicker('option', 'minDate', d);
             _viewCalendar1.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') });
             _viewCalendar2._dateInputs.datepicker('option', 'minDate', d);
-            _viewCalendar2.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') }) 
+            _viewCalendar2.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') });
+  
+            nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get("dateBegin"), dateInterval.get("dateEnd")); 
+
         }.bind(this));
     _tools.historyInterval = dateInterval;
     const msd = 24*3600000,

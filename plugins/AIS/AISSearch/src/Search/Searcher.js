@@ -270,7 +270,7 @@ module.exports = function (options) {
             // L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
             //     queryParams,
             //     callback);
-            fetch(_aisServices + `SearchScreenAsync.ashx?minx=${min.x}&miny=${min.y}&maxx=${max.x}&maxy=${max.y}&layer=${_screenSearchLayer}
+            fetch(_aisServices + `SearchScreenAsync.ashx?${options.filter ? 'f=' + options.filter + '&' : ''}minx=${min.x}&miny=${min.y}&maxx=${max.x}&maxy=${max.y}&layer=${_screenSearchLayer}
 &s=${options.dateInterval.get('dateBegin').toJSON()}&e=${options.dateInterval.get('dateEnd').toJSON()}`, {
                 method: 'GET', 
                 mode: 'cors', 

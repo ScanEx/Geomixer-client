@@ -2,6 +2,7 @@ const BaseView = require('./BaseView.js');
 let _tools, _delayedRepaint;
 const ScreenSearchView = function (model, tools) {
     BaseView.apply(this, arguments);
+
     _tools = tools;          
     _tools.onLegendSwitched(((showAlternative)=>{
         if (this.isActive) {    
@@ -91,50 +92,52 @@ const ScreenSearchView = function (model, tools) {
     let cleanFilter = this.frame.find('.remove'),
         filterReady = this.frame.find('.search'),
         filterInput = this.frame.find('input'),
-        delay,
         doFilter = function(){
-            this.model.setFilter();             
-            this.repaint();
-//console.log("doFilter")
+            this.model.setFilter(); 
         };
         cleanFilter.click(function(e){
             if (this.model.filterString === '')
                 return;
             filterInput.val('');
             this.model.filterString = '';  
-            clearTimeout(delay)
+            filterReady.show();
+            cleanFilter.hide();
             doFilter.call(this);
             //nsGmx.leafletMap.removeLayer(highlight);
-        }.bind(this))
+        }.bind(this));
         filterInput.keyup(function(e){            
             let input = filterInput.val() || "";
             input = input.replace(/^\s+/, "").replace(/\s+$/, "");
-            if (input===""){
+ 
+            if (input==this.model.filterString)// && e.keyCode!=13
+                return; 
+
+            if (input==''){
                 filterReady.show();
                 cleanFilter.hide();
+                this.model.filterString = input;
+                doFilter.call(this);
             }
             else{
                 cleanFilter.show();
                 filterReady.hide();
             }
 
-            if (input==this.model.filterString && e.keyCode!=13)
-                return;
+console.log(`[${input}], [${this.model.filterString}]`)
+
             this.model.filterString = input; 
-            if (e.keyCode==13)
-                this.model.filterString += '\r' ;  
-            clearTimeout(delay)
-            delay = setTimeout((() => { doFilter.call(this) }).bind(this), 500);
-            //nsGmx.leafletMap.removeLayer(highlight);
+            //if (e.keyCode==13){
+            if (e.keyCode!=13){
+                doFilter.call(this);
+                //nsGmx.leafletMap.removeLayer(highlight);
+            }
+            //}
         }.bind(this))
     
     let needUpdate = function(){
         this.model.isDirty = true;
-        if (this.container.is(':visible')) {
- 
-            clearTimeout(delay)
-            delay = setTimeout((() => { this.model.update() }).bind(this), 300);  
-        }
+        if (this.isActive)
+            this.model.update();
     };
     nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
     nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
@@ -143,6 +146,10 @@ const ScreenSearchView = function (model, tools) {
     this.hideAisSwitch.click((e=>{
         _tools.hideAisData(e.currentTarget.checked);
     }).bind(this));
+
+    
+    this.model.update(); //warm up
+
 };
 
 ScreenSearchView.prototype = Object.create(BaseView.prototype);
@@ -207,9 +214,14 @@ _setEventHandlers = function(){
 
 let arrowHead = 'icon-down-open';
 ScreenSearchView.prototype.repaint = function () {
+    if (!this.isActive){
+        _delayedRepaint = true;
+        return;
+    }
+
     _delayedRepaint = false;
 //let startRep = new Date();
-//console.log("REPAINT")
+console.log("REPAINT")
     //_clean.call(this);
     this.frame.find('.count').html('<div class="show_groups clicable ui-helper-noselect ' + arrowHead + '" ' +
     'style="margin-right:5px;display:inline"></div>' + 
@@ -217,7 +229,7 @@ ScreenSearchView.prototype.repaint = function () {
     //BaseView.prototype.repaint.apply(this, arguments);
 
     this.frame.find('.groups')[0].innerHTML = '';
-    if (this.model.data.groups.length && arrowHead == 'icon-down-open')
+    if (this.model.data.groups && this.model.data.groups.length && arrowHead == 'icon-down-open')
         this.frame.find('.groups')[0].innerHTML = (Handlebars.compile('<table>' +
             '{{#each groups}}' +
             '<tr><td><img src="{{url}}" style="width:20px;height:20px"></td><td><div class="group_name">{{name}}</div></td><td>{{count}}</td></tr>' +

@@ -243,9 +243,9 @@ module.exports = function (options) {
             return _trackBuilder.showHistoryTrack(vessels, onclick, this.needAltLegend);
         },
 
-        restoreDefault: function(){                   
-            // _lmap.addLayer(_screenSearchLayer);
-            // _lastPointLayerAlt && _lmap.removeLayer(_lastPointLayerAlt);              
+        restoreDefault: function(){    
+            if (!_curLegendLayer)
+                return;
             _lmap.addLayer(_curLegendLayer);
             _prevLegendLayer && _lmap.removeLayer(_prevLegendLayer); 
         },
@@ -380,13 +380,10 @@ module.exports = function (options) {
                 _markers && _lmap.removeLayer(_markers);
             }
             else{
-                _lmap.addLayer(_curLegendLayer);
-                _markers && _lmap.addLayer(_markers);
-                // if(!_needAltLegend)
-                // _lmap.addLayer(_screenSearchLayer);
-                // else
-                // //_lmap.addLayer(_lastPointLayerAltFact);
-                // _lmap.addLayer(_lastPointLayerAlt);
+                if (_curLegendLayer){
+                    _lmap.addLayer(_curLegendLayer);
+                    _markers && _lmap.addLayer(_markers);
+                }
             }
         }
     };

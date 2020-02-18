@@ -14,8 +14,105 @@ const ScreenSearchModel = function ({aisLayerSearcher, myFleetModel, vesselLegen
     _aisLayerSearcher = aisLayerSearcher;
     _myFleetModel = myFleetModel;
     _vesselLegend = vesselLegend;
-    this.filterString = "";
+    //this.filterString = "";
     this.isDirty = true;
+};
+
+let _filterString = '';
+Object.defineProperty(ScreenSearchModel.prototype, "filterString", {
+    get() {
+        return _filterString;
+    },
+    set(v) {
+        _filterString = v;
+    }
+});
+
+let _filterPromise;
+ScreenSearchModel.prototype.setFilter = function (s) {        
+    this.view.inProgress(true);  
+    if (this.filterString=='')
+    {
+        this.data.vessels = this.dataSrc.vessels.map(v=>v);
+        this.data.groups = this.dataSrc.groups.map(g=>g)
+        this.data.groupsAlt = this.dataSrc.groupsAlt.map(g=>g);
+        
+        this.sortData();
+        this.view.inProgress(false);
+        this.view.repaint(); 
+    }
+    else{
+        const thisModel = this;
+        if (_filterPromise)
+            _filterPromise.cancel = true; 
+        _filterPromise = {
+            cancel: false, 
+            run: function(){
+                const inst=this; 
+                return new Promise(function(rs, rj){
+                    setTimeout( function(){
+                        if (inst.cancel || !thisModel.data)
+                            rj(0);
+                        thisModel.data.vessels = [], thisModel.data.groups = [], thisModel.data.groupsAlt = [];
+                        const filter = new RegExp(`^${thisModel.filterString}| ${thisModel.filterString}`, "ig");
+                        let icons = {}, setGroups = function(ic, a){
+                                if (icons[ic.name]==undefined){
+                                    icons[ic.name] = a.length;
+                                    a.push({ url: ic.url, name: ic.name, count: 1})
+                                }
+                                else
+                                    a[icons[ic.name]].count = a[icons[ic.name]].count + 1;
+                        };
+
+                        const a = thisModel.dataSrc.vessels;
+                        for (var i=0, v; i<a.length; ++i){
+                            if (inst.cancel) rj(0);
+                            v=a[i];
+                            if (v.vessel_name.search(filter)>-1){
+                                thisModel.data.vessels.push(v);
+                                let ic = _vesselLegend.getIcon(v.vessel_type, 1);
+                                setGroups(ic, thisModel.data.groups);
+                                ic = _vesselLegend.getIconAlt(v.vessel_, parseInt(v.sog));
+                                setGroups(ic, thisModel.data.groupsAlt);
+                            }
+                        }
+                        if (inst.cancel) rj(0);
+
+                        rs(thisModel.filterString);
+                    }, 500);
+                });
+            }
+        };
+        _filterPromise.run().then(function(r){
+console.log(`<${r}>`);
+            thisModel.sortData();
+            thisModel.view.inProgress(false);
+            thisModel.view.repaint(); 
+        }, console.log);
+
+        // this.data.vessels = [], this.data.groups = [], this.data.groupsAlt = [];
+        // const filter = new RegExp(`^${this.filterString}| ${this.filterString}`, "ig");
+        // let icons = {}, setGroups = function(ic, a){
+        //         if (icons[ic.name]==undefined){
+        //             icons[ic.name] = a.length;
+        //             a.push({ url: ic.url, name: ic.name, count: 1})
+        //         }
+        //         else
+        //             a[icons[ic.name]].count = a[icons[ic.name]].count + 1;
+        // };
+        // this.dataSrc.vessels.forEach(v=>{
+        //     if (v.vessel_name.search(filter)>-1){
+        //         this.data.vessels.push(v);
+        //         let ic = _vesselLegend.getIcon(v.vessel_type, 1);
+        //         setGroups(ic, this.data.groups);
+        //         ic = _vesselLegend.getIconAlt(v.vessel_, parseInt(v.sog));
+        //         setGroups(ic, this.data.groupsAlt);
+        //     }
+        // });
+        // this.sortData();
+        // this.view.inProgress(false);
+        // this.view.repaint(); 
+    }
 };
 
 ScreenSearchModel.prototype.load = function (actualUpdate) {
@@ -52,7 +149,9 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                             vessel.icon_rot = Math.round(vessel.cog/15)*15;
                             _aisLayerSearcher.placeVesselTypeIcon(vessel);
                             return vessel;
-                        })
+                        }),
+                        groups: [], 
+                        groupsAlt: []
                     };
 
                     thisInst.data = { groups: [], groupsAlt: [] }; 
@@ -66,6 +165,8 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                             thisInst.data.groupsAlt.push({ url: ic.url, name: ic.name, count: json.Result.groupsAlt[k]});
                         }
                     }
+                    thisInst.dataSrc.groups = thisInst.data.groups.map(g=>g)
+                    thisInst.dataSrc.groupsAlt = thisInst.data.groupsAlt.map(g=>g)
 
 //console.log(("MAP "+((new Date()-s)/1000)))
                     if (_actualUpdate == actualUpdate) {
@@ -124,12 +225,17 @@ let s = new Date()
     this.load(actualUpdate).then(function () {
         if (_actualUpdate == actualUpdate) {
             if (thisInst.dataSrc)
-                _myFleetModel.markMembers(thisInst.dataSrc.vessels);            
-            thisInst.data.vessels = thisInst.dataSrc.vessels;
-            
-            thisInst.sortData();         
-            thisInst.view.inProgress(false);
-            thisInst.view.repaint(); 
+                _myFleetModel.markMembers(thisInst.dataSrc.vessels);  
+            if (thisInst.filterString!=''){
+                thisInst.setFilter();
+            }
+            else{                
+                thisInst.data.vessels = thisInst.dataSrc.vessels;
+                
+                thisInst.sortData();         
+                thisInst.view.inProgress(false);
+                thisInst.view.repaint(); 
+            }
         }
     }, function (json) {
         thisInst.dataSrc = null;
