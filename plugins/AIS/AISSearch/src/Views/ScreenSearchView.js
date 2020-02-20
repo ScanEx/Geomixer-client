@@ -122,9 +122,6 @@ const ScreenSearchView = function (model, tools) {
                 cleanFilter.show();
                 filterReady.hide();
             }
-
-console.log(`[${input}], [${this.model.filterString}]`)
-
             this.model.filterString = input; 
             //if (e.keyCode==13){
             if (e.keyCode!=13){
@@ -221,7 +218,7 @@ ScreenSearchView.prototype.repaint = function () {
 
     _delayedRepaint = false;
 //let startRep = new Date();
-console.log("REPAINT")
+//console.log("REPAINT")
     //_clean.call(this);
     this.frame.find('.count').html('<div class="show_groups clicable ui-helper-noselect ' + arrowHead + '" ' +
     'style="margin-right:5px;display:inline"></div>' + 

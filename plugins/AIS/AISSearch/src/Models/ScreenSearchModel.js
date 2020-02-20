@@ -55,6 +55,7 @@ ScreenSearchModel.prototype.setFilter = function (s) {
                             rj(0);
                         thisModel.data.vessels = [], thisModel.data.groups = [], thisModel.data.groupsAlt = [];
                         const filter = new RegExp(`^${thisModel.filterString}| ${thisModel.filterString}`, "ig");
+//console.log(`[${filter}]`);
                         let icons = {}, setGroups = function(ic, a){
                                 if (icons[ic.name]==undefined){
                                     icons[ic.name] = a.length;
@@ -84,11 +85,11 @@ ScreenSearchModel.prototype.setFilter = function (s) {
             }
         };
         _filterPromise.run().then(function(r){
-console.log(`<${r}>`);
+//console.log(`<${r}>`);
             thisModel.sortData();
             thisModel.view.inProgress(false);
             thisModel.view.repaint(); 
-        }, console.log);
+        }, ()=>{});
 
         // this.data.vessels = [], this.data.groups = [], this.data.groupsAlt = [];
         // const filter = new RegExp(`^${this.filterString}| ${this.filterString}`, "ig");

@@ -9,7 +9,7 @@ onmessage = function(e) {
             if (status && status.toLowerCase()=='ok'){
                 let data = { mmsi: e.data.mmsi, imo:e.data.imo, positions: [], count: 0 },
                 fields = result.fields;
-                result.values.forEach(c => {
+                result.values.forEach(function(c) {
                     let obj = {};
                     for (var j = 0; j < fields.length; ++j) {
                         obj[fields[j]] = c[j];
