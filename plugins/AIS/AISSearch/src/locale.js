@@ -98,7 +98,8 @@
         'AISSearch2.DisplaySog':'скорость',   
         'AISSearch2.KnotShort':' уз',
         'AISSearch2.thisVesselOnly':'Только это судно: ',
-        'AISSearch2.allTracks':'Треки всех судов: ',
+        'AISSearch2.allTracks':'треки всех судов',
+        'AISSearch2.shipsTracks':'треки судов',
         'AISSearch2.markerShadow':'Цвет обводки маркера',
         'AISSearch2.labelColor':'Цвет подписи маркера',
         'AISSearch2.labelShadow':'Цвет обводки подписи',
@@ -109,7 +110,10 @@
         'AISSearch2.twoimages_com':'Два изображения',
         'AISSearch2.close_com':'Закрыть',
         'AISSearch2.moving':'В движении',
-        'AISSearch2.standing':'Стоит\\дрейфует'
+        'AISSearch2.standing':'Стоит\\дрейфует',
+        'AISSearch2.myFleetInclude': 'добавить в мой флот',
+        'AISSearch2.myFleetExclude': 'удалить из моего флота',
+        'AISSearch2.hideAisData': 'скрыть данные AIS',
     });
     _translationsHash.addtext('eng', {
         'AISSearch2.title': 'Searching vessels',
@@ -210,7 +214,8 @@
         'AISSearch2.DisplaySog':'sog',   
         'AISSearch2.KnotShort':' kn',
         'AISSearch2.thisVesselOnly':'Only this ship ',
-        'AISSearch2.allTracks':'All ships tracks ',
+        'AISSearch2.allTracks':'all ships tracks ',
+        'AISSearch2.shipsTracks':'ships tracks ',
         'AISSearch2.markerShadow':'Marker highlight',
         'AISSearch2.labelColor':'Label color',
         'AISSearch2.labelShadow':'Label highlight',
@@ -221,5 +226,8 @@
         'AISSearch2.twoimages_com':'Two images',
         'AISSearch2.close_com':'Close',
         'AISSearch2.moving':'Moving',
-        'AISSearch2.standing':'Standing'
+        'AISSearch2.standing':'Standing',
+        'AISSearch2.myFleetInclude': 'include in my fleet',
+        'AISSearch2.myFleetExclude': 'exclude from my fleet',
+        'AISSearch2.hideAisData': 'hide ais data',
     });

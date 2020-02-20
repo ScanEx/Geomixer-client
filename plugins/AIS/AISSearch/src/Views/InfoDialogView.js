@@ -16,7 +16,6 @@ module.exports = function ({
 
     vesselInfoScreen  = new VesselInfoScreen({modulePath: modulePath, aisServices: aisLayerSearcher.aisServices});
     const _showPosition = function(vessel, track){ 
-        window.iconSidebarWidget.open(menuId);
 
         aisView.vessel = vessel;
         if (aisView.tab)
@@ -24,8 +23,10 @@ module.exports = function ({
             aisView.show();
         else
             aisView.tab.click(); 
+        aisView.showTrack(track);    
         
-        aisView.showTrack(track);
+        
+        window.iconSidebarWidget.open(menuId);
     }, 
     _updateView = function (displayed, vessel, getmore){
         if (displayed.vessel.ts_pos_utc!=vessel.ts_pos_utc){

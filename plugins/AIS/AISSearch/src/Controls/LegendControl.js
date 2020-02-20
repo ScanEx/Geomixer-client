@@ -1,15 +1,19 @@
-const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
+const SvgParser = require ('../canvg');
+
+const LegendControl = function (tools, aisLastPointLayer, lastPointLayerAlt) {
     const _layersByID = nsGmx.gmxMap.layersByID,
-        _layers = [_layersByID[aisLastPointLaier], _layersByID[lastPointLayerAlt]],
+        _layers = [_layersByID[aisLastPointLayer], _layersByID[lastPointLayerAlt]],
         _getIcons = function () {
             _layers[0] && _layers[0]._gmx.properties.gmxStyles.styles.forEach(s => {
                 let icon = {
                     "filter": s.Filter, 
                     "url": s.RenderStyle.iconUrl.replace(/^https?:/, "")
-                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
+                    "img": new Image(),
+                    "typeColor": {}
                 };
                 _icons.push(icon);
-                _iconsDict[icon.filter] = {url:icon.url, name:icon.name};
+                _iconsDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img, color: icon.typeColor};
             });
             _layers[1] && _layers[1]._gmx.properties.gmxStyles.styles.forEach(s => {
                 let icon = {
@@ -17,10 +21,12 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                         .replace(/ *not ((.(?!( and | or |$)))+.)/ig, " !($1)")
                         .replace(/ or /ig, " || ").replace(/ and /ig, " && "), 
                     "url": s.RenderStyle.iconUrl.replace(/^https?:/, "")
-                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name
+                        .replace(/^\/\/kosmosnimki.ru/, "//www.kosmosnimki.ru"), "name": s.Name,
+                    "img": new Image(),
+                    "typeColor": {}
                 };
                 _iconsAlt.push(icon);
-                _iconsAltDict[icon.filter] = {url:icon.url, name:icon.name};
+                _iconsAltDict[icon.filter] = {url:icon.url, name:icon.name, img: icon.img, color: icon.typeColor};
             });
 // console.log(_icons);
 // console.log(_iconsAlt);
@@ -30,12 +36,51 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                 let httpRequest = new XMLHttpRequest();
                 httpRequest.onreadystatechange = function () {
                     if (httpRequest.readyState === 4) {
-                        ic["svg"] = httpRequest.responseText;
+                        ic.svg = httpRequest.responseText;
                         let a = /\.cls-1{fill:(#[^};]+)/.exec(ic.svg);
                         ic.color = '#888';
                         if (a && a.length)
                             ic.color = a[1];
-                        resolve();
+
+                        ic.typeColor.value = ic.color;
+ 
+                        let svg = httpRequest.responseText;
+                        let canvas = document.createElement("canvas");
+                        if (canvas.msToBlob){
+                            document.body.appendChild(canvas);
+                            canvas.width = 21;
+                            canvas.height = 21;
+                            SvgParser.canvg(canvas, svg)
+                            ic.img.src = canvas.toDataURL("image/png");
+                            document.body.removeChild(canvas);
+                            resolve();
+//console.log('CANVG')
+                        }
+                        else{
+
+                            let svg64 = btoa(unescape(encodeURIComponent(svg)));
+                            let b64Start = 'data:image/svg+xml;base64,';
+                            let image64 = b64Start + svg64; 
+                            let imgSvg = new Image();             
+                            imgSvg.src = image64; 
+//console.log(imgSvg)
+                            imgSvg.onload = function(){
+                                let canvas = document.createElement("canvas");
+                                document.body.appendChild(canvas)
+                                canvas.width = imgSvg.width;
+                                canvas.height = imgSvg.height;
+                                let ctx = canvas.getContext("2d");
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(imgSvg, 0, 0);
+                                ic.img.src = canvas.toDataURL("image/png");
+                                //ic.img.onload = function(){
+//console.log(ic.img)
+                                document.body.removeChild(canvas);
+
+                                resolve();
+                            //}
+                            }
+                        }
                     }
                 }
                 httpRequest.open("GET", document.location.protocol + ic.url.replace(/^https?:/, ""));
@@ -62,7 +107,7 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
             let lswitchClick = e => {
                 let cl = e.target.classList;
                 if (!cl.contains('on')) {
-                    tools.switchLegend(cl.contains('.speed'));
+                    tools.switchLegend(cl.contains('speed'));
                     container.footer.querySelector('span.on').classList.remove('on');
                     cl.add('on');
                     if (legendDiv) {
@@ -154,6 +199,7 @@ const LegendControl = function (tools, aisLastPointLaier, lastPointLayerAlt) {
                 re2 = new RegExp(sog != 0 ? ">0" : "=0");
 //console.log(vessel_type+" "+sog+" "+f+" "+f.search(re1)+" "+f.search(re2))
                 if(f.search(re1)!=-1 && f.search(re2)!=-1){
+//console.log( _iconsDict[f])
                     return _iconsDict[f];
                 }
             }

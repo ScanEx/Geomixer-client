@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using WebSecurity;
 
+using System.Text.RegularExpressions;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
@@ -89,6 +90,10 @@ public class ScreenSearchAsync : IHttpAsyncHandler {
 						var success = reader["Success"];
 						if (t=="")
 							t+=success;
+							
+						if (t.StartsWith("[mailru]"))
+							return ( Regex.Replace(Regex.Replace(t, @"\[mailru\]\.", "", RegexOptions.IgnoreCase), @"[\[\]]", "\"", RegexOptions.IgnoreCase));
+							
 						switch(t)
 						{
 							case "[mailru].[ais].[ais_data]":
@@ -168,6 +173,9 @@ public class ScreenSearchAsync : IHttpAsyncHandler {
 		public string[]	columns;
 		public List<List<object>> values;
 		public int[] elapsed;
+		public string table;
+		public Dictionary<string, int> groups;
+		public Dictionary<string, int> groupsAlt;
 	}
 	
 	private object GetResult()
@@ -181,7 +189,10 @@ public class ScreenSearchAsync : IHttpAsyncHandler {
 			var result = new Result(){
 				columns = new string[] { "vessel_name", "mmsi", "imo", "maxid", "xmin", "xmax", "ymin", "ymax", "vessel_type", "sog", "cog", "heading", "ts_pos_utc" },
 				values = new List<List<object>>(),
-				elapsed = new int[]{(int)(DateTime.Now-begin).TotalMilliseconds, 0}			
+				elapsed = new int[]{(int)(DateTime.Now-begin).TotalMilliseconds, 0},
+				table = "",
+				groups = new Dictionary<string, int>(),
+				groupsAlt = new Dictionary<string, int>()
 			};
             using (var conn = new NpgsqlConnection(_connStr))
 			{
@@ -249,7 +260,24 @@ public class ScreenSearchAsync : IHttpAsyncHandler {
 
 				begin = DateTime.Now;            
 				conn.Open();
-				var r = com.ExecuteReader();				
+				var r = com.ExecuteReader();
+				int vesNameCol = -1,
+					vesTypeCol = -1,
+					sogCol = -1,
+					tsPosCol = -1;
+				for (var i=0; i<result.columns.Length; ++i)
+				{
+					if (result.columns[i]=="ts_pos_utc")
+						tsPosCol = i;
+					else if (result.columns[i]=="vessel_name")
+						vesNameCol = i; 
+					else if (result.columns[i]=="vessel_type")
+						vesTypeCol = i;
+					else if (result.columns[i]=="sog")
+						sogCol = i;
+				
+				}
+					
 				while (r.Read())
 				{
 					var vessel = new List<object>();
@@ -258,11 +286,42 @@ public class ScreenSearchAsync : IHttpAsyncHandler {
 						if (result.columns[i]=="ts_pos_utc")
 							vessel.Add(((DateTime)r[result.columns[i]]).Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds);
 						else
-							vessel.Add(r[result.columns[i]]);
+							vessel.Add(r[result.columns[i]]);	
 					}
+					
+							var vt = r[vesTypeCol].ToString();
+							if (vt=="Pleasure Craft" || vt=="Sailing")
+								vt = "Sailing";
+							else if (vt=="Dredging" || vt=="Law Enforcement" || vt=="Medical Transport" || vt=="Military" || vt=="Pilot" || 
+									 vt=="Port Tender" || vt=="SAR" || vt=="Ships Not Party to Armed Conflict" || vt=="Spare" || vt=="Towing" || 
+									 vt=="Tug" || vt=="Vessel With Anti-Pollution Equipment" || vt=="WIG" || vt=="Diving")
+								vt = "Pilot";
+							else if (vt=="Unknown" || vt=="Reserved" || vt=="Other")
+								vt = "Other";
+							if (result.groups.ContainsKey(vt))
+								result.groups[vt] = result.groups[vt] + 1;
+							else
+								result.groups[vt] = 1;
+
+							var st = "undef";
+							if ((int)r[sogCol]>=8 && r[vesNameCol].ToString()!="UNAVAILABLE")
+								st = "8";
+							else if (4<(int)r[sogCol] && (int)r[sogCol]<8 && r[vesNameCol].ToString()!="UNAVAILABLE")
+								st = "6";
+							else if (0<(int)r[sogCol] && (int)r[sogCol]<=4 && r[vesNameCol].ToString()!="UNAVAILABLE")
+								st = "4";
+							else if ((int)r[sogCol]==0 && r[vesNameCol].ToString()!="UNAVAILABLE")
+								st = "0";
+							if (result.groupsAlt.ContainsKey(st))
+								result.groupsAlt[st] = result.groupsAlt[st] + 1;
+							else
+								result.groupsAlt[st] = 1;
+							
+								
 					result.values.Add(vessel);
 				}
 				result.elapsed[1] = (int)(DateTime.Now-begin).TotalMilliseconds;
+				result.table = table;
 			}
 			return result;		
 		}
@@ -291,7 +350,7 @@ public class ScreenSearchAsync : IHttpAsyncHandler {
     public void EndProcessRequest(IAsyncResult asyncResult)
     {
 		object result = _caller.EndInvoke(asyncResult);
-		HttpContext.Current = _context;
+		//HttpContext.Current = _context;
 		
 		string json;
 		if (result is AuthenticationException)
@@ -313,9 +372,7 @@ public class ScreenSearchAsync : IHttpAsyncHandler {
 		_context.Response.Headers.Add("Access-Control-Allow-Origin", _origin);		
 		_context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
 		_context.Response.Write(json);
-		_context.Response.End();
-		WebHelper.CompressOutputStream(_context);	
-
+		WebHelper.CompressOutputStream(_context);
     }	
 	 
     public void ProcessRequest(HttpContext context)

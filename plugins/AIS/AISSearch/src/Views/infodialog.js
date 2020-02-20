@@ -291,13 +291,13 @@ module.exports = function ({ vessel, closeFunc, aisLayerSearcher, getmore,
 		progress.append(gifLoader)
 
 		myFleetView.beforeExcludeMember(vessel.mmsi.toString());
-		myFleetModel.changeMembers(vessel).then(function () {
+		myFleetModel.changeMembers(vessel, myFleetView.infoDialogView).then(function () {
 			add = myFleetModel.findIndex(vessel) < 0;
 			var info = $('.icon-ship[vessel="' + vessel.mmsi + ' ' + vessel.imo + '"]');
 			info.css('visibility', !add ? 'visible' : 'hidden');
 			$('.vessel_prop.vname svg', canvas).css('visibility', add ? 'hidden' : 'visible')
-
-			addremove.attr('title', add ? 'добавить в мой флот' : 'удалить из моего флота')
+			
+			addremove.attr('title', add ? _gtxt('AISSearch2.myFleetInclude') : _gtxt('AISSearch2.myFleetExclude'))
 				.html(addremoveIcon(add))
 			progress.text('');
 			$('.addremove').removeClass('disabled').show();

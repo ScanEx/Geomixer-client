@@ -108,17 +108,42 @@ module.exports = function (options) {
         },
         placeVesselTypeIcon: function(vessel){
             let protocol = document.location.protocol,
-            iconUrl;            
+            icon;            
             // speed icon
-            iconUrl = _vesselLegend.getIconAltUrl("vessel.vessel_name", vessel.sog);
-            if (iconUrl)
-                vessel.iconAlt = protocol + iconUrl;           
+            icon = _vesselLegend.getIconAlt("vessel.vessel_name", vessel.sog);
+            if (icon){
+                vessel.iconAlt = protocol + icon.url; 
+                vessel.imgAlt =  icon.img;
+                vessel.colorAlt = icon.color;
+            }         
             // type icon
-            iconUrl = _vesselLegend.getIconUrl(vessel.vessel_type, vessel.sog);
-            if (iconUrl)
-                vessel.icon = protocol + iconUrl;
+            icon = _vesselLegend.getIcon(vessel.vessel_type, vessel.sog);
+            if (icon){
+                vessel.icon = protocol + icon.url;
+                vessel.img =  icon.img;
+                vessel.color = icon.color;
+            }
         },
-
+        searchPositionsAgg2: function (mmsi, dateInterval, callback) {
+            fetch(`${_baseUrl}plugins/AIS/SearchPositionsAsync.ashx?layer=${_historyLayer}&mmsi=${mmsi}&s=${dateInterval.dateBegin.toISOString()}&e=${dateInterval.dateEnd.toISOString()}`, {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, cors, *same-origin
+                cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: 'include' // include, *same-origin, omit
+            })
+            .then(response => response.json())
+            .then(callback);
+        },
+        searchPositionsAgg2Mf: function (mmsi, dateInterval, callback) {
+            fetch(`${_baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=${_historyLayer}&mmsi=${mmsi}&s=${dateInterval.dateBegin.toISOString()}&e=${dateInterval.dateEnd.toISOString()}`, {
+                method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                mode: 'cors', // no-cors, cors, *same-origin
+                cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: 'include' // include, *same-origin, omit
+            })
+            .then(response => response.json())
+            .then(callback);
+        },
         searchPositionsAgg: function (vessels, dateInterval, callback) {
             //console.log(dateInterval);
             var request = {
@@ -126,7 +151,7 @@ module.exports = function (options) {
                 layer: _historyLayer, //'8EE2C7996800458AAF70BABB43321FA4',//
                 orderdirection: 'desc',
                 orderby: 'ts_pos_utc',
-                columns:'[{"Value":"mmsi"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},'+
+                columns:'[{"Value":"mmsi"},{"Value":"imo"},{"Value":"flag_country"},{"Value":"callsign"},{"Value":"ts_pos_utc"},{"Value":"cog"},{"Value":"sog"},{"Value":"draught"},{"Value":"vessel_type"},'+
                 '{"Value":"destination"},{"Value":"ts_eta"},{"Value":"nav_status"},{"Value":"heading"},{"Value":"rot"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
                 
                 query: "([mmsi] IN (" + vessels.join(',') + ")) and '" + dateInterval.dateBegin.toISOString() + "'<=[ts_pos_utc] and [ts_pos_utc]<'" + dateInterval.dateEnd.toISOString() + "'"
@@ -149,7 +174,25 @@ module.exports = function (options) {
             var request = {
                 WrapStyle: 'window',
                 layer: _aisLayerID, //'8EE2C7996800458AAF70BABB43321FA4'
-                columns: '[{"Value":"vessel_name"},{"Value":"mmsi"},{"Value":"imo"},{"Value":"ts_pos_utc"},{"Value":"longitude"},{"Value":"latitude"},{"Value":"source"}]',
+                columns: `[{"Value":"id"},
+                        {"Value":"vessel_name"},
+                        {"Value":"mmsi"},
+                        {"Value":"imo"},
+                        {"Value":"flag_country"},
+                        {"Value":"callsign"},
+                        {"Value":"ts_pos_utc"},
+                        {"Value":"cog"},
+                        {"Value":"sog"},
+                        {"Value":"draught"},
+                        {"Value":"vessel_type"},
+                        {"Value":"destination"},
+                        {"Value":"ts_eta"},
+                        {"Value":"nav_status"},
+                        {"Value":"heading"},
+                        {"Value":"rot"},
+                        {"Value":"longitude"},
+                        {"Value":"latitude"},
+                        {"Value":"source"}]`,                
                 query: "([id] IN (" + aid.join(',') + "))"
             };
             L.gmxUtil.sendCrossDomainPostRequest(_serverScript, request, callback);
@@ -227,7 +270,7 @@ module.exports = function (options) {
             // L.gmxUtil.sendCrossDomainPostRequest(_aisServices + "SearchScreen.ashx",
             //     queryParams,
             //     callback);
-            fetch(_aisServices + `SearchScreenAsync.ashx?minx=${min.x}&miny=${min.y}&maxx=${max.x}&maxy=${max.y}&layer=${_screenSearchLayer}
+            fetch(_aisServices + `SearchScreenAsync.ashx?${options.filter ? 'f=' + options.filter + '&' : ''}minx=${min.x}&miny=${min.y}&maxx=${max.x}&maxy=${max.y}&layer=${_screenSearchLayer}
 &s=${options.dateInterval.get('dateBegin').toJSON()}&e=${options.dateInterval.get('dateEnd').toJSON()}`, {
                 method: 'GET', 
                 mode: 'cors', 

@@ -2,12 +2,17 @@ const BaseView = require('./BaseView.js');
 let _tools, _delayedRepaint;
 const ScreenSearchView = function (model, tools) {
     BaseView.apply(this, arguments);
+
     _tools = tools;          
     _tools.onLegendSwitched(((showAlternative)=>{
-        if (this.isActive)      
+        if (this.isActive) {    
             this.model.data && this.model.data.vessels && this.repaint();
-        else
+            if (this.hideAisSwitch[0].checked)
+                _tools.hideAisData(true);
+        }
+        else{
             _delayedRepaint = true;
+        }
     }).bind(this));
 
     this.frame = $(Handlebars.compile('<div class="ais_view screensearch_view">' +
@@ -19,12 +24,13 @@ const ScreenSearchView = function (model, tools) {
         '<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' +
         '</div></div>' +
         '</td></tr>' + 
-        '<tr><td>' + 
-        '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.allTracks"}}</span>'+ 
-        '<label class="sync-switch switch all_tracks" style="margin-left:5px"><input type="checkbox">'+
-        '<div class="sync-switch-slider switch-slider round"></div></label>' +
+
+        '<tr><td style="padding-top:0px">' +'<label class="sync-switch switch hide_ais" style="margin-left:5px"><input type="checkbox">'+
+        '<div class="sync-switch-slider switch-slider round"></div></label>' + 
+        '<span class="sync-switch-slider-description" style="padding: 0;line-height:12px">{{i "AISSearch2.hideAisData"}}</span>'+ 
         '<div>&nbsp;</div>'+
         '</td></tr>' + 
+
         '</table>' +
 
         '<table class="results">'+
@@ -86,62 +92,61 @@ const ScreenSearchView = function (model, tools) {
     let cleanFilter = this.frame.find('.remove'),
         filterReady = this.frame.find('.search'),
         filterInput = this.frame.find('input'),
-        delay,
         doFilter = function(){
-            this.model.setFilter();             
-            this.repaint();
-//console.log("doFilter")
+            this.model.setFilter(); 
         };
         cleanFilter.click(function(e){
             if (this.model.filterString === '')
                 return;
             filterInput.val('');
             this.model.filterString = '';  
-            clearTimeout(delay)
+            filterReady.show();
+            cleanFilter.hide();
             doFilter.call(this);
             //nsGmx.leafletMap.removeLayer(highlight);
-        }.bind(this))
+        }.bind(this));
         filterInput.keyup(function(e){            
             let input = filterInput.val() || "";
             input = input.replace(/^\s+/, "").replace(/\s+$/, "");
-            if (input===""){
+ 
+            if (input==this.model.filterString)// && e.keyCode!=13
+                return; 
+
+            if (input==''){
                 filterReady.show();
                 cleanFilter.hide();
+                this.model.filterString = input;
+                doFilter.call(this);
             }
             else{
                 cleanFilter.show();
                 filterReady.hide();
             }
-
-            if (input==this.model.filterString && e.keyCode!=13)
-                return;
             this.model.filterString = input; 
-            if (e.keyCode==13)
-                this.model.filterString += '\r' ;  
-            clearTimeout(delay)
-            delay = setTimeout((() => { doFilter.call(this) }).bind(this), 500);
-            //nsGmx.leafletMap.removeLayer(highlight);
+            //if (e.keyCode==13){
+            if (e.keyCode!=13){
+                doFilter.call(this);
+                //nsGmx.leafletMap.removeLayer(highlight);
+            }
+            //}
         }.bind(this))
     
     let needUpdate = function(){
         this.model.isDirty = true;
-        if (this.container.is(':visible')) {
- 
-            clearTimeout(delay)
-            delay = setTimeout((() => { this.model.update() }).bind(this), 300);  
-        }
+        if (this.isActive)
+            this.model.update();
     };
     nsGmx.leafletMap.on('moveend', needUpdate.bind(this));
     nsGmx.widgets.commonCalendar.getDateInterval().on('change', needUpdate.bind(this));
 
-    this.frame.find('.instruments .all_tracks  input[type="checkbox"]').click((e=>{
-        if (e.currentTarget.checked) {       
-            _tools.showAllTracks(true);
-        }
-        else{            
-            _tools.showAllTracks(false);  
-        }
+    this.hideAisSwitch = this.frame.find('.instruments .hide_ais  input[type="checkbox"]');
+    this.hideAisSwitch.click((e=>{
+        _tools.hideAisData(e.currentTarget.checked);
     }).bind(this));
+
+    
+    this.model.update(); //warm up
+
 };
 
 ScreenSearchView.prototype = Object.create(BaseView.prototype);
@@ -206,6 +211,11 @@ _setEventHandlers = function(){
 
 let arrowHead = 'icon-down-open';
 ScreenSearchView.prototype.repaint = function () {
+    if (!this.isActive){
+        _delayedRepaint = true;
+        return;
+    }
+
     _delayedRepaint = false;
 //let startRep = new Date();
 //console.log("REPAINT")
@@ -216,7 +226,7 @@ ScreenSearchView.prototype.repaint = function () {
     //BaseView.prototype.repaint.apply(this, arguments);
 
     this.frame.find('.groups')[0].innerHTML = '';
-    if (this.model.data.groups.length && arrowHead == 'icon-down-open')
+    if (this.model.data.groups && this.model.data.groups.length && arrowHead == 'icon-down-open')
         this.frame.find('.groups')[0].innerHTML = (Handlebars.compile('<table>' +
             '{{#each groups}}' +
             '<tr><td><img src="{{url}}" style="width:20px;height:20px"></td><td><div class="group_name">{{name}}</div></td><td>{{count}}</td></tr>' +
@@ -323,19 +333,25 @@ ScreenSearchView.prototype.repaint = function () {
 ScreenSearchView.prototype.show = function () {
     this.startShow = true;
     BaseView.prototype.show.apply(this, arguments);
+
     if (_delayedRepaint && !this.model.isDirty)
         this.repaint();
 
     this.frame.find('.filter input').focus();
-
-    if (this.frame.find('.instruments .all_tracks  input[type="checkbox"]')[0].checked)
-        _tools.showAllTracks(true);
 
     if (this.scroledPx) {
         this.container.mCustomScrollbar("scrollTo",
             this.scroledPx, { scrollInertia: 0, callbacks: false }
         );
     }  
+    
+    _tools.hideAisData(this.hideAisSwitch[0].checked);
+};
+ScreenSearchView.prototype.hide = function () {
+    if (!this.isActive)
+        return;
+    _tools.hideAisData(false);
+    BaseView.prototype.hide.call(this);
 };
 
 module.exports = ScreenSearchView;

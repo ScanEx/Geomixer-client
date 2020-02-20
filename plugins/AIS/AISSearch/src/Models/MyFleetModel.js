@@ -36,11 +36,13 @@ const VesselData = function () {
 };
 
 let _tools,
+_trackLoaders = [],
 _isDirty = true,
 _myFleetLayers = [],
 _defaultGroup = _gtxt("AISSearch2.AllGroup"),
 _vessels = [],
 _mapID,
+_modulePath,
 _prepared,
 _actualUpdate,
 _markerTemplate = '<div><table><tr>' +
@@ -193,9 +195,11 @@ _persistGroupsLook = function(count, groups){
                 });
         }                 
     });
-}
+    } 
+;
 
-module.exports = function ({aisLayerSearcher, toolbox}) {    
+module.exports = function ({aisLayerSearcher, toolbox, modulePath}) {    
+    _modulePath = modulePath;
     _tools = toolbox;
     _aisLayerSearcher = aisLayerSearcher;
     _mapID = String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID);
@@ -296,7 +300,8 @@ console.log("add group and style field");
     .then((response) => {
             let nickname = response.Result.Nickname;
             return new Promise((resolve, reject) => {				
-                if (nickname=='scf_captain' && _mapID=='KGEJB')
+                if ((nickname == 'scf_captain' || nickname == 'scf_captain2020' || nickname == 'scf_master2020')
+                 && _mapID=='KGEJB')
 					resolve({Status:"ok", Result:{count:1, layers:[{LayerID:"0A5CE9C59487441689ABF3031991BF2F"}]}});
 				else
                     sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
@@ -386,6 +391,10 @@ console.log("add group and style field");
             });
         },
         update: function () {
+
+            //if (!this.isDirty)
+            //    return;
+
             _actualUpdate = new Date().getTime();
             let thisModel = this,
                 actualUpdate = _actualUpdate;
@@ -498,14 +507,16 @@ console.log("add group and style field");
                 }
             ); 
         },
-        set onChanged(callback){ _onChangedHandlers.push(callback) },
-        changeMembers: function (vessel) {
+        set onChanged(callback){ 
+            _onChangedHandlers.push(callback) 
+        },
+        changeMembers: function (vessel, infoDialog) {
+//console.log(infoDialog)
             var remove = false;
             for (var i = 0; i < _vessels.length; ++i) {
                 if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
                     remove = _vessels[i].gmx_id;
                     _vessels.splice(i, 1);
-                    //_tools.eraseMyFleetMarker(vessel.mmsi);
                 }
             }
             return new Promise((resolve, reject) => {
@@ -539,7 +550,7 @@ console.log("add group and style field");
                                 }
                                 else
                                     reject(response);
-                            })
+                            });
                     else
                         sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
                             'VectorLayer/ModifyVectorObjects.ashx?LayerName=' + _myFleetLayers[0] +
@@ -549,7 +560,7 @@ console.log("add group and style field");
                                     resolve();
                                 else
                                     reject(response);
-                            })
+                            });
                 })
                 .then(
                 function () {
@@ -561,7 +572,18 @@ console.log("add group and style field");
                     console.log(response);
                     this.isDirty = true;
                     return Promise.resolve();
-                }.bind(this));
+                }.bind(this))
+                .then(
+                    function(){
+                        if (remove)
+                            _tools.removeMyFleetTrack(vessel.mmsi);
+                        else
+                            this.view.displayTracks && 
+                            this.loadTrack(vessel.mmsi, infoDialog);
+                            
+                        return Promise.resolve();                       
+                    }.bind(this)
+                );
             });
         },
         changeGroup: function(mmsi, group)  {   
@@ -622,5 +644,163 @@ console.log("add group and style field");
 //console.log(group)
 //console.log(this.data.groups[i].marker_style)
         },
+        loadTrack: function(mmsi, infoDialog){
+            if (window.Worker) {
+                const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
+                di = _tools.historyInterval,
+                interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
+                thisView = this.view;
+                let counter = _vessels.length;
+
+                let v = {mmsi: mmsi},
+                    myWorker = new Worker(_modulePath + 'LoaderWorker.js');
+                    myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
+                    myWorker.onmessage = function(e) {
+//console.log('Message received from worker', e.data);
+                        _tools.showMyFleetTrack([e.data], ({pid})=>{
+                            _aisLayerSearcher.searchById([pid], response=>{
+                                if (response.Status && response.Status.toLowerCase()=='ok' && response.Result){
+                                    let v={}, res = response.Result;
+                                    res.fields.forEach((f, i)=>v[f] = res.values[0][i]);
+                                    infoDialog.show(v, false);
+                                }
+                            })
+                        }, _aisLayerSearcher);
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false);
+                    }                
+                    myWorker.onerror = function(e) {
+                        console.log(e);
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false)
+                    }
+                    _trackLoaders.push(myWorker);
+            }
+            else
+                console.log("NO WORKERS")
+        },
+        loadTracks: function(infoDialog, viewState){
+            if (window.Worker) {
+                _trackLoaders.forEach(w=>w.terminate());
+                _trackLoaders.length = 0;   
+
+                const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
+                di = _tools.historyInterval,
+                interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
+                thisView = this.view;
+//console.log(_vessels, _vessels.length)
+                Promise.all(_vessels.map(v=>new Promise((resolve, reject)=>{
+                    if (v.mmsi) {
+                        var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
+                        myWorker.postMessage({mmsi:v.mmsi, imo:v.imo, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
+                        myWorker.onmessage = function(e) {
+                            resolve(e.data);
+                        };                
+                        myWorker.onerror = function(e) {
+                            reject(e);
+                        };
+                        _trackLoaders.push(myWorker);
+                    }
+                    else{
+                        resolve();
+                    }
+                })))
+                .then(data=>{
+//console.log(data, data.length)
+                    data.reduce((p,c)=>p.then(()=>{
+                        if (!c) return Promise.resolve();
+
+                        _tools.showMyFleetTrack([c], ({pid})=>{
+                            _aisLayerSearcher.searchById([pid], response=>{
+                                if (response.Status && response.Status.toLowerCase()=='ok' && response.Result){
+                                    let v={}, res = response.Result;
+                                    res.fields.forEach((f, i)=>v[f] = res.values[0][i]);
+                                    infoDialog.show(v, false);
+                                }
+                            })
+                        }, _aisLayerSearcher, viewState);
+//console.log(c,  c.positions ? Math.round(c.positions.length/3.5) : 0)
+                        return new Promise(resolve=>setTimeout(()=>resolve(), c.positions ? Math.round(c.positions.length/3.5) : 0));
+                    }) , Promise.resolve())
+                    .then(()=>thisView.inProgress(false));
+                })
+                .catch(e=>{
+                    console.log(e);
+                    thisView.inProgress(false);
+                });
+
+/*
+                _vessels.forEach(v=>{ 
+                    var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
+                    myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
+                    myWorker.onmessage = function(e) {
+//console.log('Message received from worker', e.data);
+                        //if ( e.data.mmsi=='273444660')
+                        _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false);
+                    }                
+                    myWorker.onerror = function(e) {
+                        console.log(e);
+                        counter--;
+                        if (!counter)
+                            thisView.inProgress(false)
+                    }
+                    _trackLoaders.push(myWorker);
+                });
+                */
+            }
+            else
+                console.log("NO WORKERS")
+//             return;
+// console.log(_tools.historyInterval)                  
+//             const di = _tools.historyInterval;
+//             _vessels.forEach(v=>{ 
+//                 new Promise((resolve) => {
+//                     _aisLayerSearcher.searchPositionsAgg2Mf(v.mmsi, {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')}, function (response) {
+// //console.log(response)       
+//                     if (parseResponse(response)) {
+//                         let position, positions = [],
+//                             fields = response.Result.fields,
+//                             groups = response.Result.values.reduce((p, c) => {
+//                                 let obj = {}, d;
+//                                 for (var j = 0; j < fields.length; ++j) {
+//                                     obj[fields[j]] = c[j];
+//                                     if (fields[j] == 'ts_pos_utc'){
+//                                         let dt = c[j], t = dt - dt % (24 * 3600);
+//                                         d = new Date(t * 1000);
+//                                         obj['ts_pos_org'] = c[j];
+//                                     }
+//                                 }
+//                                 if (p[d]) {
+//                                     p[d].positions.push(_tools.formatPosition(obj, _aisLayerSearcher));
+//                                     p[d].count = p[d].count + 1;
+//                                 }
+//                                 else
+//                                     p[d] = { mmsi: v.mmsi, positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
+//                                 return p;
+//                             }, {});
+//                         let counter = 0;
+//                         for (var k in groups) {
+//                             groups[k]["n"] = counter++;
+//                             positions.push(groups[k]);
+//                         }
+//                         resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
+//                     }
+//                     else
+//                         resolve(response);
+//                     });
+//                 })
+//                 .then(function (response) {
+//                     if (response.Status && response.Status.toLowerCase()=='ok' && response.Result && response.Result.values)
+//                         _tools.showMyFleetTrack(response.Result.values, console.log);
+//                     else
+//                         console.log(response);
+//                 });
+//            });
+        }
     };
 }

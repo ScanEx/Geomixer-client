@@ -30,7 +30,7 @@ const pluginName = PRODUCTION ? (BETA ? 'AISPluginBeta' : 'AISPlugin') : 'AISSea
     menuId = 'AISSearch',
     toolbarIconId = null, 
     cssTable = PRODUCTION ? (BETA ? 'AISPluginBeta' : 'AISPlugin') : 'AISSearch2',
-    modulePath = gmxCore.getModulePath(pluginName);
+    modulePath = gmxCore.getModulePath(pluginName).replace(/https*\:\/\/[^\/]+\/api\//, document.location.href.replace(/\/[^\/]+$/, '/'));
 
 const highlight = L.marker([0, 0], {icon:L.icon({
     className:"ais_highlight-icon", 
@@ -149,6 +149,9 @@ const publicInterface = {
         }
     }
 };
+
+// warm up db connection
+//fetch('//geomixer.scanex.ru/Plugins/AIS/SearchScreenAsync.ashx?minx=03&miny=0&maxx=0&maxy=0&layer=EE5587AF1F70433AA878462272C0274C&s=3020-02-13T00:00:00.000Z&e=3020-02-14T00:00:00.000Z', {credentials: 'include'});
 
 gmxCore.addModule(pluginName, publicInterface, {
     css: cssTable + '.css'
