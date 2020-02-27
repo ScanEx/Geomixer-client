@@ -1,8 +1,8 @@
-const MyCollectionView = require('./Views/RouteView'),
-      MyCollectionModel = require('./Models/RouteModel');
+const RouteView = require('./Views/RouteView'),
+      RouteModel = require('./Models/RouteModel');
 module.exports = function (options) {   
-    const _mcm = new MyCollectionModel({layer: options.layer}),
-          _mcv = new MyCollectionView({model:_mcm, layer: options.layer}); 
+    const _mcm = new RouteModel({layer: options.layer}),
+          _mcv = new RouteView({model:_mcm, layer: options.layer}); 
     return {
         create: function () {
             return [_mcv];
