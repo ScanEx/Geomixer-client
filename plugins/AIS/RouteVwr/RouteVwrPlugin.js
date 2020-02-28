@@ -1990,6 +1990,7 @@ var RouteView = function RouteView(_ref) {
           return;
         }
 
+        this.route = null;
         if (routeLine) lmap.removeLayer(routeLine);
 
         if (tr.className.search(/\bactive\b/) != -1) {

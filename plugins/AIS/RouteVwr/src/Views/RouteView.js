@@ -145,7 +145,8 @@ const RouteView = function ({ model, layer }) {
                     lmap.fitBounds(routeLine.getBounds());
                     return;
                 }
-
+                
+                this.route = null;
                 if (routeLine)
                     lmap.removeLayer(routeLine);
 
