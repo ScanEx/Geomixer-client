@@ -112,20 +112,6 @@ const MyCollectionView = function ({ model, layer }) {
         this.container = this.frame.find('.grid');
         this.footer = this.frame.find('.footer');
 
-        // this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
-        //         '<td class="visibility">' +
-        //         '<svg style="display:block"><use xlink:href="#icons_eye"></use></svg>' +
-        //         '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' +
-        //         '<td class="identity">{{id}}</td>' +
-        //         '<td class="identity">{{{DateTime}}}</td>' +
-        //         '<td>{{{DateTimeChange}}}</td>' +
-        //         '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' +
-        //         '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' +
-        //         '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' +
-        //         //'<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
-        //     '</tr>{{/each}}</table>' +
-        //     '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
-
         Object.defineProperty(this, "tableTemplate", {
             get: function () {
                 return '<table border=0 class="grid">' +
@@ -139,7 +125,6 @@ const MyCollectionView = function ({ model, layer }) {
                                 <td class="identity">${r.DateTime}</td>
                                 <td>${r.DateTimeChange}</td>
                                 <td class="${r.StateColor} state"><svg><use xlink:href="#icons_circle"></use></svg></td>
-                                <td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>
                                 <td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>
                             </tr>`;
                         else
@@ -476,7 +461,7 @@ const MyCollectionView = function ({ model, layer }) {
         this.frame.find('.grid .visibility').off('click', _visClickHandler);
         this.frame.find('.grid .show').off('click', _showClickHandler);
         //this.frame.find('.grid .state').off('click', _stateClickHandler);
-        this.frame.find('.grid .edit').off('click', _editClickHandler);
+        //this.frame.find('.grid .edit').off('click', _editClickHandler);
 
     };
 
@@ -721,7 +706,7 @@ MyCollectionView.prototype.repaint = function () {
         this.frame.find('.grid .show').on('click', _showClickHandler);
         //this.frame.find('.grid .state').on('click', _stateClickHandler);
         this.frame.find('.grid .state').css('cursor', 'default');
-        this.frame.find('.grid .edit').on('click', _editClickHandler);
+        //this.frame.find('.grid .edit').on('click', _editClickHandler);
     }
     else{
         this.frame.find('.pager').css('visibility', 'hidden');

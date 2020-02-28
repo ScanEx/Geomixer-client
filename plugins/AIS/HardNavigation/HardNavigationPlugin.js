@@ -2096,10 +2096,10 @@ module.exports = function (viewFactory) {
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
-    _sendRequest = function _sendRequest(url, method) {
+    _sendRequest = function _sendRequest(url, method, params) {
   return new Promise(function (resolve, reject) {
     var callback = function callback(response) {
       if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
@@ -2108,6 +2108,7 @@ var _serverBase = window.serverBase.replace(/^https?:/, document.location.protoc
     };
 
     if (!method || method == 'GET') sendCrossDomainJSONRequest(url, callback);
+    if (method == 'POST') sendCrossDomainPostRequest(url, params, callback);
   });
 },
     _getQueryString = function _getQueryString(params) {
@@ -2126,7 +2127,7 @@ _searchRequest = function _searchRequest(params) {
   return _sendRequest(url);
 }, _modifyRequest = function _modifyRequest(params) {
   var url = "".concat(_serverBase, "VectorLayer/ModifyVectorObjects.ashx?").concat(_getQueryString(params));
-  return _sendRequest(url);
+  return _sendRequest(url, "POST", params);
 }, _checkVersion = function _checkVersion(layer, ms) {
   setTimeout(function () {
     L.gmx.layersVersion.chkVersion(layer); //console.log('ChV')                   
@@ -2245,7 +2246,7 @@ module.exports = BaseView;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 __webpack_require__(/*! ./HardNavView.css */ "./src/Views/HardNavView.css");
 
@@ -2323,24 +2324,11 @@ var MyCollectionView = function MyCollectionView(_ref) {
   _addCalendar.call(this);
 
   this.container = this.frame.find('.grid');
-  this.footer = this.frame.find('.footer'); // this.tableTemplate = '<table border=0 class="grid">{{#each regions}}<tr id="{{gmx_id}}">' +                
-  //         '<td class="visibility">' +
-  //         '<svg style="display:block"><use xlink:href="#icons_eye"></use></svg>' +
-  //         '<svg style="display:none"><use xlink:href="#icons_eye-off"></use></svg></td>' +
-  //         '<td class="identity">{{id}}</td>' +
-  //         '<td class="identity">{{{DateTime}}}</td>' +
-  //         '<td>{{{DateTimeChange}}}</td>' +
-  //         '<td class="{{StateColor}} state"><svg><use xlink:href="#icons_circle"></use></svg></td>' +
-  //         '<td class="edit"><svg><use xlink:href="#icons_pen"></use></svg></td>' +
-  //         '<td class="show"><svg><use xlink:href="#icons_target"></use></svg></td>' +
-  //         //'<td class="info"><svg><use xlink:href="#icons_info"></use></svg></td>' +
-  //     '</tr>{{/each}}</table>' +
-  //     '{{#each msg}}<div class="msg">{{txt}}</div>{{/each}}';
-
+  this.footer = this.frame.find('.footer');
   Object.defineProperty(this, "tableTemplate", {
     get: function get() {
       return '<table border=0 class="grid">' + this.model.data.regions.map(function (r) {
-        if (r.page == _thisView.model.page) return "<tr id=\"".concat(r.gmx_id, "\">                \n                                <td class=\"visibility\">\n                                <svg style=\"display:block\"><use xlink:href=\"#icons_eye\"></use></svg>\n                                <svg style=\"display:none\"><use xlink:href=\"#icons_eye-off\"></use></svg></td>\n                                <td class=\"identity\">").concat(r.id, "</td>\n                                <td class=\"identity\">").concat(r.DateTime, "</td>\n                                <td>").concat(r.DateTimeChange, "</td>\n                                <td class=\"").concat(r.StateColor, " state\"><svg><use xlink:href=\"#icons_circle\"></use></svg></td>\n                                <td class=\"edit\"><svg><use xlink:href=\"#icons_pen\"></use></svg></td>\n                                <td class=\"show\"><svg><use xlink:href=\"#icons_target\"></use></svg></td>\n                            </tr>");else return '';
+        if (r.page == _thisView.model.page) return "<tr id=\"".concat(r.gmx_id, "\">                \n                                <td class=\"visibility\">\n                                <svg style=\"display:block\"><use xlink:href=\"#icons_eye\"></use></svg>\n                                <svg style=\"display:none\"><use xlink:href=\"#icons_eye-off\"></use></svg></td>\n                                <td class=\"identity\">").concat(r.id, "</td>\n                                <td class=\"identity\">").concat(r.DateTime, "</td>\n                                <td>").concat(r.DateTimeChange, "</td>\n                                <td class=\"").concat(r.StateColor, " state\"><svg><use xlink:href=\"#icons_circle\"></use></svg></td>\n                                <td class=\"show\"><svg><use xlink:href=\"#icons_target\"></use></svg></td>\n                            </tr>");else return '';
       }).join('') + '</table>' + (this.model.data.msg ? this.model.data.msg.map(function (m) {
         return "<div class=\"msg\">".concat(m.txt, "</div>");
       }).join('') : '');
@@ -2678,8 +2666,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
 
   this.frame.find('.grid .visibility').off('click', _visClickHandler);
   this.frame.find('.grid .show').off('click', _showClickHandler); //this.frame.find('.grid .state').off('click', _stateClickHandler);
-
-  this.frame.find('.grid .edit').off('click', _editClickHandler);
+  //this.frame.find('.grid .edit').off('click', _editClickHandler);
 };
 
 MyCollectionView.prototype = Object.create(BaseView.prototype);
@@ -2934,8 +2921,7 @@ MyCollectionView.prototype.repaint = function () {
     this.frame.find('.grid .visibility').on('click', _visClickHandler);
     this.frame.find('.grid .show').on('click', _showClickHandler); //this.frame.find('.grid .state').on('click', _stateClickHandler);
 
-    this.frame.find('.grid .state').css('cursor', 'default');
-    this.frame.find('.grid .edit').on('click', _editClickHandler);
+    this.frame.find('.grid .state').css('cursor', 'default'); //this.frame.find('.grid .edit').on('click', _editClickHandler);
   } else {
     this.frame.find('.pager').css('visibility', 'hidden');
   }

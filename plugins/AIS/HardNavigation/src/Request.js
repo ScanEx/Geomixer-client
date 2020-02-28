@@ -1,5 +1,5 @@
 const _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
-    _sendRequest = function(url, method){
+    _sendRequest = function(url, method, params){
         return new Promise((resolve, reject) => {
             const callback = response => {
                 if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
@@ -10,6 +10,8 @@ const _serverBase = window.serverBase.replace(/^https?:/, document.location.prot
             };
             if (!method || method == 'GET')
                 sendCrossDomainJSONRequest(url, callback);
+            if (method == 'POST') 
+                sendCrossDomainPostRequest(url, params, callback);
         });
     },
     _getQueryString = function(params){
@@ -27,7 +29,7 @@ const _serverBase = window.serverBase.replace(/^https?:/, document.location.prot
     },
     _modifyRequest = function(params){
         const url = `${_serverBase}VectorLayer/ModifyVectorObjects.ashx?${_getQueryString(params)}`;
-        return _sendRequest(url);
+        return _sendRequest(url, "POST", params);
     },
     _checkVersion = function(layer, ms){
         setTimeout(()=>{
