@@ -14,6 +14,10 @@
         "RouteVwr.km":"км",
         "RouteVwr.kn":"уз",
         "RouteVwr.intervalExceeds":"Интервал больше 7 дней",
+
+        "RouteVwr.route_name":"название",
+        "RouteVwr.calc_etd":"отправление",
+        "RouteVwr.calc_eta":"прибытие",
         
     });
     _translationsHash.addtext('eng', {
@@ -31,4 +35,7 @@
         "RouteVwr.km":"km",
         "RouteVwr.kn":"kn",
         "RouteVwr.intervalExceeds":"Interval exceeds 7 days",
+        "RouteVwr.route_name":"name",
+        "RouteVwr.calc_etd":"departure",
+        "RouteVwr.calc_eta":"arrival",
     });

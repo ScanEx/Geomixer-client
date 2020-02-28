@@ -172,6 +172,9 @@ color: #48aff1;
   border-bottom: solid 1px #e1e8ed;
   text-align: center;
 }
+.routevwr-view  .route-table tr.active td{
+  background-color: #eee
+}
 .routevwr-view .route-table .date{
   font-weight:500;
 }
