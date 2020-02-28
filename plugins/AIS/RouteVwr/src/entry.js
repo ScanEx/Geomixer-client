@@ -1,6 +1,6 @@
 require("./all.css");
 require("./locale.js");
-require("../icons.svg");
+require("../routevwr_icons.svg");
 
 const pluginName = 'RouteVwrPlugin',
       menuId = 'RouteVwrPlugin',
@@ -35,7 +35,7 @@ const publicInterface = {
             menuId, {
                 createTab: ()=>{      
                     !tab.querySelector('.RouteVwr') && tab.append(tabDiv);  
-                     tab.querySelector('.RouteVwr').innerHTML = `<svg><use xlink:href="#icons_plugin-icon"></use></svg>`;
+                     tab.querySelector('.RouteVwr').innerHTML = `<svg><use xlink:href="#routevwr_icons_plugin-icon"></use></svg>`;
                     return tab;
                 }
             }

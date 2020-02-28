@@ -86,31 +86,6 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./icons.svg":
-/*!*******************!*\
-  !*** ./icons.svg ***!
-  \*******************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/svg-baker-runtime/browser-symbol.js */ "./node_modules/svg-baker-runtime/browser-symbol.js");
-/* harmony import */ var _node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./node_modules/svg-sprite-loader/runtime/browser-sprite.build.js */ "./node_modules/svg-sprite-loader/runtime/browser-sprite.build.js");
-/* harmony import */ var _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1__);
-
-
-var symbol = new _node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0___default.a({
-  "id": "icons",
-  "use": "icons-usage",
-  "content": "<symbol xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" id=\"icons\">\r\n\r\n<symbol id=\"icons_plugin-icon\" viewBox=\"0 0 100 100\">\r\n<path d=\"M 33 11 C 26.408116 11 21 16.408117 21 23 C 21 29.591883 26.408116 35 33 35 C 38.555367 35 43.24949 31.152559 44.59375 26 L 78.5 26 C 84.368892 26 89 30.631108 89 36.5 C 89 42.368892 84.368892 47 78.5 47 L 21.5 47 C 12.410892 47 5 54.410892 5 63.5 C 5 72.589108 12.410892 80 21.5 80 L 40.75 80 L 36.875 83.875 A 3.0052038 3.0052038 0 0 0 41.125 88.125 L 50.125 79.125 A 3.0003 3.0003 0 0 0 50.125 74.875 L 41.125 65.875 A 3.0003 3.0003 0 0 0 38.96875 64.96875 A 3.0003 3.0003 0 0 0 36.875 70.125 L 40.75 74 L 21.5 74 C 15.631108 74 11 69.368892 11 63.5 C 11 57.631108 15.631108 53 21.5 53 L 78.5 53 C 87.589108 53 95 45.589108 95 36.5 C 95 27.410892 87.589108 20 78.5 20 L 44.59375 20 C 43.24949 14.847441 38.555367 11 33 11 z M 33 17 C 36.349242 17 39 19.650758 39 23 C 39 26.349243 36.349242 29 33 29 C 29.650758 29 27 26.349243 27 23 C 27 19.650758 29.650758 17 33 17 z M 67 65 C 60.408116 65 55 70.408117 55 77 C 55 83.591883 60.408116 89 67 89 C 73.591884 89 79 83.591883 79 77 C 79 70.408117 73.591884 65 67 65 z M 67 71 C 70.349242 71 73 73.650757 73 77 C 73 80.349242 70.349242 83 67 83 C 63.650758 83 61 80.349242 61 77 C 61 73.650757 63.650758 71 67 71 z \" />\r\n</symbol>\r\n\r\n<symbol id=\"icons_position-icon\" viewBox=\"0 0 16 16\">\r\n<g class=\"nc-icon-wrapper\" fill=\"#394b59\"><rect x=\"5\" y=\"5\" fill=\"#394b59\" width=\"6\" height=\"6\" /> \r\n<path fill=\"#394b59\" d=\"M2,6H0V1c0-0.6,0.4-1,1-1h5v2H2V6z\" /> \r\n<path fill=\"#394b59\" d=\"M16,6h-2V2h-4V0h5c0.6,0,1,0.4,1,1V6z\" /> \r\n<path fill=\"#394b59\" d=\"M15,16h-5v-2h4v-4h2v5C16,15.6,15.6,16,15,16z\" /> \r\n<path fill=\"#394b59\" d=\"M6,16H1c-0.6,0-1-0.4-1-1v-5h2v4h4V16z\" />\r\n</g>\r\n</symbol>\r\n\r\n</symbol>"
-});
-var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1___default.a.add(symbol);
-/* harmony default export */ __webpack_exports__["default"] = (symbol);
-
-/***/ }),
-
 /***/ "./node_modules/svg-baker-runtime/browser-symbol.js":
 /*!**********************************************************!*\
   !*** ./node_modules/svg-baker-runtime/browser-symbol.js ***!
@@ -1434,6 +1409,31 @@ module.exports = g;
 
 /***/ }),
 
+/***/ "./routevwr_icons.svg":
+/*!****************************!*\
+  !*** ./routevwr_icons.svg ***!
+  \****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/svg-baker-runtime/browser-symbol.js */ "./node_modules/svg-baker-runtime/browser-symbol.js");
+/* harmony import */ var _node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./node_modules/svg-sprite-loader/runtime/browser-sprite.build.js */ "./node_modules/svg-sprite-loader/runtime/browser-sprite.build.js");
+/* harmony import */ var _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1__);
+
+
+var symbol = new _node_modules_svg_baker_runtime_browser_symbol_js__WEBPACK_IMPORTED_MODULE_0___default.a({
+  "id": "routevwr_icons",
+  "use": "routevwr_icons-usage",
+  "content": "<symbol xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" id=\"routevwr_icons\">\r\n\r\n<symbol id=\"routevwr_icons_plugin-icon\" viewBox=\"0 0 100 100\">\r\n<path d=\"M 33 11 C 26.408116 11 21 16.408117 21 23 C 21 29.591883 26.408116 35 33 35 C 38.555367 35 43.24949 31.152559 44.59375 26 L 78.5 26 C 84.368892 26 89 30.631108 89 36.5 C 89 42.368892 84.368892 47 78.5 47 L 21.5 47 C 12.410892 47 5 54.410892 5 63.5 C 5 72.589108 12.410892 80 21.5 80 L 40.75 80 L 36.875 83.875 A 3.0052038 3.0052038 0 0 0 41.125 88.125 L 50.125 79.125 A 3.0003 3.0003 0 0 0 50.125 74.875 L 41.125 65.875 A 3.0003 3.0003 0 0 0 38.96875 64.96875 A 3.0003 3.0003 0 0 0 36.875 70.125 L 40.75 74 L 21.5 74 C 15.631108 74 11 69.368892 11 63.5 C 11 57.631108 15.631108 53 21.5 53 L 78.5 53 C 87.589108 53 95 45.589108 95 36.5 C 95 27.410892 87.589108 20 78.5 20 L 44.59375 20 C 43.24949 14.847441 38.555367 11 33 11 z M 33 17 C 36.349242 17 39 19.650758 39 23 C 39 26.349243 36.349242 29 33 29 C 29.650758 29 27 26.349243 27 23 C 27 19.650758 29.650758 17 33 17 z M 67 65 C 60.408116 65 55 70.408117 55 77 C 55 83.591883 60.408116 89 67 89 C 73.591884 89 79 83.591883 79 77 C 79 70.408117 73.591884 65 67 65 z M 67 71 C 70.349242 71 73 73.650757 73 77 C 73 80.349242 70.349242 83 67 83 C 63.650758 83 61 80.349242 61 77 C 61 73.650757 63.650758 71 67 71 z \" />\r\n</symbol>\r\n\r\n<symbol id=\"routevwr_icons_position-icon\" viewBox=\"0 0 16 16\">\r\n<g class=\"nc-icon-wrapper\" fill=\"#394b59\"><rect x=\"5\" y=\"5\" fill=\"#394b59\" width=\"6\" height=\"6\" /> \r\n<path fill=\"#394b59\" d=\"M2,6H0V1c0-0.6,0.4-1,1-1h5v2H2V6z\" /> \r\n<path fill=\"#394b59\" d=\"M16,6h-2V2h-4V0h5c0.6,0,1,0.4,1,1V6z\" /> \r\n<path fill=\"#394b59\" d=\"M15,16h-5v-2h4v-4h2v5C16,15.6,15.6,16,15,16z\" /> \r\n<path fill=\"#394b59\" d=\"M6,16H1c-0.6,0-1-0.4-1-1v-5h2v4h4V16z\" />\r\n</g>\r\n</symbol>\r\n\r\n</symbol>"
+});
+var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WEBPACK_IMPORTED_MODULE_1___default.a.add(symbol);
+/* harmony default export */ __webpack_exports__["default"] = (symbol);
+
+/***/ }),
+
 /***/ "./src/Models/RouteModel.js":
 /*!**********************************!*\
   !*** ./src/Models/RouteModel.js ***!
@@ -1931,7 +1931,7 @@ var RouteView = function RouteView(_ref) {
   Object.defineProperty(this, "tableTemplate", {
     get: function get() {
       var rv = "<table class=\"route-table\" border=\"0\">\n                <tbody><tr>\n                <th></th>\n                <th>".concat(_gtxt('RouteVwr.route_name'), "</th>                     \n                <th>").concat(_gtxt('RouteVwr.calc_etd'), "</th>\n                <th>").concat(_gtxt('RouteVwr.calc_eta'), "</th>\n                </tr>") + this.model.data.routes.map(function (t, i) {
-        return "<tr id=\"".concat(i, "\">                    \n                        <td><svg class=\"position-icon\" style=\"width: 14px;height: 14px;margin-left:5px;\"><use xlink:href=\"#icons_position-icon\"></use></svg></td> \n                        <td><span>").concat(t.route_name, "</span></td>                    \n                        <td><span class=\"date\">").concat(t.calc_etd, "</span></td>\n                        <td><span class=\"date\">").concat(t.calc_eta, "</span></td>\n                        </tr>");
+        return "<tr id=\"".concat(i, "\">                    \n                        <td><svg class=\"position-icon\" style=\"width: 14px;height: 14px;margin-left:5px;\"><use xlink:href=\"#routevwr_icons_position-icon\"></use></svg></td> \n                        <td><span>").concat(t.route_name, "</span></td>                    \n                        <td><span class=\"date\">").concat(t.calc_etd, "</span></td>\n                        <td><span class=\"date\">").concat(t.calc_eta, "</span></td>\n                        </tr>");
       }).join('') + (this.model.data.msg ? this.model.data.msg.map(function (m) {
         return "<div class=\"msg\">".concat(m.txt, "</div>");
       }).join('') : '');
@@ -2138,7 +2138,7 @@ __webpack_require__(/*! ./all.css */ "./src/all.css");
 
 __webpack_require__(/*! ./locale.js */ "./src/locale.js");
 
-__webpack_require__(/*! ../icons.svg */ "./icons.svg");
+__webpack_require__(/*! ../routevwr_icons.svg */ "./routevwr_icons.svg");
 
 var pluginName = 'RouteVwrPlugin',
     menuId = 'RouteVwrPlugin',
@@ -2171,7 +2171,7 @@ var publicInterface = {
     pluginPanel.sidebarPane = sidebar.setPane(menuId, {
       createTab: function createTab() {
         !tab.querySelector('.RouteVwr') && tab.append(tabDiv);
-        tab.querySelector('.RouteVwr').innerHTML = "<svg><use xlink:href=\"#icons_plugin-icon\"></use></svg>";
+        tab.querySelector('.RouteVwr').innerHTML = "<svg><use xlink:href=\"#routevwr_icons_plugin-icon\"></use></svg>";
         return tab;
       }
     });

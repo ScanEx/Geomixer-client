@@ -87,7 +87,7 @@ const RouteView = function ({ model, layer }) {
                 </tr>` +
                 this.model.data.routes.map((t, i) => {
                     return `<tr id="${i}">                    
-                        <td><svg class="position-icon" style="width: 14px;height: 14px;margin-left:5px;"><use xlink:href="#icons_position-icon"></use></svg></td> 
+                        <td><svg class="position-icon" style="width: 14px;height: 14px;margin-left:5px;"><use xlink:href="#routevwr_icons_position-icon"></use></svg></td> 
                         <td><span>${t.route_name}</span></td>                    
                         <td><span class="date">${t.calc_etd}</span></td>
                         <td><span class="date">${t.calc_eta}</span></td>
