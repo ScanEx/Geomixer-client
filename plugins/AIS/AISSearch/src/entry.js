@@ -79,10 +79,10 @@ const publicInterface = {
             setLayerClickHandler = function (layer) {
                 layer.removeEventListener('click')
                 layer.addEventListener('click', function (e) {
-                    //console.log(e)
+//console.log('layer', e)
                     if (e.gmx && e.gmx.properties.hasOwnProperty("imo"))
                         viewFactory.infoDialogView.show(e.gmx.properties)
-                })
+                }, false)
             },
             forLayers = function (layer) {
                 try {

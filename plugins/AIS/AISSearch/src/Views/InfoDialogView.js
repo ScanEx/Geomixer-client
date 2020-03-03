@@ -43,10 +43,11 @@ module.exports = function ({
         },
         show: function (vessel, getmore) {
             let ind = Polyfill.findIndex(allIinfoDialogs, function (d) { 
-                return d.vessel.imo == vessel.imo && d.vessel.mmsi == vessel.mmsi 
+                return (!vessel.imo || d.vessel.imo == vessel.imo) && d.vessel.mmsi == vessel.mmsi 
             }),
             isNew = true,
             dialogOffset;
+//console.log(vessel, ind, allIinfoDialogs)
             if (ind >= 0) {
                 isNew = false;
                 let displayed = allIinfoDialogs[ind];

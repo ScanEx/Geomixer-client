@@ -123,9 +123,9 @@
 	            setLayerClickHandler = function setLayerClickHandler(layer) {
 	            layer.removeEventListener('click');
 	            layer.addEventListener('click', function (e) {
-	                //console.log(e)
+	                //console.log('layer', e)
 	                if (e.gmx && e.gmx.properties.hasOwnProperty("imo")) viewFactory.infoDialogView.show(e.gmx.properties);
-	            });
+	            }, false);
 	        },
 	            forLayers = function forLayers(layer) {
 	            try {
@@ -2390,7 +2390,7 @@
 	        findIndex: function findIndex(vessel) {
 	            if (_vessels.length == 0) return -1;
 	            return Polyfill.findIndex(_vessels, function (v) {
-	                return v.mmsi == vessel.mmsi && v.imo == vessel.imo;
+	                return v.mmsi == vessel.mmsi && (!vessel.imo || v.imo == vessel.imo);
 	            });
 	        },
 	        load: function load(actualUpdate) {
@@ -2521,13 +2521,15 @@
 	            var _this = this;
 	
 	            //console.log(infoDialog)
+	            //console.log(_vessels, vessel)
 	            var remove = false;
 	            for (var i = 0; i < _vessels.length; ++i) {
-	                if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
+	                if ((!vessel.imo || _vessels[i].imo == vessel.imo) && _vessels[i].mmsi == vessel.mmsi) {
 	                    remove = _vessels[i].gmx_id;
 	                    _vessels.splice(i, 1);
 	                }
 	            }
+	            //console.log(remove)
 	            return new Promise(function (resolve, reject) {
 	                if (!_myFleetLayers.length) {
 	                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' + '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""},{"Name":"group","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"group\\""},{"Name":"style","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"style\\""}]', function (response) {
@@ -2646,7 +2648,7 @@
 	                                infoDialog.show(_v, false);
 	                            }
 	                        });
-	                    }, _aisLayerSearcher);
+	                    }, _aisLayerSearcher, thisView);
 	                    counter--;
 	                    if (!counter) thisView.inProgress(false);
 	                };
@@ -2720,75 +2722,7 @@
 	                    console.log(e);
 	                    thisView.inProgress(false);
 	                });
-	
-	                /*
-	                                _vessels.forEach(v=>{ 
-	                                    var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
-	                                    myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
-	                                    myWorker.onmessage = function(e) {
-	                //console.log('Message received from worker', e.data);
-	                                        //if ( e.data.mmsi=='273444660')
-	                                        _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
-	                                        counter--;
-	                                        if (!counter)
-	                                            thisView.inProgress(false);
-	                                    }                
-	                                    myWorker.onerror = function(e) {
-	                                        console.log(e);
-	                                        counter--;
-	                                        if (!counter)
-	                                            thisView.inProgress(false)
-	                                    }
-	                                    _trackLoaders.push(myWorker);
-	                                });
-	                                */
 	            } else console.log("NO WORKERS");
-	            //             return;
-	            // console.log(_tools.historyInterval)                  
-	            //             const di = _tools.historyInterval;
-	            //             _vessels.forEach(v=>{ 
-	            //                 new Promise((resolve) => {
-	            //                     _aisLayerSearcher.searchPositionsAgg2Mf(v.mmsi, {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')}, function (response) {
-	            // //console.log(response)       
-	            //                     if (parseResponse(response)) {
-	            //                         let position, positions = [],
-	            //                             fields = response.Result.fields,
-	            //                             groups = response.Result.values.reduce((p, c) => {
-	            //                                 let obj = {}, d;
-	            //                                 for (var j = 0; j < fields.length; ++j) {
-	            //                                     obj[fields[j]] = c[j];
-	            //                                     if (fields[j] == 'ts_pos_utc'){
-	            //                                         let dt = c[j], t = dt - dt % (24 * 3600);
-	            //                                         d = new Date(t * 1000);
-	            //                                         obj['ts_pos_org'] = c[j];
-	            //                                     }
-	            //                                 }
-	            //                                 if (p[d]) {
-	            //                                     p[d].positions.push(_tools.formatPosition(obj, _aisLayerSearcher));
-	            //                                     p[d].count = p[d].count + 1;
-	            //                                 }
-	            //                                 else
-	            //                                     p[d] = { mmsi: v.mmsi, positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
-	            //                                 return p;
-	            //                             }, {});
-	            //                         let counter = 0;
-	            //                         for (var k in groups) {
-	            //                             groups[k]["n"] = counter++;
-	            //                             positions.push(groups[k]);
-	            //                         }
-	            //                         resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
-	            //                     }
-	            //                     else
-	            //                         resolve(response);
-	            //                     });
-	            //                 })
-	            //                 .then(function (response) {
-	            //                     if (response.Status && response.Status.toLowerCase()=='ok' && response.Result && response.Result.values)
-	            //                         _tools.showMyFleetTrack(response.Result.values, console.log);
-	            //                     else
-	            //                         console.log(response);
-	            //                 });
-	            //            });
 	        }
 	    };
 	};
@@ -3050,6 +2984,7 @@
 	        infoDialog = this.infoDialogView,
 	        thisVessel = this.vessel,
 	        showInfoDialog = function showInfoDialog(position) {
+	        //console.log(position)
 	        position.vessel_name = thisVessel.vessel_name;
 	        position.latitude = position.ymax;
 	        position.longitude = position.xmax;
@@ -3714,10 +3649,11 @@
 	        },
 	        show: function show(vessel, getmore) {
 	            var ind = Polyfill.findIndex(allIinfoDialogs, function (d) {
-	                return d.vessel.imo == vessel.imo && d.vessel.mmsi == vessel.mmsi;
+	                return (!vessel.imo || d.vessel.imo == vessel.imo) && d.vessel.mmsi == vessel.mmsi;
 	            }),
 	                isNew = true,
 	                dialogOffset = void 0;
+	            //console.log(vessel, ind, allIinfoDialogs)
 	            if (ind >= 0) {
 	                isNew = false;
 	                var displayed = allIinfoDialogs[ind];
@@ -7935,8 +7871,11 @@
 	    });
 	    document.body.addEventListener('click', function (e) {
 	        if (!_canvas._container) return;
-	        if (_canvas._container.className.search(/interactive/) > -1) _canvas._onClick(e);
-	    });
+	        if (_canvas._container.className.search(/interactive/) > -1) {
+	            //console.log('canvas', e)
+	            _canvas._onClick(e);
+	        }
+	    }, true);
 	
 	    return {
 	        showHistoryTrack: function showHistoryTrack(vessels, onclick, needAltLegend) {
