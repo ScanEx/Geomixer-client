@@ -365,7 +365,7 @@ console.log("add group and style field");
             if (_vessels.length == 0)
                 return -1;
             return Polyfill.findIndex(_vessels, function (v) {
-                return v.mmsi == vessel.mmsi && v.imo == vessel.imo;
+                return v.mmsi == vessel.mmsi && (!vessel.imo || v.imo == vessel.imo);
             })
         },
         load: function (actualUpdate) {
@@ -512,13 +512,15 @@ console.log("add group and style field");
         },
         changeMembers: function (vessel, infoDialog) {
 //console.log(infoDialog)
+//console.log(_vessels, vessel)
             var remove = false;
             for (var i = 0; i < _vessels.length; ++i) {
-                if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
+                if ((!vessel.imo || _vessels[i].imo == vessel.imo) && _vessels[i].mmsi == vessel.mmsi) {
                     remove = _vessels[i].gmx_id;
                     _vessels.splice(i, 1);
                 }
             }
+//console.log(remove)
             return new Promise((resolve, reject) => {
                 if (!_myFleetLayers.length){
                     sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl +
@@ -665,7 +667,7 @@ console.log("add group and style field");
                                     infoDialog.show(v, false);
                                 }
                             })
-                        }, _aisLayerSearcher);
+                        }, _aisLayerSearcher, thisView);
                         counter--;
                         if (!counter)
                             thisView.inProgress(false);
@@ -730,77 +732,9 @@ console.log("add group and style field");
                     console.log(e);
                     thisView.inProgress(false);
                 });
-
-/*
-                _vessels.forEach(v=>{ 
-                    var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
-                    myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
-                    myWorker.onmessage = function(e) {
-//console.log('Message received from worker', e.data);
-                        //if ( e.data.mmsi=='273444660')
-                        _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
-                        counter--;
-                        if (!counter)
-                            thisView.inProgress(false);
-                    }                
-                    myWorker.onerror = function(e) {
-                        console.log(e);
-                        counter--;
-                        if (!counter)
-                            thisView.inProgress(false)
-                    }
-                    _trackLoaders.push(myWorker);
-                });
-                */
             }
             else
-                console.log("NO WORKERS")
-//             return;
-// console.log(_tools.historyInterval)                  
-//             const di = _tools.historyInterval;
-//             _vessels.forEach(v=>{ 
-//                 new Promise((resolve) => {
-//                     _aisLayerSearcher.searchPositionsAgg2Mf(v.mmsi, {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')}, function (response) {
-// //console.log(response)       
-//                     if (parseResponse(response)) {
-//                         let position, positions = [],
-//                             fields = response.Result.fields,
-//                             groups = response.Result.values.reduce((p, c) => {
-//                                 let obj = {}, d;
-//                                 for (var j = 0; j < fields.length; ++j) {
-//                                     obj[fields[j]] = c[j];
-//                                     if (fields[j] == 'ts_pos_utc'){
-//                                         let dt = c[j], t = dt - dt % (24 * 3600);
-//                                         d = new Date(t * 1000);
-//                                         obj['ts_pos_org'] = c[j];
-//                                     }
-//                                 }
-//                                 if (p[d]) {
-//                                     p[d].positions.push(_tools.formatPosition(obj, _aisLayerSearcher));
-//                                     p[d].count = p[d].count + 1;
-//                                 }
-//                                 else
-//                                     p[d] = { mmsi: v.mmsi, positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
-//                                 return p;
-//                             }, {});
-//                         let counter = 0;
-//                         for (var k in groups) {
-//                             groups[k]["n"] = counter++;
-//                             positions.push(groups[k]);
-//                         }
-//                         resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
-//                     }
-//                     else
-//                         resolve(response);
-//                     });
-//                 })
-//                 .then(function (response) {
-//                     if (response.Status && response.Status.toLowerCase()=='ok' && response.Result && response.Result.values)
-//                         _tools.showMyFleetTrack(response.Result.values, console.log);
-//                     else
-//                         console.log(response);
-//                 });
-//            });
+                console.log("NO WORKERS");
         }
     };
 }

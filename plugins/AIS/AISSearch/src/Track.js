@@ -73,9 +73,11 @@ module.exports = function (options) {
     document.body.addEventListener('click', e => {
         if (!_canvas._container)
             return;
-        if (_canvas._container.className.search(/interactive/) > -1)
+        if (_canvas._container.className.search(/interactive/) > -1){
+//console.log('canvas', e)
             _canvas._onClick(e);
-    });
+        }
+    }, true);
 
     return {
         showHistoryTrack: function (vessels, onclick, needAltLegend) {
