@@ -381,19 +381,22 @@ console.log("add group and style field");
                     })
                     .then(data=>{
                         _data=data;
-                        _isDirty = false;
+                        //_isDirty = false;
                         return Promise.resolve();
                     })
                     .catch(error=>{
-                        _isDirty = false;
+                        //_isDirty = false;
                         return Promise.reject(error);
                     });
             });
         },
         update: function () {
 
-            //if (!this.isDirty)
-            //    return;
+            if (!this.isDirty){
+                this.view.repaint()
+                return;
+            }
+console.log('UPDATE')
 
             _actualUpdate = new Date().getTime();
             let thisModel = this,
@@ -405,6 +408,7 @@ console.log("add group and style field");
                         thisModel.view.inProgress(false);
                         if (_data)
                             thisModel.view.repaint();
+                        _isDirty = false;
                     }
                 }, 
                 function (json) {
@@ -418,6 +422,7 @@ console.log("add group and style field");
                     }
                     thisModel.view.inProgress(false);
                     thisModel.view.repaint();
+                    _isDirty = false;
                 });
         },
         get markerTemplate(){
@@ -692,7 +697,11 @@ console.log("add group and style field");
                 di = _tools.historyInterval,
                 interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
                 thisView = this.view;
+//console.log('LOAD TRACK', di)
 //console.log(_vessels, _vessels.length)
+
+                _tools.showMyFleetTrack();
+
                 Promise.all(_vessels.map(v=>new Promise((resolve, reject)=>{
                     if (v.mmsi) {
                         var myWorker = new Worker(_modulePath + 'LoaderWorker.js');

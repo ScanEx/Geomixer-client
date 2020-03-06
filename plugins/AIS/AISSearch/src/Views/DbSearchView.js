@@ -115,15 +115,17 @@ const DbSearchView = function (model, options, tools, viewCalendar) {
         this.calendar.onChange = function(interval){
             this.model.historyInterval = interval;
             this.model.isDirty = true;
+                        
             if (this.isActive)
-                this.show();            
+                this.show();    
+     
         }.bind(this);
-        this.frame.on('click', ((e) => {
-            if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
-                this.calendar.reset()
-            }
-            //suggestions.hide();
-        }).bind(this));
+        // this.frame.on('click', ((e) => {
+        //     if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
+        //         this.calendar.reset()
+        //     }
+        //     //suggestions.hide();
+        // }).bind(this));
         
     this.frame.find('.time .only_this  input[type="checkbox"]').click((e=>{
         _displayedOnly.length = 0;
@@ -358,12 +360,8 @@ DbSearchView.prototype.repaint = function () {
     });
 
     const allTracksInput = this.frame.find('.ais_positions_date .track.all input[type="checkbox"]'),
-          tracksInputs = this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]')
-        //   ,setMapCalendar = function(calendar){
-        //       let calendarInterval = calendar.getDateInterval(),
-        //           interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
-        //       nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);              
-        //   };
+          tracksInputs = this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]');
+
     allTracksInput.click(((e) => {        
         //setMapCalendar(this.calendar);
         this.frame.find('.ais_positions_date .track:not(.all) input').each((i, el) => {
@@ -385,7 +383,6 @@ DbSearchView.prototype.repaint = function () {
         let vessels = this.model.data.vessels, v = vessels[i], nv = vessels[i+1];
         el.addEventListener('click', ((e)=>{ 
 
-            //setMapCalendar(this.calendar);
             allTracksInput[0].checked = (this.frame.find('.ais_positions_date .track:not(.all) input:checked').length==vessels.length);
             
             this.showTrack([{
@@ -437,11 +434,11 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
             
         this.searchInput.searchString = v.vessel_name;        
         let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
+//console.log(positionDate)
         let checkInterval = this.calendar.getDateInterval();
         if (positionDate.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < positionDate.dateEnd){
-            this.calendar.getDateInterval().set('dateBegin', positionDate.dateBegin);
-            this.calendar.getDateInterval().set('dateEnd', positionDate.dateEnd);      
-            this.model.historyInterval = { dateBegin: positionDate.dateBegin, dateEnd: positionDate.dateEnd };
+            this.model.historyInterval = { dateBegin: positionDate.dateBegin, dateEnd: positionDate.dateEnd }; 
+            this.calendar.getDateInterval().loadState(this.model.historyInterval);   
         }
         else
             this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };

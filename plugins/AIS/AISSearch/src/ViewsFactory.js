@@ -5,91 +5,45 @@ const ScreenSearchView = require('./Views/ScreenSearchView'),
     DbSearchView = require('./Views/DbSearchView'),
     DbSearchModel = require('./Models/DbSearchModel'),
     InfoDialogView = require('./Views/InfoDialogView'),
-    Searcher = require('./Search/Searcher');
+    Searcher = require('./Search/Searcher'),
+    ViewCalendar = require('./Controls/Calendar');
 
 module.exports = function (options) {
 
-    const _tools = options.tools;
+    const _tools = options.tools,
+          _daysLimit = 14,
+          _mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+          _dateInterval = new nsGmx.DateInterval();
 
-    const calendar1 = $('<div id="aisViewCalendar1"></div>'),
-          calendar2 = $('<div id="aisViewCalendar2"></div>'),
-          daysLimit = 14;
-
-    // walkaround with focus at first input in ui-dialog
-    calendar1.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
-    calendar2.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
-
-    const mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-          dateInterval = new nsGmx.DateInterval();
-
-    dateInterval
-        .set('dateBegin', mapDateInterval.get('dateBegin'))
-        .set('dateEnd', mapDateInterval.get('dateEnd'))
+    _dateInterval
+        .set('dateBegin', _mapDateInterval.get('dateBegin'))
+        .set('dateEnd', _mapDateInterval.get('dateEnd'))
         .on('change', function (e) { 
-//console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
-            let d = new Date(e.attributes.dateEnd.getTime() - msd*daysLimit);            
-            _viewCalendar1._dateInputs.datepicker('option', 'minDate', d);
-            _viewCalendar1.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') });
-            _viewCalendar2._dateInputs.datepicker('option', 'minDate', d);
-            _viewCalendar2.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') });
-  
-            nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get("dateBegin"), dateInterval.get("dateEnd")); 
+            const di = [_dateInterval.get('dateBegin'), _dateInterval.get('dateEnd')];
+console.log('CHANGE1 ' + di[0].toUTCString() + ' ' + di[1].toUTCString()) 
+// console.log(_viewCalendar1);
+            if (_viewCalendar1)  
+                if (_viewCalendar1.dateBegin.getTime() != _dateInterval.get("dateBegin").getTime() || 
+                _viewCalendar1.dateEnd.getTime() != _dateInterval.get("dateEnd").getTime()){           
+                    _viewCalendar1.dateBeginEnd =  _dateInterval;
+                }        
+//console.log(_viewCalendar2);
+            if (_viewCalendar2)
+               if (_viewCalendar2.dateBegin.getTime() != _dateInterval.get("dateBegin").getTime() || 
+               _viewCalendar2.dateEnd.getTime() != _dateInterval.get("dateEnd").getTime()){  
+                    _viewCalendar2.dateBeginEnd =  _dateInterval;
+            }
 
+            _viewCalendar1.onChange({ dateBegin: _dateInterval.get('dateBegin'), dateEnd: _dateInterval.get('dateEnd') })
+            _viewCalendar2.onChange({ dateBegin: _dateInterval.get('dateBegin'), dateEnd: _dateInterval.get('dateEnd') });
+
+            nsGmx.widgets.commonCalendar.setDateInterval(_dateInterval.get("dateBegin"), _dateInterval.get("dateEnd")); 
         }.bind(this));
-    _tools.historyInterval = dateInterval;
-    const msd = 24*3600000,
-    _viewCalendar1 = new nsGmx.CalendarWidget({
-        dateInterval: dateInterval,
-        name: 'searchInterval',
-        container: calendar1,
-        //dateMin: new Date(0, 0, 0),        
-        dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd*(daysLimit-1)),
-        dateMax: new Date(3015, 1, 1),
-        dateFormat: 'dd.mm.yy',
-        minimized: false,
-        showSwitcher: false,
-        dateBegin: new Date(),
-        dateEnd: new Date(2000, 10, 10),
-        //buttonImage: 'img/calendar.png'
-    }),
-    _viewCalendar2 = new nsGmx.CalendarWidget({
-        dateInterval: dateInterval,
-        name: 'searchInterval',
-        container: calendar2,
-        //dateMin: new Date(0, 0, 0),        
-        dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd*(daysLimit-1)),
-        dateMax: new Date(3015, 1, 1),
-        dateFormat: 'dd.mm.yy',
-        minimized: false,
-        showSwitcher: false,
-        dateBegin: new Date(),
-        dateEnd: new Date(2000, 10, 10),
-        //buttonImage: 'img/calendar.png'
-    })
-
-    let td = calendar1.find('tr:nth-of-type(1) td');
-    td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="'+_gtxt('AISSearch2.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-    calendar1.find('.default_date').on('click', () => {
-        let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-        _viewCalendar1.getDateInterval().set('dateBegin', db.dateBegin);
-        _viewCalendar1.getDateInterval().set('dateEnd', db.dateEnd);
-        _viewCalendar2.getDateInterval().set('dateBegin', db.dateBegin);
-        _viewCalendar2.getDateInterval().set('dateEnd', db.dateEnd);
-        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
-    });
+    _tools.historyInterval = _dateInterval;
     
-    td = calendar2.find('tr:nth-of-type(1) td');
-    td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="'+_gtxt('AISSearch2.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-    calendar2.find('.default_date').on('click', () => {
-        let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-        _viewCalendar1.getDateInterval().set('dateBegin', db.dateBegin);
-        _viewCalendar1.getDateInterval().set('dateEnd', db.dateEnd);
-        _viewCalendar2.getDateInterval().set('dateBegin', db.dateBegin);
-        _viewCalendar2.getDateInterval().set('dateEnd', db.dateEnd);
-        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
-    });
+    const _viewCalendar1 = new ViewCalendar({dateInterval: _dateInterval, daysLimit: _daysLimit}),
+          _viewCalendar2 = new ViewCalendar({dateInterval: _dateInterval, daysLimit: _daysLimit});
+
 
     ///////////////////////////////////////////////
     

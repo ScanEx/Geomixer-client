@@ -138,7 +138,7 @@ module.exports = function (options) {
                     layer = layers[i];
                     break;
                 }
-                layer && _markers.removeLayer(layer);
+            layer && _markers.removeLayer(layer);
         }
     },
     _drawMyFleetMarker = function(args, markerTemplate, group, ai, isVisible){ 

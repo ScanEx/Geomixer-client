@@ -119,19 +119,21 @@ const MyFleetView = function (model, tools, viewCalendar){
     const reloadTrack = function(){
         if (!this.displayTracks)
             return;              
-        if (this.isActive)        
-            this.inProgress(true);              
+        //if (this.isActive)        
+        this.inProgress(true); 
+console.log(this.model.data) // TODO remove outdated markers
+
         this.model.loadTracks(this.infoDialogView, _viewState);
     };
     this.calendar.onChange = reloadTrack.bind(this);    
     this.frame.find('.reload').on('click', reloadTrack.bind(this))
 
-    this.frame.on('click', ((e) => {
-        if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
-            this.calendar.reset()
-        }
-        //suggestions.hide();
-    }).bind(this));
+    // this.frame.on('click', ((e) => {
+    //     if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
+    //         this.calendar.reset()
+    //     }
+    //     //suggestions.hide();
+    // }).bind(this));
 
     
     Object.defineProperty(this, "displayTracks", {
@@ -313,6 +315,7 @@ MyFleetView.prototype.repaint = function () {
             let vessel = thisView.model.vessels[i];
             
             thisView.beforeExcludeMember(vessel.mmsi.toString());
+            thisView.inProgress(true);
 
             let dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
             if (dlg[0]){ 
