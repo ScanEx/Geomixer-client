@@ -1,113 +1,122 @@
 module.exports = function (options) {
-    const {dateInterval, daysLimit: _daysLimit} = options, 
-          _msd = 24 * 3600 * 1000;
- 
-    const _dateInterval1 = new nsGmx.DateInterval(),
-          _dateInterval2 = new nsGmx.DateInterval();
-          
-            //_viewCalendar1._dateInputs.datepicker('option', 'minDate', d);
-            //_viewCalendar1.onChange({ dateBegin: _dateInterval.get('dateBegin'), dateEnd: _dateInterval.get('dateEnd') });
-            //_viewCalendar2._dateInputs.datepicker('option', 'minDate', d);    
+    const {id, dateInterval, daysLimit: _daysLimit, mapDateInterval} = options, 
+          _msd = 24 * 3600 * 1000,
+          _utcLimits = function(dt){
+              dt  = dt || (new Date());
+                return {
+                    begin: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate())), 
+                    end: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate() + 1))
+                }
+          };
 
- 
-        _dateInterval1
-        .set('dateBegin', dateInterval.get('dateBegin'))
-        .set('dateEnd', dateInterval.get('dateEnd'))
-        .on('change', function (e) { 
-            const st = {dateBegin:_dateInterval1.get('dateBegin'), dateEnd:_dateInterval2.get('dateEnd')}
-            dateInterval.loadState(st);
-        }.bind(this)); 
-        _dateInterval2
-        .set('dateBegin', dateInterval.get('dateBegin'))
-        .set('dateEnd', dateInterval.get('dateEnd'))
-        .on('change', function (e) { 
-            const st = {dateBegin:_dateInterval1.get('dateBegin'), dateEnd:_dateInterval2.get('dateEnd')}
-            dateInterval.loadState(st);
-        }.bind(this));            
-
-
-    const _calendar = $(`<div><table border=1><tr>
+    const _calendar = $(`<div class="${id}"><table border=0>    
+    <tr>   
     <td></td>
-    <td class="dateBegin"><span class="ui-helper-hidden-accessible"><input type="text"/></span></td>
+    <td class="dateBegin"><span class="ui-helper-hidden-accessible"><input type="text"/></span>
+    <input type="text" class="gmx-input-text CalendarWidget-dateBegin">
+    </td>
     <td>&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>
-    <td class="dateEnd"></td>
+    <td class="dateEnd"><input type="text" class="gmx-input-text CalendarWidget-dateEnd"></td>
     <td></td>
     <td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="${_gtxt('AISSearch2.calendar_today')}" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>
-    </tr></table></div>`);
+    </tr>    
+    </table></div>`);
+    
+    let _now = new Date(),
+        _begin = options.begin ? new Date(options.begin) : _utcLimits(_now).begin,
+        _end =  options.end ? new Date(options.end) : _utcLimits(_now).end,
+        _current = new Date(_end.getTime() - _msd),
+        _onChangeCallbacks = [];
+
+    const _setBegin = function(dt){
+              _begin = new Date(dt);
+          },
+          _setEnd = function(dt){
+              _end = new Date(dt);
+          },
+          _onChangeHandler = function(s, dp){
+              const b = _beginCtl.datepicker('getDate'),
+                    e = _endCtl.datepicker('getDate');
+              let maxd = e;
+              if (b>e){
+                  if (this.id === _beginCtl[0].id){
+                    _setBegin(_utcLimits(b).begin);
+                    _setEnd(_utcLimits(b).end);
+                    _endCtl.datepicker( "setDate", b);
+                    maxd = b;
+                  }
+                  else{  
+                    _setEnd(_utcLimits(e).end);
+                    _setBegin(_utcLimits(e).begin);
+                    _beginCtl.datepicker( "setDate", e);
+                  }
+              }
+              else{
+                _setBegin(_utcLimits(b).begin);
+                _setEnd(_utcLimits(e).end);
+              }
+             
+              _beginCtl.datepicker( "option", {minDate: new Date(maxd.getTime() - (_daysLimit - 1) * _msd), maxDate: maxd});
+              
+              _onChangeCallbacks.forEach(cb=>cb({interval: _thisInstance.interval}));
+//console.log(_thisInstance.interval);
+
+          },
+          _beginCtl = _calendar.find( ".CalendarWidget-dateBegin" ).datepicker({
+              onSelect: _onChangeHandler,
+              minDate: '-' + _daysLimit,
+              maxDate: _current
+            }),
+          _endCtl = _calendar.find( ".CalendarWidget-dateEnd" ).datepicker({
+              onSelect: _onChangeHandler,
+              maxDate: _current
+            });
+
+    _beginCtl.datepicker( "setDate", _begin);
+    _endCtl.datepicker( "setDate", _current);
 
     // walkaround with focus at first input in ui-dialog
     //_calendar.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
-
-    const _viewCalendar1 = new nsGmx.CalendarWidget({
-                dateInterval: _dateInterval1,
-                //name: 'searchInterval',
-                container: _calendar.find('.dateBegin'),
-                //dateMin: new Date(0, 0, 0),        
-                //dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - _msd*(_daysLimit-1)),
-                //dateMax: new Date(3015, 1, 1),
-                dateFormat: 'dd.mm.yy',
-                minimized: true,
-                showSwitcher: false,
-                //dateBegin: new Date(),
-                //dateEnd: new Date(2000, 10, 10),
-                //buttonImage: 'img/calendar.png'
-            }),
-            _viewCalendar2 = new nsGmx.CalendarWidget({
-                dateInterval: _dateInterval2,
-                //name: 'searchInterval',
-                container: _calendar.find('.dateEnd'),
-                //dateMin: new Date(0, 0, 0),        
-                //dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - _msd*(_daysLimit-1)),
-                //dateMax: new Date(3015, 1, 1),
-                dateFormat: 'dd.mm.yy',
-                minimized: true,
-                showSwitcher: false,
-                //dateBegin: new Date(),
-                //dateEnd: new Date(2000, 10, 10),
-                //buttonImage: 'img/calendar.png'
-            });
-
-            
-    //const td = _calendar.find('tr:nth-of-type(1) td');
-    //td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="'+_gtxt('AISSearch2.calendar_today')+'" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-    _calendar.find('.icon-left-open').hide();
-    _calendar.find('.icon-right-open').hide();    
-    _calendar.find('.default_date').on('click', () => {
-        let db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-        dateInterval.loadState({dateBegin: db.dateBegin, dateEnd: db.dateEnd})
-        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
+  
+    _calendar.find('.default_date').on('click', function() {
+        const limits = _utcLimits();
+        _thisInstance.interval = { begin: limits.begin, end: limits.end };
     });
 
-    let _onChangeCallback;
-    return {
-        _dateInputs: _viewCalendar1._dateInputs,
-        el: _calendar.find('table')[0],
-        reset: ()=>{_viewCalendar1.reset(); _viewCalendar2.reset();},
-        getDateInterval: ()=>dateInterval,
-
-        get onChange(){ 
-            return _onChangeCallback;//_viewCalendar.onChange; 
-        },
-        set onChange(f){
-            _onChangeCallback = f;//_viewCalendar.onChange = f; 
+    const _thisInstance =  {
+        el: _calendar[0],
+        set onChange(cb) { 
+            _onChangeCallbacks.push(cb); 
         },
 
-        get dateBegin() { return _dateInterval1.get('dateBegin'); },
-        // set dateBegin(d) {
-        // },
-        get dateEnd() { return _dateInterval2.get('dateEnd'); },
-        // set dateEnd(d) {
-        // },
-
-        set dateBeginEnd(di) {
-            if (_dateInterval1.get('dateBegin').getTime()!=di.get('dateBegin').getTime() || 
-                _dateInterval2.get('dateEnd').getTime()!=di.get('dateEnd').getTime() ){
-                    const db1 = nsGmx.DateInterval.getUTCDayBoundary(di.get('dateBegin')),
-                          db2 = nsGmx.DateInterval.getUTCDayBoundary(di.get('dateEnd').setHours(di.get('dateEnd').getHours()-24));
-                _dateInterval1.loadState(db1);
-                _dateInterval2.loadState(db2);
-            }
+        set begin(dt){
+            _setBegin(dt); _beginCtl.datepicker( "setDate", dt); 
+            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
         },
+        get begin(){ return new Date(_begin); },
+
+        set end(dt){
+            const dpEnd = new Date(dt.getTime() - _msd);
+            _beginCtl.datepicker( "option", {minDate: new Date(end.getTime() - (_daysLimit - 1) * _msd), maxDate: dpEnd});
+
+            _setEnd(dt); _endCtl.datepicker( "setDate", dpEnd ); 
+            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+        },
+        get end(){ return new Date(_end); },
+
+        set interval(di){     
+
+            const pickerEnd = new Date(di.end.getTime() - _msd);
+            _beginCtl.datepicker( "option", {minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * _msd), maxDate: pickerEnd});
+
+            _setBegin(di.begin); _beginCtl.datepicker( "setDate", di.begin);
+            _setEnd(di.end);  _endCtl.datepicker( "setDate", pickerEnd);
+//console.log(this.interval) 
+            _onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+        },
+        get interval(){ return { begin: new Date(_begin), end: new Date(_end)}; }
 
     }
+  
+    return _thisInstance;
 };

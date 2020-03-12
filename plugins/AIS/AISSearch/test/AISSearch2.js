@@ -51,7 +51,7 @@
 	    BETA = false;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-	if (false) BETA = true;
+	if (true) BETA = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -60,8 +60,8 @@
 	
 	var AisPluginPanel = __webpack_require__(6),
 	    ViewsFactory = __webpack_require__(7),
-	    LegendControl = __webpack_require__(31),
-	    Toolbox = __webpack_require__(33);
+	    LegendControl = __webpack_require__(32),
+	    Toolbox = __webpack_require__(34);
 	
 	Handlebars.registerHelper('aisinfoid', function (context) {
 	    return context.mmsi + " " + context.imo;
@@ -123,9 +123,9 @@
 	            setLayerClickHandler = function setLayerClickHandler(layer) {
 	            layer.removeEventListener('click');
 	            layer.addEventListener('click', function (e) {
-	                //console.log(e)
+	                //console.log('layer', e)
 	                if (e.gmx && e.gmx.properties.hasOwnProperty("imo")) viewFactory.infoDialogView.show(e.gmx.properties);
-	            });
+	            }, false);
 	        },
 	            forLayers = function forLayers(layer) {
 	            try {
@@ -618,87 +618,17 @@
 	    DbSearchView = __webpack_require__(17),
 	    DbSearchModel = __webpack_require__(21),
 	    InfoDialogView = __webpack_require__(22),
-	    Searcher = __webpack_require__(30);
+	    Searcher = __webpack_require__(30),
+	    ViewCalendar = __webpack_require__(31);
 	
 	module.exports = function (options) {
 	
-	    var _tools = options.tools;
+	    var _tools = options.tools,
+	        _daysLimit = 14,
+	        _mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
 	
-	    var calendar1 = $('<div id="aisViewCalendar1"></div>'),
-	        calendar2 = $('<div id="aisViewCalendar2"></div>'),
-	        daysLimit = 14;
-	
-	    // walkaround with focus at first input in ui-dialog
-	    calendar1.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
-	    calendar2.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
-	
-	    var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
-	        dateInterval = new nsGmx.DateInterval();
-	
-	    dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
-	        //console.log('CHANGE ' + dateInterval.get('dateBegin').toUTCString() + ' ' + dateInterval.get('dateEnd').toUTCString()) 
-	        var d = new Date(e.attributes.dateEnd.getTime() - msd * daysLimit);
-	        _viewCalendar1._dateInputs.datepicker('option', 'minDate', d);
-	        _viewCalendar1.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') });
-	        _viewCalendar2._dateInputs.datepicker('option', 'minDate', d);
-	        _viewCalendar2.onChange({ dateBegin: dateInterval.get('dateBegin'), dateEnd: dateInterval.get('dateEnd') });
-	
-	        nsGmx.widgets.commonCalendar.setDateInterval(dateInterval.get("dateBegin"), dateInterval.get("dateEnd"));
-	    }.bind(this));
-	    _tools.historyInterval = dateInterval;
-	    var msd = 24 * 3600000,
-	        _viewCalendar1 = new nsGmx.CalendarWidget({
-	        dateInterval: dateInterval,
-	        name: 'searchInterval',
-	        container: calendar1,
-	        //dateMin: new Date(0, 0, 0),        
-	        dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd * (daysLimit - 1)),
-	        dateMax: new Date(3015, 1, 1),
-	        dateFormat: 'dd.mm.yy',
-	        minimized: false,
-	        showSwitcher: false,
-	        dateBegin: new Date(),
-	        dateEnd: new Date(2000, 10, 10)
-	        //buttonImage: 'img/calendar.png'
-	    }),
-	        _viewCalendar2 = new nsGmx.CalendarWidget({
-	        dateInterval: dateInterval,
-	        name: 'searchInterval',
-	        container: calendar2,
-	        //dateMin: new Date(0, 0, 0),        
-	        dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd * (daysLimit - 1)),
-	        dateMax: new Date(3015, 1, 1),
-	        dateFormat: 'dd.mm.yy',
-	        minimized: false,
-	        showSwitcher: false,
-	        dateBegin: new Date(),
-	        dateEnd: new Date(2000, 10, 10)
-	        //buttonImage: 'img/calendar.png'
-	    });
-	
-	    var td = calendar1.find('tr:nth-of-type(1) td');
-	    td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-	    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="' + _gtxt('AISSearch2.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-	    calendar1.find('.default_date').on('click', function () {
-	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-	        _viewCalendar1.getDateInterval().set('dateBegin', db.dateBegin);
-	        _viewCalendar1.getDateInterval().set('dateEnd', db.dateEnd);
-	        _viewCalendar2.getDateInterval().set('dateBegin', db.dateBegin);
-	        _viewCalendar2.getDateInterval().set('dateEnd', db.dateEnd);
-	        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
-	    });
-	
-	    td = calendar2.find('tr:nth-of-type(1) td');
-	    td.eq(1).after('<td style="font-weight:bold">&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>');
-	    td.eq(td.length - 1).after('<td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="' + _gtxt('AISSearch2.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>');
-	    calendar2.find('.default_date').on('click', function () {
-	        var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
-	        _viewCalendar1.getDateInterval().set('dateBegin', db.dateBegin);
-	        _viewCalendar1.getDateInterval().set('dateEnd', db.dateEnd);
-	        _viewCalendar2.getDateInterval().set('dateBegin', db.dateBegin);
-	        _viewCalendar2.getDateInterval().set('dateEnd', db.dateEnd);
-	        nsGmx.widgets.commonCalendar.setDateInterval(db.dateBegin, db.dateEnd);
-	    });
+	    var _viewCalendar1 = new ViewCalendar({ id: 'vc1', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit }),
+	        _viewCalendar2 = new ViewCalendar({ id: 'vc2', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit });
 	
 	    ///////////////////////////////////////////////
 	
@@ -707,9 +637,9 @@
 	        _mfm = new MyFleetModel({ aisLayerSearcher: _searcher, toolbox: _tools, modulePath: _modulePath }),
 	        _ssm = new ScreenSearchModel({ aisLayerSearcher: _searcher, myFleetModel: _mfm, vesselLegend: options.vesselLegend }),
 	        _dbsm = new DbSearchModel(_searcher),
-	        _dbsv = new DbSearchView(_dbsm, options, _tools, _viewCalendar1),
+	        _dbsv = new DbSearchView(_dbsm, options, _tools, _viewCalendar2),
 	        _ssv = new ScreenSearchView(_ssm, _tools),
-	        _mfv = new MyFleetView(_mfm, _tools, _viewCalendar2),
+	        _mfv = new MyFleetView(_mfm, _tools, _viewCalendar1),
 	        _idv = new InfoDialogView({
 	        tools: _tools,
 	        aisLayerSearcher: _searcher,
@@ -1449,27 +1379,40 @@
 	    }.bind(this));
 	
 	    var settings = []; //DEFAULT SETTINGS
-	    this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' + '<table class="instruments">' + '<tr><td style="vertical-align:top; padding-right:0">' + '<div style="width:140px; margin-bottom: 8px;">{{i "AISSearch2.DisplaySection"}}</div>' + '<div style="margin-bottom: 5px;"><label class="sync-switch switch only_myflot"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span></div>' + '<label class="sync-switch switch all_tracks"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<span class="sync-switch-slider-description" >{{i "AISSearch2.shipsTracks"}}</span>' + '</td>' + '<td style="padding-right:0">' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="group_name" ' + (settings.indexOf('group_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayGroupName"}}</div>' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="vessel_name" ' + (settings.indexOf('vessel_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayVesselName"}}</label></div>' + '<div style="width:70px;float:left;" class="setting"><label><input type="checkbox" id="sog" ' + (settings.indexOf('sog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplaySog"}}</label></div>' + '<div style="width:45px;float:left;" class="setting"><label><input type="checkbox" id="cog" ' + (settings.indexOf('cog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayCog"}}</label></div>' + '</td>' + '<td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>' + '<tr><td colspan="3" style="padding-top:0; padding-bottom:5px">' + '<table class="newgroup"><tr><td>{{i "AISSearch2.NewGroup"}}</td>' + '<td><div class="newgroupname"><input type="text" placeholder="{{i "AISSearch2.NewGroupName"}}"/></div></td>' + '<td><img class="create clicable" title="{{i "AISSearch2.CreateGroup"}}" src="plugins/AIS/AISSearch/svg/add.svg"></td>' + '</tr></table>' + '</td></tr>' + '<tr><td colspan="2"><style>' + '#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}' + '#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}' + '#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}' + '</style><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="clicable" title="{{i "AISSearch2.refresh"}}">' +
+	    this.frame = $(Handlebars.compile('<div class="ais_view myfleet_view">' + '<table class="instruments">' + '<tr><td style="vertical-align:top; padding-right:0">' + '<div style="width:140px; margin-bottom: 8px;">{{i "AISSearch2.DisplaySection"}}</div>' + '<div style="margin-bottom: 5px;"><label class="sync-switch switch only_myflot"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<span class="sync-switch-slider-description">{{i "AISSearch2.myFleetOnly"}}</span></div>' + '<label class="sync-switch switch all_tracks"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '<span class="sync-switch-slider-description" >{{i "AISSearch2.shipsTracks"}}</span>' + '</td>' + '<td style="padding-right:0">' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="group_name" ' + (settings.indexOf('group_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayGroupName"}}</div>' + '<div style="width:120px;float:left;" class="setting"><label><input type="checkbox" id="vessel_name" ' + (settings.indexOf('vessel_name') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayVesselName"}}</label></div>' + '<div style="width:70px;float:left;" class="setting"><label><input type="checkbox" id="sog" ' + (settings.indexOf('sog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplaySog"}}</label></div>' + '<div style="width:45px;float:left;" class="setting"><label><input type="checkbox" id="cog" ' + (settings.indexOf('cog') < 0 ? '' : 'checked') + '>{{i "AISSearch2.DisplayCog"}}</label></div>' + '</td>' + '<td><div class="refresh"><div>' + this.gifLoader + '</div></div></td></tr>' + '<tr><td colspan="3" style="padding-top:0; padding-bottom:5px">' + '<table class="newgroup"><tr><td>{{i "AISSearch2.NewGroup"}}</td>' + '<td><div class="newgroupname"><input type="text" placeholder="{{i "AISSearch2.NewGroupName"}}"/></div></td>' + '<td><img class="create clicable" title="{{i "AISSearch2.CreateGroup"}}" src="plugins/AIS/AISSearch/svg/add.svg"></td>' + '</tr></table>' + '</td></tr>' + '<tr><td colspan="2"><style>' + '#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}' + '#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}' + '#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}' + '</style><div class="calendar"></div></td>' + '<td style="vertical-align:top;"><div class="clicable" title="{{i "AISSearch2.refresh"}}">' +
 	    //'<div class="progress">' + this.gifLoader + '</div>' +
 	    '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_vessels">' + '<table class="results">' + '<td><input type="checkbox" checked></td>' + '<td class="count"></td></tr></table>' + '<div class="ais_vessel">' + '<table border=0><tr>' + '<td><input type="checkbox" checked></td>' + '<td><div class="position">vessel_name</div><div>mmsi: mmsi imo: imo</div></td>' + '<td></td>' + '<td><span class="date">ts_pos_utc</span></td>' + '</tr></table>' + '</div>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.myfleet_view"}}}' + '</div></td></tr></table>' + '</div>')());
 	
 	    this.calendar = viewCalendar;
-	    this.frame.find('.calendar').append(this.calendar.el.parentElement);
+	    this.frame.find('.calendar').append(this.calendar.el);
+	    this.model.historyInterval = { dateBegin: this.calendar.begin, dateEnd: this.calendar.end };
 	
 	    var reloadTrack = function reloadTrack() {
 	        if (!this.displayTracks) return;
-	        if (this.isActive) this.inProgress(true);
+	        //if (this.isActive)        
+	        this.inProgress(true);
+	        var begin = this.calendar.begin.getTime() / 1000,
+	            end = this.calendar.end.getTime() / 1000;
+	        this.model.data.groups.forEach(function (g) {
+	            g.vessels.forEach(function (v) {
+	                if (begin > v.ts_pos_org || v.ts_pos_org > end) {
+	                    //console.log(v.vessel_name, v.ts_pos_utc)
+	                    _tools.eraseMyFleetMarker(v.mmsi);
+	                }
+	            });
+	        });
+	
 	        this.model.loadTracks(this.infoDialogView, _viewState);
 	    };
-	    this.calendar.onChange = reloadTrack.bind(this);
-	    this.frame.find('.reload').on('click', reloadTrack.bind(this));
 	
-	    this.frame.on('click', function (e) {
-	        if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
-	            _this.calendar.reset();
-	        }
-	        //suggestions.hide();
-	    }.bind(this));
+	    this.calendar.onChange = function (e) {
+	        this.model.historyInterval = { dateBegin: e.interval.begin, dateEnd: e.interval.end };
+	        console.log('myfleet.historyInterval', this.model.historyInterval);
+	        if (this.isActive) nsGmx.widgets.commonCalendar.setDateInterval(e.interval.begin, e.interval.end);
+	        reloadTrack.call(this);
+	    }.bind(this);
+	
+	    this.frame.find('.reload').on('click', reloadTrack.bind(this));
 	
 	    Object.defineProperty(this, "displayTracks", {
 	        get: function get() {
@@ -1637,6 +1580,7 @@
 	        var vessel = thisView.model.vessels[i];
 	
 	        thisView.beforeExcludeMember(vessel.mmsi.toString());
+	        thisView.inProgress(true);
 	
 	        var dlg = $('.ui-dialog:contains("' + vessel.mmsi + '")');
 	        if (dlg[0]) {
@@ -2390,7 +2334,7 @@
 	        findIndex: function findIndex(vessel) {
 	            if (_vessels.length == 0) return -1;
 	            return Polyfill.findIndex(_vessels, function (v) {
-	                return v.mmsi == vessel.mmsi && v.imo == vessel.imo;
+	                return v.mmsi == vessel.mmsi && (!vessel.imo || v.imo == vessel.imo);
 	            });
 	        },
 	        load: function load(actualUpdate) {
@@ -2403,18 +2347,21 @@
 	                    return _loadVoyageInfo(vessels);
 	                }).then(function (data) {
 	                    _data = data;
-	                    _isDirty = false;
+	                    //_isDirty = false;
 	                    return Promise.resolve();
 	                }).catch(function (error) {
-	                    _isDirty = false;
+	                    //_isDirty = false;
 	                    return Promise.reject(error);
 	                });
 	            });
 	        },
 	        update: function update() {
 	
-	            //if (!this.isDirty)
-	            //    return;
+	            if (!this.isDirty) {
+	                this.view.repaint();
+	                return;
+	            }
+	            console.log('UPDATE');
 	
 	            _actualUpdate = new Date().getTime();
 	            var thisModel = this,
@@ -2424,6 +2371,7 @@
 	                if (_actualUpdate == actualUpdate) {
 	                    thisModel.view.inProgress(false);
 	                    if (_data) thisModel.view.repaint();
+	                    _isDirty = false;
 	                }
 	            }, function (json) {
 	                thisModel.dataSrc = null;
@@ -2435,6 +2383,7 @@
 	                }
 	                thisModel.view.inProgress(false);
 	                thisModel.view.repaint();
+	                _isDirty = false;
 	            });
 	        },
 	        get markerTemplate() {
@@ -2521,13 +2470,15 @@
 	            var _this = this;
 	
 	            //console.log(infoDialog)
+	            //console.log(_vessels, vessel)
 	            var remove = false;
 	            for (var i = 0; i < _vessels.length; ++i) {
-	                if (_vessels[i].imo == vessel.imo && _vessels[i].mmsi == vessel.mmsi) {
+	                if ((!vessel.imo || _vessels[i].imo == vessel.imo) && _vessels[i].mmsi == vessel.mmsi) {
 	                    remove = _vessels[i].gmx_id;
 	                    _vessels.splice(i, 1);
 	                }
 	            }
+	            //console.log(remove)
 	            return new Promise(function (resolve, reject) {
 	                if (!_myFleetLayers.length) {
 	                    sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/CreateVectorLayer.ashx?Title=myfleet' + _mapID + '&geometrytype=point&Columns=' + '[{"Name":"mmsi","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"mmsi\\""},{"Name":"imo","ColumnSimpleType":"Integer","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"imo\\""},{"Name":"group","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"group\\""},{"Name":"style","ColumnSimpleType":"String","IsPrimary":false,"IsIdentity":false,"IsComputed":false,"expression":"\\"style\\""}]', function (response) {
@@ -2623,8 +2574,7 @@
 	        loadTrack: function loadTrack(mmsi, infoDialog) {
 	            if (window.Worker) {
 	                var baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
-	                    di = _tools.historyInterval,
-	                    interval = { dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd') },
+	                    interval = this.historyInterval,
 	                    thisView = this.view;
 	                var counter = _vessels.length;
 	
@@ -2646,7 +2596,7 @@
 	                                infoDialog.show(_v, false);
 	                            }
 	                        });
-	                    }, _aisLayerSearcher);
+	                    }, _aisLayerSearcher, thisView);
 	                    counter--;
 	                    if (!counter) thisView.inProgress(false);
 	                };
@@ -2666,10 +2616,13 @@
 	                _trackLoaders.length = 0;
 	
 	                var baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
-	                    di = _tools.historyInterval,
-	                    interval = { dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd') },
+	                    interval = this.historyInterval,
 	                    thisView = this.view;
+	                console.log('LOAD TRACK', interval);
 	                //console.log(_vessels, _vessels.length)
+	
+	                _tools.showMyFleetTrack();
+	
 	                Promise.all(_vessels.map(function (v) {
 	                    return new Promise(function (resolve, reject) {
 	                        if (v.mmsi) {
@@ -2720,75 +2673,7 @@
 	                    console.log(e);
 	                    thisView.inProgress(false);
 	                });
-	
-	                /*
-	                                _vessels.forEach(v=>{ 
-	                                    var myWorker = new Worker(_modulePath + 'LoaderWorker.js');
-	                                    myWorker.postMessage({mmsi:v.mmsi, url:`${baseUrl}plugins/AIS/SearchMfPositionsAsync.ashx?layer=8EE2C7996800458AAF70BABB43321FA4&mmsi=${v.mmsi}&s=${interval.dateBegin.toISOString()}&e=${interval.dateEnd.toISOString()}`});
-	                                    myWorker.onmessage = function(e) {
-	                //console.log('Message received from worker', e.data);
-	                                        //if ( e.data.mmsi=='273444660')
-	                                        _tools.showMyFleetTrack([e.data], console.log, _aisLayerSearcher);
-	                                        counter--;
-	                                        if (!counter)
-	                                            thisView.inProgress(false);
-	                                    }                
-	                                    myWorker.onerror = function(e) {
-	                                        console.log(e);
-	                                        counter--;
-	                                        if (!counter)
-	                                            thisView.inProgress(false)
-	                                    }
-	                                    _trackLoaders.push(myWorker);
-	                                });
-	                                */
 	            } else console.log("NO WORKERS");
-	            //             return;
-	            // console.log(_tools.historyInterval)                  
-	            //             const di = _tools.historyInterval;
-	            //             _vessels.forEach(v=>{ 
-	            //                 new Promise((resolve) => {
-	            //                     _aisLayerSearcher.searchPositionsAgg2Mf(v.mmsi, {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')}, function (response) {
-	            // //console.log(response)       
-	            //                     if (parseResponse(response)) {
-	            //                         let position, positions = [],
-	            //                             fields = response.Result.fields,
-	            //                             groups = response.Result.values.reduce((p, c) => {
-	            //                                 let obj = {}, d;
-	            //                                 for (var j = 0; j < fields.length; ++j) {
-	            //                                     obj[fields[j]] = c[j];
-	            //                                     if (fields[j] == 'ts_pos_utc'){
-	            //                                         let dt = c[j], t = dt - dt % (24 * 3600);
-	            //                                         d = new Date(t * 1000);
-	            //                                         obj['ts_pos_org'] = c[j];
-	            //                                     }
-	            //                                 }
-	            //                                 if (p[d]) {
-	            //                                     p[d].positions.push(_tools.formatPosition(obj, _aisLayerSearcher));
-	            //                                     p[d].count = p[d].count + 1;
-	            //                                 }
-	            //                                 else
-	            //                                     p[d] = { mmsi: v.mmsi, positions: [_tools.formatPosition(obj, _aisLayerSearcher)], count: 1 };
-	            //                                 return p;
-	            //                             }, {});
-	            //                         let counter = 0;
-	            //                         for (var k in groups) {
-	            //                             groups[k]["n"] = counter++;
-	            //                             positions.push(groups[k]);
-	            //                         }
-	            //                         resolve({ Status: "ok", Result: { values: positions, total: response.Result.values.length } });
-	            //                     }
-	            //                     else
-	            //                         resolve(response);
-	            //                     });
-	            //                 })
-	            //                 .then(function (response) {
-	            //                     if (response.Status && response.Status.toLowerCase()=='ok' && response.Result && response.Result.values)
-	            //                         _tools.showMyFleetTrack(response.Result.values, console.log);
-	            //                     else
-	            //                         console.log(response);
-	            //                 });
-	            //            });
 	        }
 	    };
 	};
@@ -2886,7 +2771,7 @@
 	    //'<div><img class="search clicable" src="plugins/AIS/AISSearch/svg/search.svg">' +
 	    //'<img class="remove clicable" src="plugins/AIS/AISSearch/svg/remove.svg">' +
 	    //'</div></div>' + 
-	    '' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + '<tr><td><style>' + '#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}' + '#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}' + '#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}' + '</style><div class="calendar"></div></td>' + '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' +
+	    '' + '</td></tr>' + '<tr><td class="time" colspan="2"><span class="label">{{i "AISSearch2.time_switch"}}:</span>' + '<span class="utc on unselectable" unselectable="on">UTC</span><span class="local unselectable" unselectable="on">{{i "AISSearch2.time_local"}}</span>' + '<span class="sync-switch-slider-description" style="padding: 0;margin-left: 10px;line-height:12px">{{i "AISSearch2.thisVesselOnly"}}</span>' + '<label class="sync-switch switch only_this" style="margin-left:5px"><input type="checkbox">' + '<div class="sync-switch-slider switch-slider round"></div></label>' + '</td></tr>' + '<tr><td><style>' + '#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}' + '#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}' + '#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}' + '</style><div class="calendar"></div></td>' + '<td style="vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' + '<div class="progress">' + this.gifLoader + '</div>' + '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' + '</div></td></tr>' + '</table>' + '<div class="ais_history">' + '<table class="ais_positions_date"><tr><td>NO HISTORY FOUND</td></tr></table>' + '</div>' + '<table class="start_screen"><tr><td>' + '<img src="plugins/AIS/AISSearch/svg/steer-weel.svg">' + '<div>{{{i "AISSearh2.searchresults_view"}}}' + '</div></td></tr></table>' +
 	
 	    //'<div class="suggestions"><div class="suggestion">SOME VESSEL<br><span>mmsi:0, imo:0</span></div></div>' +
 	    '</div>')());
@@ -2906,18 +2791,22 @@
 	    this.tableTemplate = '{{#if msg}}<div class="message">{{msg}}</div>{{/if}}' + '<table class="ais_positions_date header"><tr>' + '<td></td>' + '<td><span class="date"></span></td>' + '<td><div class="track all"><input type="checkbox" title="{{i "AISSearch2.allDailyTracks"}}"></div></td>' + '<td><div class="count">{{total}}</div></td></tr></table>' + '{{#each vessels}}' + '<table class="ais_positions_date" border=0><tr>' + '<td><div class="open_positions ui-helper-noselect icon-right-open" title="{{i "AISSearch2.voyageInfo"}}"></div></td>' + '<td><span class="date">{{{ts_pos_utc}}}</span></td>' + '<td><div class="track" date="{{{ts_pos_utc}}}"><input type="checkbox" title="{{i "AISSearch2.dailyTrack"}}"></div></td>' + '<td><div class="count">{{count}}</div></td></tr></table>' + '<div id="voyage_info{{n}}"></div>' + '{{/each}}';
 	
 	    this.calendar = viewCalendar;
-	    this.frame.find('.calendar').append(this.calendar.el.parentElement);
-	    this.calendar.onChange = function (interval) {
-	        this.model.historyInterval = interval;
+	    this.frame.find('.calendar').append(this.calendar.el);
+	    this.calendar.onChange = function (e) {
+	        var changes = {
+	            dateBegin: e.interval.begin,
+	            dateEnd: e.interval.end
+	        };
+	        this.model.historyInterval = changes;
 	        this.model.isDirty = true;
-	        if (this.isActive) this.show();
-	    }.bind(this);
-	    this.frame.on('click', function (e) {
-	        if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
-	            _this.calendar.reset();
+	
+	        console.log('model.historyInterval', this.model.historyInterval);
+	
+	        if (this.isActive) {
+	            nsGmx.widgets.commonCalendar.setDateInterval(changes.dateBegin, changes.dateEnd);
+	            this.show();
 	        }
-	        //suggestions.hide();
-	    }.bind(this));
+	    }.bind(this);
 	
 	    this.frame.find('.time .only_this  input[type="checkbox"]').click(function (e) {
 	        _displayedOnly.length = 0;
@@ -3101,7 +2990,7 @@
 	                    //showPosition
 	                    var i = e.currentTarget.id.replace(/show_pos/, ""),
 	                        position = _this2.model.data.vessels[ind].positions[parseInt(i)];
-	                    _this2.positionMap(position, _this2.calendar.getDateInterval());
+	                    _this2.positionMap(position, _this2.calendar.interval);
 	
 	                    _this2.frame.find('.track:not(.all) input')[ind].checked = true;
 	                    allTracksInput[0].checked = _this2.frame.find('.track:not(.all) input:checked').length == _this2.model.data.vessels.length;
@@ -3125,11 +3014,7 @@
 	
 	    var allTracksInput = this.frame.find('.ais_positions_date .track.all input[type="checkbox"]'),
 	        tracksInputs = this.frame.find('.ais_positions_date .track:not(.all) input[type="checkbox"]');
-	    //   ,setMapCalendar = function(calendar){
-	    //       let calendarInterval = calendar.getDateInterval(),
-	    //           interval = { dateBegin: calendarInterval.get("dateBegin"), dateEnd: calendarInterval.get("dateEnd") };
-	    //       nsGmx.widgets.commonCalendar.setDateInterval(interval.dateBegin, interval.dateEnd);              
-	    //   };
+	
 	    allTracksInput.click(function (e) {
 	        //setMapCalendar(this.calendar);
 	        _this2.frame.find('.ais_positions_date .track:not(.all) input').each(function (i, el) {
@@ -3157,7 +3042,6 @@
 	            nv = vessels[i + 1];
 	        el.addEventListener('click', function (e) {
 	
-	            //setMapCalendar(this.calendar);
 	            allTracksInput[0].checked = _this2.frame.find('.ais_positions_date .track:not(.all) input:checked').length == vessels.length;
 	
 	            _this2.showTrack([{
@@ -3173,30 +3057,24 @@
 	
 	    if (this.model.data.vessels.length == 1) openPos.eq(0).click();
 	
-	    //if (this.withTrack){
 	    tracksInputs.eq(0).click();
-	    //    this.withTrack = false;
-	    //}
 	
 	    if (this.vessel.lastPosition) {
-	        this.positionMap(this.vessel, this.calendar.getDateInterval());
+	        this.positionMap(this.vessel, this.calendar.interval);
 	        this.vessel.lastPosition = false;
 	    }
 	
-	    var intervalEnd = this.model.data.vessels.length;
-	    if (intervalEnd) {
-	        var lastDate = new Date(this.model.data.vessels[intervalEnd - 1].positions[0].ts_pos_org * 1000),
-	            di = this.calendar.getDateInterval(),
-	            calendarlastDate = di.get('dateBegin');
-	        lastDate.setUTCHours(0, 0, 0, 0);
-	        //console.log(this.model.historyInterval)   
-	        if (calendarlastDate.getTime() < lastDate.getTime()) {
-	            di.set('dateBegin', lastDate);
-	            this.model.historyInterval.dateBegin = lastDate;
-	            //console.log(lastDate, calendarlastDate)  
-	            //console.log(this.model.historyInterval) 
-	        }
-	    }
+	    //     const intervalEnd = this.model.data.vessels.length;
+	    //     if (intervalEnd){
+	    //         const lastDate = new Date(this.model.data.vessels[intervalEnd-1].positions[0].ts_pos_org*1000);
+	    //         lastDate.setUTCHours(0,0,0,0); 
+	    // //console.log(this.model.historyInterval)   
+	    //         if (this.calendar.dateBegin.getTime()<lastDate.getTime()){
+	    //             this.calendar.dateBegin = lastDate;
+	    // //console.log(lastDate, calendarlastDate)  
+	    // //console.log(this.model.historyInterval) 
+	    //         }       
+	    //     }
 	};
 	
 	Object.defineProperty(DbSearchView.prototype, "vessel", {
@@ -3209,12 +3087,10 @@
 	
 	        this.searchInput.searchString = v.vessel_name;
 	        var positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
-	        var checkInterval = this.calendar.getDateInterval();
-	        if (positionDate.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < positionDate.dateEnd) {
-	            this.calendar.getDateInterval().set('dateBegin', positionDate.dateBegin);
-	            this.calendar.getDateInterval().set('dateEnd', positionDate.dateEnd);
-	            this.model.historyInterval = { dateBegin: positionDate.dateBegin, dateEnd: positionDate.dateEnd };
-	        } else this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
+	        var checkInterval = this.calendar.interval;
+	        if (positionDate.dateBegin < checkInterval.begin || checkInterval.end < positionDate.dateEnd) {
+	            this.calendar.interval = { begin: positionDate.dateBegin, end: positionDate.dateEnd };
+	        } else this.model.historyInterval = { dateBegin: checkInterval.begin, dateEnd: checkInterval.end };
 	        this.model.isDirty = true;
 	    }
 	});
@@ -3247,7 +3123,7 @@
 	
 	DbSearchView.prototype.positionMap = function (vessel, interval) {
 	    //console.log("positionMap")
-	    if (interval) nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
+	    if (interval) nsGmx.widgets.commonCalendar.setDateInterval(interval.begin, interval.end);
 	
 	    if (!vessel.xmax && !vessel.longitude && !vessel.ymax && !vessel.latitude) {
 	        vessel.longitude = this.model.data.vessels[0].positions[0].xmax;
@@ -3714,10 +3590,11 @@
 	        },
 	        show: function show(vessel, getmore) {
 	            var ind = Polyfill.findIndex(allIinfoDialogs, function (d) {
-	                return d.vessel.imo == vessel.imo && d.vessel.mmsi == vessel.mmsi;
+	                return (!vessel.imo || d.vessel.imo == vessel.imo) && d.vessel.mmsi == vessel.mmsi;
 	            }),
 	                isNew = true,
 	                dialogOffset = void 0;
+	            //console.log(vessel, ind, allIinfoDialogs)
 	            if (ind >= 0) {
 	                isNew = false;
 	                var displayed = allIinfoDialogs[ind];
@@ -5127,11 +5004,140 @@
 
 /***/ }),
 /* 31 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	module.exports = function (options) {
+	    var id = options.id,
+	        dateInterval = options.dateInterval,
+	        _daysLimit = options.daysLimit,
+	        mapDateInterval = options.mapDateInterval,
+	        _msd = 24 * 3600 * 1000,
+	        _utcLimits = function _utcLimits(dt) {
+	        dt = dt || new Date();
+	        return {
+	            begin: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate())),
+	            end: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate() + 1))
+	        };
+	    };
+	
+	    var _calendar = $('<div class="' + id + '"><table border=0>    \n    <tr>   \n    <td></td>\n    <td class="dateBegin"><span class="ui-helper-hidden-accessible"><input type="text"/></span>\n    <input type="text" class="gmx-input-text CalendarWidget-dateBegin">\n    </td>\n    <td>&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>\n    <td class="dateEnd"><input type="text" class="gmx-input-text CalendarWidget-dateEnd"></td>\n    <td></td>\n    <td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="' + _gtxt('AISSearch2.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>\n    </tr>    \n    </table></div>');
+	
+	    var _now = new Date(),
+	        _begin = options.begin ? new Date(options.begin) : _utcLimits(_now).begin,
+	        _end = options.end ? new Date(options.end) : _utcLimits(_now).end,
+	        _current = new Date(_end.getTime() - _msd),
+	        _onChangeCallbacks = [];
+	
+	    var _setBegin = function _setBegin(dt) {
+	        _begin = new Date(dt);
+	    },
+	        _setEnd = function _setEnd(dt) {
+	        _end = new Date(dt);
+	    },
+	        _onChangeHandler = function _onChangeHandler(s, dp) {
+	        var b = _beginCtl.datepicker('getDate'),
+	            e = _endCtl.datepicker('getDate');
+	        var maxd = e;
+	        if (b > e) {
+	            if (this.id === _beginCtl[0].id) {
+	                _setBegin(_utcLimits(b).begin);
+	                _setEnd(_utcLimits(b).end);
+	                _endCtl.datepicker("setDate", b);
+	                maxd = b;
+	            } else {
+	                _setEnd(_utcLimits(e).end);
+	                _setBegin(_utcLimits(e).begin);
+	                _beginCtl.datepicker("setDate", e);
+	            }
+	        } else {
+	            _setBegin(_utcLimits(b).begin);
+	            _setEnd(_utcLimits(e).end);
+	        }
+	
+	        _beginCtl.datepicker("option", { minDate: new Date(maxd.getTime() - (_daysLimit - 1) * _msd), maxDate: maxd });
+	
+	        _onChangeCallbacks.forEach(function (cb) {
+	            return cb({ interval: _thisInstance.interval });
+	        });
+	        //console.log(_thisInstance.interval);
+	    },
+	        _beginCtl = _calendar.find(".CalendarWidget-dateBegin").datepicker({
+	        onSelect: _onChangeHandler,
+	        minDate: '-' + _daysLimit,
+	        maxDate: _current
+	    }),
+	        _endCtl = _calendar.find(".CalendarWidget-dateEnd").datepicker({
+	        onSelect: _onChangeHandler,
+	        maxDate: _current
+	    });
+	
+	    _beginCtl.datepicker("setDate", _begin);
+	    _endCtl.datepicker("setDate", _current);
+	
+	    // walkaround with focus at first input in ui-dialog
+	    //_calendar.append('<span class="ui-helper-hidden-accessible"><input type="text"/></span>');
+	
+	    _calendar.find('.default_date').on('click', function () {
+	        var limits = _utcLimits();
+	        _thisInstance.interval = { begin: limits.begin, end: limits.end };
+	    });
+	
+	    var _thisInstance = {
+	        el: _calendar[0],
+	        set onChange(cb) {
+	            _onChangeCallbacks.push(cb);
+	        },
+	
+	        set begin(dt) {
+	            _setBegin(dt);_beginCtl.datepicker("setDate", dt);
+	            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+	        },
+	        get begin() {
+	            return new Date(_begin);
+	        },
+	
+	        set end(dt) {
+	            var dpEnd = new Date(dt.getTime() - _msd);
+	            _beginCtl.datepicker("option", { minDate: new Date(end.getTime() - (_daysLimit - 1) * _msd), maxDate: dpEnd });
+	
+	            _setEnd(dt);_endCtl.datepicker("setDate", dpEnd);
+	            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+	        },
+	        get end() {
+	            return new Date(_end);
+	        },
+	
+	        set interval(di) {
+	            var _this = this;
+	
+	            var pickerEnd = new Date(di.end.getTime() - _msd);
+	            _beginCtl.datepicker("option", { minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * _msd), maxDate: pickerEnd });
+	
+	            _setBegin(di.begin);_beginCtl.datepicker("setDate", di.begin);
+	            _setEnd(di.end);_endCtl.datepicker("setDate", pickerEnd);
+	            //console.log(this.interval) 
+	            _onChangeCallbacks.forEach(function (cb) {
+	                return cb({ interval: _this.interval });
+	            });
+	        },
+	        get interval() {
+	            return { begin: new Date(_begin), end: new Date(_end) };
+	        }
+	
+	    };
+	
+	    return _thisInstance;
+	};
+
+/***/ }),
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var SvgParser = __webpack_require__(32);
+	var SvgParser = __webpack_require__(33);
 	
 	var LegendControl = function LegendControl(tools, aisLastPointLayer, lastPointLayerAlt) {
 	    var _layersByID = nsGmx.gmxMap.layersByID,
@@ -5336,7 +5342,7 @@
 	module.exports = LegendControl;
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -7476,12 +7482,12 @@
 	module.exports = _parser;
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var Track = __webpack_require__(34);
+	var Track = __webpack_require__(35);
 	var Polyfill = __webpack_require__(16);
 	
 	module.exports = function (options) {
@@ -7573,8 +7579,9 @@
 	            }
 	        }
 	    },
-	        _historyInterval = void 0,
-	        _markers = void 0,
+	
+	    //_historyInterval,
+	    _markers = void 0,
 	        _visibleMarkers = [],
 	        _icons = {},
 	        _getSvg = function _getSvg(url) {
@@ -7697,12 +7704,9 @@
 	            //return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); 
 	            return _needAltLegend;
 	        },
-	        get historyInterval() {
-	            return _historyInterval;
-	        },
-	        set historyInterval(v) {
-	            _historyInterval = v;
-	        },
+	
+	        // get historyInterval(){return _historyInterval;},
+	        // set historyInterval(v){_historyInterval = v;},
 	
 	        ///////////////////////
 	        removeMyFleetTrack: function removeMyFleetTrack(mmsi) {
@@ -7860,12 +7864,12 @@
 	};
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var vesselMarker = __webpack_require__(35);
+	var vesselMarker = __webpack_require__(36);
 	module.exports = function (options) {
 	
 	    var _lmap = nsGmx.leafletMap,
@@ -7935,8 +7939,11 @@
 	    });
 	    document.body.addEventListener('click', function (e) {
 	        if (!_canvas._container) return;
-	        if (_canvas._container.className.search(/interactive/) > -1) _canvas._onClick(e);
-	    });
+	        if (_canvas._container.className.search(/interactive/) > -1) {
+	            //console.log('canvas', e)
+	            _canvas._onClick(e);
+	        }
+	    }, true);
 	
 	    return {
 	        showHistoryTrack: function showHistoryTrack(vessels, onclick, needAltLegend) {
@@ -8100,7 +8107,7 @@
 	};
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports) {
 
 	"use strict";

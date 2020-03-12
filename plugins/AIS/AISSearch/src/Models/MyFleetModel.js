@@ -654,8 +654,7 @@ console.log('UPDATE')
         loadTrack: function(mmsi, infoDialog){
             if (window.Worker) {
                 const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
-                di = _tools.historyInterval,
-                interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
+                interval = this.historyInterval,
                 thisView = this.view;
                 let counter = _vessels.length;
 
@@ -694,10 +693,9 @@ console.log('UPDATE')
                 _trackLoaders.length = 0;   
 
                 const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
-                di = _tools.historyInterval,
-                interval = {dateBegin: di.get('dateBegin'), dateEnd: di.get('dateEnd')},
+                interval = this.historyInterval,
                 thisView = this.view;
-//console.log('LOAD TRACK', di)
+console.log('LOAD TRACKS', interval)
 //console.log(_vessels, _vessels.length)
 
                 _tools.showMyFleetTrack();

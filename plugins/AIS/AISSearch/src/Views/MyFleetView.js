@@ -83,7 +83,7 @@ const MyFleetView = function (model, tools, viewCalendar){
     '#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}' +
     '#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}' +
     '</style><div class="calendar"></div></td>' +
-    '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="clicable" title="{{i "AISSearch2.refresh"}}">' +
+    '<td style="vertical-align:top;"><div class="clicable" title="{{i "AISSearch2.refresh"}}">' +
     //'<div class="progress">' + this.gifLoader + '</div>' +
     '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' +
     '</div></td></tr>' +
@@ -114,26 +114,37 @@ const MyFleetView = function (model, tools, viewCalendar){
     '</div>')());    
 
     this.calendar = viewCalendar;
-    this.frame.find('.calendar').append(this.calendar.el.parentElement);
+    this.frame.find('.calendar').append(this.calendar.el);
+    this.model.historyInterval = { dateBegin: this.calendar.begin, dateEnd: this.calendar.end };
 
     const reloadTrack = function(){
         if (!this.displayTracks)
             return;              
         //if (this.isActive)        
         this.inProgress(true); 
-console.log(this.model.data) // TODO remove outdated markers
+        const begin = this.calendar.begin.getTime()/1000, end = this.calendar.end.getTime()/1000;
+        this.model.data.groups.forEach(g=>{
+            g.vessels.forEach(v=>{
+                if (begin>v.ts_pos_org || v.ts_pos_org>end){
+//console.log(v.vessel_name, v.ts_pos_utc)
+                    _tools.eraseMyFleetMarker(v.mmsi);
+                }
+            })
+        })
 
         this.model.loadTracks(this.infoDialogView, _viewState);
     };
-    this.calendar.onChange = reloadTrack.bind(this);    
-    this.frame.find('.reload').on('click', reloadTrack.bind(this))
 
-    // this.frame.on('click', ((e) => {
-    //     if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
-    //         this.calendar.reset()
-    //     }
-    //     //suggestions.hide();
-    // }).bind(this));
+    this.calendar.onChange = function (e) {  
+        this.model.historyInterval = {dateBegin: e.interval.begin, dateEnd: e.interval.end};   
+console.log('myfleet.historyInterval', this.model.historyInterval)               
+        if (this.isActive)
+            nsGmx.widgets.commonCalendar.setDateInterval(e.interval.begin, e.interval.end);
+        reloadTrack.call(this);
+    }.bind(this)
+
+    
+    this.frame.find('.reload').on('click', reloadTrack.bind(this));
 
     
     Object.defineProperty(this, "displayTracks", {

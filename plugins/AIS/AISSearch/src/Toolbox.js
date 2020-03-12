@@ -92,7 +92,6 @@ module.exports = function (options) {
         }
 
     },
-    _historyInterval,
     _markers,
     _visibleMarkers = [],
     _icons = {},
@@ -227,8 +226,6 @@ module.exports = function (options) {
             //return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); 
             return _needAltLegend;
         },
-        get historyInterval(){return _historyInterval;},
-        set historyInterval(v){_historyInterval = v;},
 
         ///////////////////////
         removeMyFleetTrack: function (mmsi){

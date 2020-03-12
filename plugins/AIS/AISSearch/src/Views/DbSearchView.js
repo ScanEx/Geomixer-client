@@ -63,7 +63,7 @@ const DbSearchView = function (model, options, tools, viewCalendar) {
         '#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}' +
         '</style><div class="calendar"></div></td>' +
 
-        '<td style="padding-left:5px;padding-right:25px;vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' +
+        '<td style="vertical-align:top;"><div class="refresh clicable" title="{{i "AISSearch2.refresh"}}">' +
         '<div class="progress">' + this.gifLoader + '</div>' +
         '<div class="reload"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#2f3c47" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></div>' +
         '</div></td></tr>' +
@@ -111,22 +111,24 @@ const DbSearchView = function (model, options, tools, viewCalendar) {
         '{{/each}}';
 
         this.calendar = viewCalendar;
-        this.frame.find('.calendar').append(this.calendar.el.parentElement);
-        this.calendar.onChange = function(interval){
-            this.model.historyInterval = interval;
+        this.frame.find('.calendar').append(this.calendar.el);
+        this.calendar.onChange = function (e) {
+            const changes = {
+                dateBegin: e.interval.begin, 
+                dateEnd: e.interval.end
+            };
+            this.model.historyInterval = changes;
             this.model.isDirty = true;
-                        
-            if (this.isActive)
-                this.show();    
-     
+
+console.log('dbsearch.historyInterval', this.model.historyInterval) 
+                     
+            if (this.isActive){  
+                nsGmx.widgets.commonCalendar.setDateInterval(changes.dateBegin, changes.dateEnd);
+                this.show();  
+            }  
+
         }.bind(this);
-        // this.frame.on('click', ((e) => {
-        //     if (e.target.classList.toString().search(/CalendarWidget/) < 0) {
-        //         this.calendar.reset()
-        //     }
-        //     //suggestions.hide();
-        // }).bind(this));
-        
+
     this.frame.find('.time .only_this  input[type="checkbox"]').click((e=>{
         _displayedOnly.length = 0;
         if (e.currentTarget.checked && this.frame.find('.ais_positions_date:not(.header)')[0] ) {
@@ -341,7 +343,7 @@ DbSearchView.prototype.repaint = function () {
                     //showPosition
                     let i = e.currentTarget.id.replace(/show_pos/, ""),
                         position = this.model.data.vessels[ind].positions[parseInt(i)];
-                    this.positionMap(position, this.calendar.getDateInterval());
+                    this.positionMap(position, this.calendar.interval);
 
                     this.frame.find('.track:not(.all) input')[ind].checked = true; 
                     allTracksInput[0].checked = (this.frame.find('.track:not(.all) input:checked').length==this.model.data.vessels.length);  
@@ -396,31 +398,25 @@ DbSearchView.prototype.repaint = function () {
 
     if (this.model.data.vessels.length == 1)
         openPos.eq(0).click();
-        
-    //if (this.withTrack){
-        tracksInputs.eq(0).click();
-    //    this.withTrack = false;
-    //}
+
+    tracksInputs.eq(0).click();
 
     if (this.vessel.lastPosition){
-        this.positionMap(this.vessel, this.calendar.getDateInterval());
+        this.positionMap(this.vessel, this.calendar.interval);
         this.vessel.lastPosition = false;
     }   
     
-    const intervalEnd = this.model.data.vessels.length;
-    if (intervalEnd){
-        const lastDate = new Date(this.model.data.vessels[intervalEnd-1].positions[0].ts_pos_org*1000),
-              di = this.calendar.getDateInterval(),
-              calendarlastDate = di.get('dateBegin');
-        lastDate.setUTCHours(0,0,0,0); 
-//console.log(this.model.historyInterval)   
-        if (calendarlastDate.getTime()<lastDate.getTime()){
-            di.set('dateBegin', lastDate);
-            this.model.historyInterval.dateBegin = lastDate;
-//console.log(lastDate, calendarlastDate)  
-//console.log(this.model.historyInterval) 
-        }       
-    }
+//     const intervalEnd = this.model.data.vessels.length;
+//     if (intervalEnd){
+//         const lastDate = new Date(this.model.data.vessels[intervalEnd-1].positions[0].ts_pos_org*1000);
+//         lastDate.setUTCHours(0,0,0,0); 
+// //console.log(this.model.historyInterval)   
+//         if (this.calendar.dateBegin.getTime()<lastDate.getTime()){
+//             this.calendar.dateBegin = lastDate;
+// //console.log(lastDate, calendarlastDate)  
+// //console.log(this.model.historyInterval) 
+//         }       
+//     }
 };
 
 Object.defineProperty(DbSearchView.prototype, "vessel", {
@@ -434,14 +430,12 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
             
         this.searchInput.searchString = v.vessel_name;        
         let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
-//console.log(positionDate)
-        let checkInterval = this.calendar.getDateInterval();
-        if (positionDate.dateBegin < checkInterval.get('dateBegin') || checkInterval.get('dateEnd') < positionDate.dateEnd){
-            this.model.historyInterval = { dateBegin: positionDate.dateBegin, dateEnd: positionDate.dateEnd }; 
-            this.calendar.getDateInterval().loadState(this.model.historyInterval);   
+        let checkInterval = this.calendar.interval;
+        if (positionDate.dateBegin < checkInterval.begin || checkInterval.end < positionDate.dateEnd){
+            this.calendar.interval = { begin: positionDate.dateBegin, end: positionDate.dateEnd };   
         }
         else
-            this.model.historyInterval = { dateBegin: checkInterval.get('dateBegin'), dateEnd: checkInterval.get('dateEnd') };
+            this.model.historyInterval = { dateBegin: checkInterval.begin, dateEnd: checkInterval.end };
         this.model.isDirty = true;
     }
 });
@@ -480,7 +474,7 @@ DbSearchView.prototype.showTrack = function (vessels, onclick) {
 DbSearchView.prototype.positionMap = function (vessel, interval) {
 //console.log("positionMap")
     if (interval)       
-        nsGmx.widgets.commonCalendar.setDateInterval(interval.get("dateBegin"), interval.get("dateEnd"));
+        nsGmx.widgets.commonCalendar.setDateInterval(interval.begin, interval.end);
 
     if (!vessel.xmax && !vessel.longitude && !vessel.ymax && !vessel.latitude){
         vessel.longitude = this.model.data.vessels[0].positions[0].xmax;
