@@ -11,13 +11,13 @@ module.exports = function (options) {
 
     const _calendar = $(`<div class="${id}"><table border=0>    
     <tr>   
-    <td></td>
+    <td><div class="CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open"></td>
     <td class="dateBegin"><span class="ui-helper-hidden-accessible"><input type="text"/></span>
     <input type="text" class="gmx-input-text CalendarWidget-dateBegin">
     </td>
     <td>&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>
     <td class="dateEnd"><input type="text" class="gmx-input-text CalendarWidget-dateEnd"></td>
-    <td></td>
+    <td><div class="CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open"></td>
     <td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="${_gtxt('AISSearch2.calendar_today')}" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>
     </tr>    
     </table></div>`);
@@ -64,7 +64,7 @@ module.exports = function (options) {
           },
           _beginCtl = _calendar.find( ".CalendarWidget-dateBegin" ).datepicker({
               onSelect: _onChangeHandler,
-              minDate: '-' + _daysLimit,
+              minDate: '-' + (_daysLimit - 1),
               maxDate: _current
             }),
           _endCtl = _calendar.find( ".CalendarWidget-dateEnd" ).datepicker({
@@ -82,36 +82,67 @@ module.exports = function (options) {
         const limits = _utcLimits();
         _thisInstance.interval = { begin: limits.begin, end: limits.end };
     });
+    _calendar.find('.CalendarWidget-iconScrollRight').on('click', function() {
+        let newEnd = new Date(_end), newBegin = new Date(_begin), 
+            shift = (newEnd.getTime() - newBegin.getTime()) / _msd, maxDate = _endCtl.datepicker( "option", "maxDate");
+        newEnd.setDate(newEnd.getDate() + shift);  newBegin.setDate(newBegin.getDate() + shift);
+        if (maxDate)
+            if (newEnd.getTime() - _msd > maxDate.getTime())
+                newEnd = new Date(maxDate.getTime() + _msd);
+            if (newBegin.getTime() > maxDate.getTime())
+                newBegin = new Date(maxDate.getTime());            
+        _thisInstance.interval = { begin: newBegin, end: newEnd };
+//console.log(newBegin, newEnd, shift);
+    });
+    _calendar.find('.CalendarWidget-iconScrollLeft').on('click', function() {
+        const newEnd = new Date(_end), newBegin = new Date(_begin), 
+        shift = (newEnd.getTime() - newBegin.getTime()) / _msd, maxDate = _endCtl.datepicker( "option", "maxDate");
+        newEnd.setDate(newEnd.getDate() - shift);  newBegin.setDate(newBegin.getDate() - shift);
+
+        _thisInstance.interval = { begin: newBegin, end: newEnd };
+//console.log(newBegin, newEnd, shift);
+    });
 
     const _thisInstance =  {
         el: _calendar[0],
+
         set onChange(cb) { 
             _onChangeCallbacks.push(cb); 
         },
 
         set begin(dt){
+            if (_begin.getTime()===dt.getTime())
+                return;
             _setBegin(dt); _beginCtl.datepicker( "setDate", dt); 
-            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+            _onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
         },
         get begin(){ return new Date(_begin); },
 
         set end(dt){
+            if (_end.getTime()===dt.getTime())
+                return;
+
             const dpEnd = new Date(dt.getTime() - _msd);
             _beginCtl.datepicker( "option", {minDate: new Date(end.getTime() - (_daysLimit - 1) * _msd), maxDate: dpEnd});
 
             _setEnd(dt); _endCtl.datepicker( "setDate", dpEnd ); 
-            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+            _onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
         },
         get end(){ return new Date(_end); },
 
         set interval(di){     
+
+            if (_begin.getTime()===di.begin.getTime() && _end.getTime()===di.end.getTime())
+                return;
 
             const pickerEnd = new Date(di.end.getTime() - _msd);
             _beginCtl.datepicker( "option", {minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * _msd), maxDate: pickerEnd});
 
             _setBegin(di.begin); _beginCtl.datepicker( "setDate", di.begin);
             _setEnd(di.end);  _endCtl.datepicker( "setDate", pickerEnd);
-//console.log(this.interval) 
+
+console.log(id, this.interval) 
+
             _onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
         },
         get interval(){ return { begin: new Date(_begin), end: new Date(_end)}; }

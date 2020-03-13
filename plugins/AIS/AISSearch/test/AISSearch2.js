@@ -630,6 +630,13 @@
 	    var _viewCalendar1 = new ViewCalendar({ id: 'vc1', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit }),
 	        _viewCalendar2 = new ViewCalendar({ id: 'vc2', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit });
 	
+	    _viewCalendar1.onChange = function (e) {
+	        _viewCalendar2.interval = e.interval;
+	    };
+	
+	    _viewCalendar2.onChange = function (e) {
+	        _viewCalendar1.interval = e.interval;
+	    };
 	    ///////////////////////////////////////////////
 	
 	    var _modulePath = options.modulePath,
@@ -1389,25 +1396,13 @@
 	
 	    var reloadTrack = function reloadTrack() {
 	        if (!this.displayTracks) return;
-	        //if (this.isActive)        
 	        this.inProgress(true);
-	        var begin = this.calendar.begin.getTime() / 1000,
-	            end = this.calendar.end.getTime() / 1000;
-	        this.model.data.groups.forEach(function (g) {
-	            g.vessels.forEach(function (v) {
-	                if (begin > v.ts_pos_org || v.ts_pos_org > end) {
-	                    //console.log(v.vessel_name, v.ts_pos_utc)
-	                    _tools.eraseMyFleetMarker(v.mmsi);
-	                }
-	            });
-	        });
-	
 	        this.model.loadTracks(this.infoDialogView, _viewState);
 	    };
 	
 	    this.calendar.onChange = function (e) {
 	        this.model.historyInterval = { dateBegin: e.interval.begin, dateEnd: e.interval.end };
-	        console.log('myfleet.historyInterval', this.model.historyInterval);
+	        //console.log('myfleet.historyInterval', this.model.historyInterval)               
 	        if (this.isActive) nsGmx.widgets.commonCalendar.setDateInterval(e.interval.begin, e.interval.end);
 	        reloadTrack.call(this);
 	    }.bind(this);
@@ -2618,9 +2613,19 @@
 	                var baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
 	                    interval = this.historyInterval,
 	                    thisView = this.view;
-	                console.log('LOAD TRACK', interval);
+	                //console.log('LOAD TRACKS', interval)
 	                //console.log(_vessels, _vessels.length)
 	
+	                var begin = interval.dateBegin.getTime() / 1000,
+	                    end = interval.dateEnd.getTime() / 1000;
+	                this.data.groups.forEach(function (g) {
+	                    g.vessels.forEach(function (v) {
+	                        if (begin > v.ts_pos_org || v.ts_pos_org > end) {
+	                            //console.log(v.vessel_name, v.ts_pos_utc)
+	                            _tools.eraseMyFleetMarker(v.mmsi);
+	                        }
+	                    });
+	                });
 	                _tools.showMyFleetTrack();
 	
 	                Promise.all(_vessels.map(function (v) {
@@ -2800,8 +2805,9 @@
 	        this.model.historyInterval = changes;
 	        this.model.isDirty = true;
 	
-	        console.log('model.historyInterval', this.model.historyInterval);
+	        //console.log('dbsearch.historyInterval', this.model.historyInterval) 
 	
+	        nsGmx.leafletMap.removeLayer(_highlight);
 	        if (this.isActive) {
 	            nsGmx.widgets.commonCalendar.setDateInterval(changes.dateBegin, changes.dateEnd);
 	            this.show();
@@ -5022,7 +5028,7 @@
 	        };
 	    };
 	
-	    var _calendar = $('<div class="' + id + '"><table border=0>    \n    <tr>   \n    <td></td>\n    <td class="dateBegin"><span class="ui-helper-hidden-accessible"><input type="text"/></span>\n    <input type="text" class="gmx-input-text CalendarWidget-dateBegin">\n    </td>\n    <td>&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>\n    <td class="dateEnd"><input type="text" class="gmx-input-text CalendarWidget-dateEnd"></td>\n    <td></td>\n    <td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="' + _gtxt('AISSearch2.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>\n    </tr>    \n    </table></div>');
+	    var _calendar = $('<div class="' + id + '"><table border=0>    \n    <tr>   \n    <td><div class="CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open"></td>\n    <td class="dateBegin"><span class="ui-helper-hidden-accessible"><input type="text"/></span>\n    <input type="text" class="gmx-input-text CalendarWidget-dateBegin">\n    </td>\n    <td>&nbsp;&nbsp;&ndash;&nbsp;&nbsp;</td>\n    <td class="dateEnd"><input type="text" class="gmx-input-text CalendarWidget-dateEnd"></td>\n    <td><div class="CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open"></td>\n    <td>&nbsp;&nbsp;<img class="default_date" style="cursor:pointer" title="' + _gtxt('AISSearch2.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg"></td>\n    </tr>    \n    </table></div>');
 	
 	    var _now = new Date(),
 	        _begin = options.begin ? new Date(options.begin) : _utcLimits(_now).begin,
@@ -5065,7 +5071,7 @@
 	    },
 	        _beginCtl = _calendar.find(".CalendarWidget-dateBegin").datepicker({
 	        onSelect: _onChangeHandler,
-	        minDate: '-' + _daysLimit,
+	        minDate: '-' + (_daysLimit - 1),
 	        maxDate: _current
 	    }),
 	        _endCtl = _calendar.find(".CalendarWidget-dateEnd").datepicker({
@@ -5083,43 +5089,80 @@
 	        var limits = _utcLimits();
 	        _thisInstance.interval = { begin: limits.begin, end: limits.end };
 	    });
+	    _calendar.find('.CalendarWidget-iconScrollRight').on('click', function () {
+	        var newEnd = new Date(_end),
+	            newBegin = new Date(_begin),
+	            shift = (newEnd.getTime() - newBegin.getTime()) / _msd,
+	            maxDate = _endCtl.datepicker("option", "maxDate");
+	        newEnd.setDate(newEnd.getDate() + shift);newBegin.setDate(newBegin.getDate() + shift);
+	        if (maxDate) if (newEnd.getTime() - _msd > maxDate.getTime()) newEnd = new Date(maxDate.getTime() + _msd);
+	        if (newBegin.getTime() > maxDate.getTime()) newBegin = new Date(maxDate.getTime());
+	        _thisInstance.interval = { begin: newBegin, end: newEnd };
+	        //console.log(newBegin, newEnd, shift);
+	    });
+	    _calendar.find('.CalendarWidget-iconScrollLeft').on('click', function () {
+	        var newEnd = new Date(_end),
+	            newBegin = new Date(_begin),
+	            shift = (newEnd.getTime() - newBegin.getTime()) / _msd,
+	            maxDate = _endCtl.datepicker("option", "maxDate");
+	        newEnd.setDate(newEnd.getDate() - shift);newBegin.setDate(newBegin.getDate() - shift);
+	
+	        _thisInstance.interval = { begin: newBegin, end: newEnd };
+	        //console.log(newBegin, newEnd, shift);
+	    });
 	
 	    var _thisInstance = {
 	        el: _calendar[0],
+	
 	        set onChange(cb) {
 	            _onChangeCallbacks.push(cb);
 	        },
 	
 	        set begin(dt) {
+	            var _this = this;
+	
+	            if (_begin.getTime() === dt.getTime()) return;
 	            _setBegin(dt);_beginCtl.datepicker("setDate", dt);
-	            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+	            _onChangeCallbacks.forEach(function (cb) {
+	                return cb({ interval: _this.interval });
+	            });
 	        },
 	        get begin() {
 	            return new Date(_begin);
 	        },
 	
 	        set end(dt) {
+	            var _this2 = this;
+	
+	            if (_end.getTime() === dt.getTime()) return;
+	
 	            var dpEnd = new Date(dt.getTime() - _msd);
 	            _beginCtl.datepicker("option", { minDate: new Date(end.getTime() - (_daysLimit - 1) * _msd), maxDate: dpEnd });
 	
 	            _setEnd(dt);_endCtl.datepicker("setDate", dpEnd);
-	            //_onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
+	            _onChangeCallbacks.forEach(function (cb) {
+	                return cb({ interval: _this2.interval });
+	            });
 	        },
 	        get end() {
 	            return new Date(_end);
 	        },
 	
 	        set interval(di) {
-	            var _this = this;
+	            var _this3 = this;
+	
+	            if (_begin.getTime() === di.begin.getTime() && _end.getTime() === di.end.getTime()) return;
 	
 	            var pickerEnd = new Date(di.end.getTime() - _msd);
 	            _beginCtl.datepicker("option", { minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * _msd), maxDate: pickerEnd });
 	
 	            _setBegin(di.begin);_beginCtl.datepicker("setDate", di.begin);
 	            _setEnd(di.end);_endCtl.datepicker("setDate", pickerEnd);
-	            //console.log(this.interval) 
+	
+	            console.log(id, this.interval);
+	
 	            _onChangeCallbacks.forEach(function (cb) {
-	                return cb({ interval: _this.interval });
+	                return cb({ interval: _this3.interval });
 	            });
 	        },
 	        get interval() {
@@ -7579,9 +7622,7 @@
 	            }
 	        }
 	    },
-	
-	    //_historyInterval,
-	    _markers = void 0,
+	        _markers = void 0,
 	        _visibleMarkers = [],
 	        _icons = {},
 	        _getSvg = function _getSvg(url) {
@@ -7704,9 +7745,6 @@
 	            //return !!(_lastPointLayerAltFact && _lastPointLayerAltFact._map); 
 	            return _needAltLegend;
 	        },
-	
-	        // get historyInterval(){return _historyInterval;},
-	        // set historyInterval(v){_historyInterval = v;},
 	
 	        ///////////////////////
 	        removeMyFleetTrack: function removeMyFleetTrack(mmsi) {

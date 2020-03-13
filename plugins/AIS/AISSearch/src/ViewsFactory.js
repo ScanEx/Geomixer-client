@@ -17,6 +17,13 @@ module.exports = function (options) {
     const _viewCalendar1 = new ViewCalendar({id:'vc1', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit}),
           _viewCalendar2 = new ViewCalendar({id:'vc2', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit});
 
+    _viewCalendar1.onChange = function(e){
+        _viewCalendar2.interval = e.interval;
+    }
+
+    _viewCalendar2.onChange = function(e){        
+        _viewCalendar1.interval = e.interval;
+    }    
     ///////////////////////////////////////////////
     
     const _modulePath = options.modulePath,

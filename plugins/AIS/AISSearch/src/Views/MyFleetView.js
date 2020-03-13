@@ -119,25 +119,14 @@ const MyFleetView = function (model, tools, viewCalendar){
 
     const reloadTrack = function(){
         if (!this.displayTracks)
-            return;              
-        //if (this.isActive)        
+            return;                  
         this.inProgress(true); 
-        const begin = this.calendar.begin.getTime()/1000, end = this.calendar.end.getTime()/1000;
-        this.model.data.groups.forEach(g=>{
-            g.vessels.forEach(v=>{
-                if (begin>v.ts_pos_org || v.ts_pos_org>end){
-//console.log(v.vessel_name, v.ts_pos_utc)
-                    _tools.eraseMyFleetMarker(v.mmsi);
-                }
-            })
-        })
-
         this.model.loadTracks(this.infoDialogView, _viewState);
     };
 
     this.calendar.onChange = function (e) {  
         this.model.historyInterval = {dateBegin: e.interval.begin, dateEnd: e.interval.end};   
-console.log('myfleet.historyInterval', this.model.historyInterval)               
+//console.log('myfleet.historyInterval', this.model.historyInterval)               
         if (this.isActive)
             nsGmx.widgets.commonCalendar.setDateInterval(e.interval.begin, e.interval.end);
         reloadTrack.call(this);

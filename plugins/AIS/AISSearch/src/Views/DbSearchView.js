@@ -120,8 +120,9 @@ const DbSearchView = function (model, options, tools, viewCalendar) {
             this.model.historyInterval = changes;
             this.model.isDirty = true;
 
-console.log('dbsearch.historyInterval', this.model.historyInterval) 
-                     
+//console.log('dbsearch.historyInterval', this.model.historyInterval) 
+  
+            nsGmx.leafletMap.removeLayer(_highlight);                   
             if (this.isActive){  
                 nsGmx.widgets.commonCalendar.setDateInterval(changes.dateBegin, changes.dateEnd);
                 this.show();  

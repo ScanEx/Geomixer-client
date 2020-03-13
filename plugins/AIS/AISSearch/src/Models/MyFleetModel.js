@@ -695,9 +695,18 @@ console.log('UPDATE')
                 const baseUrl = window.serverBase.replace(/^(https?:)/, "$1"),
                 interval = this.historyInterval,
                 thisView = this.view;
-console.log('LOAD TRACKS', interval)
+//console.log('LOAD TRACKS', interval)
 //console.log(_vessels, _vessels.length)
 
+                const begin = interval.dateBegin.getTime()/1000, end = interval.dateEnd.getTime()/1000;
+                this.data.groups.forEach(g=>{
+                    g.vessels.forEach(v=>{
+                        if (begin>v.ts_pos_org || v.ts_pos_org>end){
+                //console.log(v.vessel_name, v.ts_pos_utc)
+                            _tools.eraseMyFleetMarker(v.mmsi);
+                        }
+                    })
+                });
                 _tools.showMyFleetTrack();
 
                 Promise.all(_vessels.map(v=>new Promise((resolve, reject)=>{
