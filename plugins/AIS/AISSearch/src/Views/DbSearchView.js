@@ -430,8 +430,8 @@ Object.defineProperty(DbSearchView.prototype, "vessel", {
             return;
             
         this.searchInput.searchString = v.vessel_name;        
-        let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
-        let checkInterval = this.calendar.interval;
+        let positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date((v.ts_pos_org||v.ts_pos_utc) * 1000)),
+            checkInterval = this.calendar.interval;
         if (positionDate.dateBegin < checkInterval.begin || checkInterval.end < positionDate.dateEnd){
             this.calendar.interval = { begin: positionDate.dateBegin, end: positionDate.dateEnd };   
         }

@@ -10,12 +10,12 @@ module.exports = function (options) {
                 placeVesselTypeIcon(p);
             var options = {
                 radius: 10,
-                fillColor: style != 'SPEED' ? p.color.value : p.colorAlt.value,
+                fillColor: style != 'SPEED' ? p.color.value : (p.colorAlt ? p.colorAlt.value : p.color.value),
                 fillOpacity: 0.25,
                 weight: 2,
-                color: 'SPEED' ? p.color.value : p.colorAlt.value,
+                color: 'SPEED' ? p.color.value : (p.colorAlt ? p.colorAlt.value : p.color.value),
                 cog: parseInt(p.cog),
-                img: style != 'SPEED' ? p.img : p.imgAlt,
+                img: style != 'SPEED' ? p.img : (p.imgAlt ? p.imgAlt : p.img),
                 renderer: _canvas,
                 pid: p.id,
                 next: !ep ? null : L.latLng(ep.ymax, ep.xmax < 0 ? 360 + ep.xmax : ep.xmax),

@@ -36,8 +36,8 @@ L.Canvas.include({
         //this._fillStroke(ctx, layer);
 
         let img = layer.options.img,
-        cog = layer.options.cog;
-        if (img && cog) {
+        cog = layer.options.cog || 0;
+        if (img) {
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.rotate(cog * Math.PI / 180.0);

@@ -1231,7 +1231,7 @@
 	                for (var _k in json.Result.groupsAlt) {
 	                    if (!isNaN(_k)) {
 	                        var _ic = _vesselLegend.getIconAlt("ABC", parseInt(_k));
-	                        thisInst.data.groupsAlt.push({ url: _ic.url, name: _ic.name, count: json.Result.groupsAlt[_k] });
+	                        if (_ic) thisInst.data.groupsAlt.push({ url: _ic.url, name: _ic.name, count: json.Result.groupsAlt[_k] });
 	                    }
 	                }
 	                thisInst.dataSrc.groups = thisInst.data.groups.map(function (g) {
@@ -3092,8 +3092,8 @@
 	        if (!v) return;
 	
 	        this.searchInput.searchString = v.vessel_name;
-	        var positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date(v.ts_pos_org * 1000));
-	        var checkInterval = this.calendar.interval;
+	        var positionDate = nsGmx.DateInterval.getUTCDayBoundary(new Date((v.ts_pos_org || v.ts_pos_utc) * 1000)),
+	            checkInterval = this.calendar.interval;
 	        if (positionDate.dateBegin < checkInterval.begin || checkInterval.end < positionDate.dateEnd) {
 	            this.calendar.interval = { begin: positionDate.dateBegin, end: positionDate.dateEnd };
 	        } else this.model.historyInterval = { dateBegin: checkInterval.begin, dateEnd: checkInterval.end };
@@ -5019,7 +5019,7 @@
 	        dateInterval = options.dateInterval,
 	        _daysLimit = options.daysLimit,
 	        mapDateInterval = options.mapDateInterval,
-	        _msd = 24 * 3600 * 1000,
+	        MS_DAY = 24 * 3600 * 1000,
 	        _utcLimits = function _utcLimits(dt) {
 	        dt = dt || new Date();
 	        return {
@@ -5033,7 +5033,7 @@
 	    var _now = new Date(),
 	        _begin = options.begin ? new Date(options.begin) : _utcLimits(_now).begin,
 	        _end = options.end ? new Date(options.end) : _utcLimits(_now).end,
-	        _current = new Date(_end.getTime() - _msd),
+	        _current = new Date(_end.getTime() - MS_DAY),
 	        _onChangeCallbacks = [];
 	
 	    var _setBegin = function _setBegin(dt) {
@@ -5062,7 +5062,7 @@
 	            _setEnd(_utcLimits(e).end);
 	        }
 	
-	        _beginCtl.datepicker("option", { minDate: new Date(maxd.getTime() - (_daysLimit - 1) * _msd), maxDate: maxd });
+	        _beginCtl.datepicker("option", { minDate: new Date(maxd.getTime() - (_daysLimit - 1) * MS_DAY), maxDate: maxd });
 	
 	        _onChangeCallbacks.forEach(function (cb) {
 	            return cb({ interval: _thisInstance.interval });
@@ -5092,10 +5092,10 @@
 	    _calendar.find('.CalendarWidget-iconScrollRight').on('click', function () {
 	        var newEnd = new Date(_end),
 	            newBegin = new Date(_begin),
-	            shift = (newEnd.getTime() - newBegin.getTime()) / _msd,
+	            shift = (newEnd.getTime() - newBegin.getTime()) / MS_DAY,
 	            maxDate = _endCtl.datepicker("option", "maxDate");
 	        newEnd.setDate(newEnd.getDate() + shift);newBegin.setDate(newBegin.getDate() + shift);
-	        if (maxDate) if (newEnd.getTime() - _msd > maxDate.getTime()) newEnd = new Date(maxDate.getTime() + _msd);
+	        if (maxDate) if (newEnd.getTime() - MS_DAY > maxDate.getTime()) newEnd = new Date(maxDate.getTime() + MS_DAY);
 	        if (newBegin.getTime() > maxDate.getTime()) newBegin = new Date(maxDate.getTime());
 	        _thisInstance.interval = { begin: newBegin, end: newEnd };
 	        //console.log(newBegin, newEnd, shift);
@@ -5103,7 +5103,7 @@
 	    _calendar.find('.CalendarWidget-iconScrollLeft').on('click', function () {
 	        var newEnd = new Date(_end),
 	            newBegin = new Date(_begin),
-	            shift = (newEnd.getTime() - newBegin.getTime()) / _msd,
+	            shift = (newEnd.getTime() - newBegin.getTime()) / MS_DAY,
 	            maxDate = _endCtl.datepicker("option", "maxDate");
 	        newEnd.setDate(newEnd.getDate() - shift);newBegin.setDate(newBegin.getDate() - shift);
 	
@@ -5136,8 +5136,8 @@
 	
 	            if (_end.getTime() === dt.getTime()) return;
 	
-	            var dpEnd = new Date(dt.getTime() - _msd);
-	            _beginCtl.datepicker("option", { minDate: new Date(end.getTime() - (_daysLimit - 1) * _msd), maxDate: dpEnd });
+	            var dpEnd = new Date(dt.getTime() - MS_DAY);
+	            _beginCtl.datepicker("option", { minDate: new Date(end.getTime() - (_daysLimit - 1) * MS_DAY), maxDate: dpEnd });
 	
 	            _setEnd(dt);_endCtl.datepicker("setDate", dpEnd);
 	            _onChangeCallbacks.forEach(function (cb) {
@@ -5153,8 +5153,8 @@
 	
 	            if (_begin.getTime() === di.begin.getTime() && _end.getTime() === di.end.getTime()) return;
 	
-	            var pickerEnd = new Date(di.end.getTime() - _msd);
-	            _beginCtl.datepicker("option", { minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * _msd), maxDate: pickerEnd });
+	            var pickerEnd = new Date(di.end.getTime() - MS_DAY);
+	            _beginCtl.datepicker("option", { minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * MS_DAY), maxDate: pickerEnd });
 	
 	            _setBegin(di.begin);_beginCtl.datepicker("setDate", di.begin);
 	            _setEnd(di.end);_endCtl.datepicker("setDate", pickerEnd);
@@ -7920,12 +7920,12 @@
 	        if (placeVesselTypeIcon) placeVesselTypeIcon(p);
 	        var options = {
 	            radius: 10,
-	            fillColor: style != 'SPEED' ? p.color.value : p.colorAlt.value,
+	            fillColor: style != 'SPEED' ? p.color.value : p.colorAlt ? p.colorAlt.value : p.color.value,
 	            fillOpacity: 0.25,
 	            weight: 2,
-	            color: 'SPEED' ? p.color.value : p.colorAlt.value,
+	            color: 'SPEED' ? p.color.value : p.colorAlt ? p.colorAlt.value : p.color.value,
 	            cog: parseInt(p.cog),
-	            img: style != 'SPEED' ? p.img : p.imgAlt,
+	            img: style != 'SPEED' ? p.img : p.imgAlt ? p.imgAlt : p.img,
 	            renderer: _canvas,
 	            pid: p.id,
 	            next: !ep ? null : L.latLng(ep.ymax, ep.xmax < 0 ? 360 + ep.xmax : ep.xmax),
@@ -8190,8 +8190,8 @@
 	        //this._fillStroke(ctx, layer);
 	
 	        var img = layer.options.img,
-	            cog = layer.options.cog;
-	        if (img && cog) {
+	            cog = layer.options.cog || 0;
+	        if (img) {
 	            ctx.save();
 	            ctx.translate(p.x, p.y);
 	            ctx.rotate(cog * Math.PI / 180.0);

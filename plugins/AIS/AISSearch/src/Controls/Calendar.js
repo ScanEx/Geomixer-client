@@ -1,12 +1,12 @@
 module.exports = function (options) {
     const {id, dateInterval, daysLimit: _daysLimit, mapDateInterval} = options, 
-          _msd = 24 * 3600 * 1000,
+          MS_DAY = 24 * 3600 * 1000,
           _utcLimits = function(dt){
               dt  = dt || (new Date());
-                return {
-                    begin: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate())), 
-                    end: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate() + 1))
-                }
+              return {
+                  begin: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate())), 
+                  end: new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate() + 1))
+              }
           };
 
     const _calendar = $(`<div class="${id}"><table border=0>    
@@ -25,7 +25,7 @@ module.exports = function (options) {
     let _now = new Date(),
         _begin = options.begin ? new Date(options.begin) : _utcLimits(_now).begin,
         _end =  options.end ? new Date(options.end) : _utcLimits(_now).end,
-        _current = new Date(_end.getTime() - _msd),
+        _current = new Date(_end.getTime() - MS_DAY),
         _onChangeCallbacks = [];
 
     const _setBegin = function(dt){
@@ -56,7 +56,7 @@ module.exports = function (options) {
                 _setEnd(_utcLimits(e).end);
               }
              
-              _beginCtl.datepicker( "option", {minDate: new Date(maxd.getTime() - (_daysLimit - 1) * _msd), maxDate: maxd});
+              _beginCtl.datepicker( "option", {minDate: new Date(maxd.getTime() - (_daysLimit - 1) * MS_DAY), maxDate: maxd});
               
               _onChangeCallbacks.forEach(cb=>cb({interval: _thisInstance.interval}));
 //console.log(_thisInstance.interval);
@@ -84,11 +84,11 @@ module.exports = function (options) {
     });
     _calendar.find('.CalendarWidget-iconScrollRight').on('click', function() {
         let newEnd = new Date(_end), newBegin = new Date(_begin), 
-            shift = (newEnd.getTime() - newBegin.getTime()) / _msd, maxDate = _endCtl.datepicker( "option", "maxDate");
+            shift = (newEnd.getTime() - newBegin.getTime()) / MS_DAY, maxDate = _endCtl.datepicker( "option", "maxDate");
         newEnd.setDate(newEnd.getDate() + shift);  newBegin.setDate(newBegin.getDate() + shift);
         if (maxDate)
-            if (newEnd.getTime() - _msd > maxDate.getTime())
-                newEnd = new Date(maxDate.getTime() + _msd);
+            if (newEnd.getTime() - MS_DAY > maxDate.getTime())
+                newEnd = new Date(maxDate.getTime() + MS_DAY);
             if (newBegin.getTime() > maxDate.getTime())
                 newBegin = new Date(maxDate.getTime());            
         _thisInstance.interval = { begin: newBegin, end: newEnd };
@@ -96,7 +96,7 @@ module.exports = function (options) {
     });
     _calendar.find('.CalendarWidget-iconScrollLeft').on('click', function() {
         const newEnd = new Date(_end), newBegin = new Date(_begin), 
-        shift = (newEnd.getTime() - newBegin.getTime()) / _msd, maxDate = _endCtl.datepicker( "option", "maxDate");
+        shift = (newEnd.getTime() - newBegin.getTime()) / MS_DAY, maxDate = _endCtl.datepicker( "option", "maxDate");
         newEnd.setDate(newEnd.getDate() - shift);  newBegin.setDate(newBegin.getDate() - shift);
 
         _thisInstance.interval = { begin: newBegin, end: newEnd };
@@ -122,8 +122,8 @@ module.exports = function (options) {
             if (_end.getTime()===dt.getTime())
                 return;
 
-            const dpEnd = new Date(dt.getTime() - _msd);
-            _beginCtl.datepicker( "option", {minDate: new Date(end.getTime() - (_daysLimit - 1) * _msd), maxDate: dpEnd});
+            const dpEnd = new Date(dt.getTime() - MS_DAY);
+            _beginCtl.datepicker( "option", {minDate: new Date(end.getTime() - (_daysLimit - 1) * MS_DAY), maxDate: dpEnd});
 
             _setEnd(dt); _endCtl.datepicker( "setDate", dpEnd ); 
             _onChangeCallbacks.forEach(cb=>cb({interval: this.interval}));
@@ -135,8 +135,8 @@ module.exports = function (options) {
             if (_begin.getTime()===di.begin.getTime() && _end.getTime()===di.end.getTime())
                 return;
 
-            const pickerEnd = new Date(di.end.getTime() - _msd);
-            _beginCtl.datepicker( "option", {minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * _msd), maxDate: pickerEnd});
+            const pickerEnd = new Date(di.end.getTime() - MS_DAY);
+            _beginCtl.datepicker( "option", {minDate: new Date(pickerEnd.getTime() - (_daysLimit - 1) * MS_DAY), maxDate: pickerEnd});
 
             _setBegin(di.begin); _beginCtl.datepicker( "setDate", di.begin);
             _setEnd(di.end);  _endCtl.datepicker( "setDate", pickerEnd);

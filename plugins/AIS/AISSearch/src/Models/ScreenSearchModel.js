@@ -163,7 +163,8 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                     for (let k in json.Result.groupsAlt){
                         if (!isNaN(k)){
                             let ic = _vesselLegend.getIconAlt("ABC", parseInt(k))
-                            thisInst.data.groupsAlt.push({ url: ic.url, name: ic.name, count: json.Result.groupsAlt[k]});
+                            if (ic)
+                                thisInst.data.groupsAlt.push({ url: ic.url, name: ic.name, count: json.Result.groupsAlt[k]});
                         }
                     }
                     thisInst.dataSrc.groups = thisInst.data.groups.map(g=>g)
