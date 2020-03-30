@@ -24,7 +24,10 @@ module.exports = {
     devtool: 'source-map',
     module: {
         rules: [
-            { test: /\.(js)$/i, exclude: /node_modules/, use: ['babel-loader'] },
+            { test: /\.(js)$/i, exclude: /node_modules/, 
+               // use: ['babel-loader'], 
+               loader: 'babel-loader',
+                options: {plugins: ["@babel/plugin-transform-template-literals"] }},
             //{ test: /\.css$/i, use: ['style-loader', 'css-loader'], },
             { test: /\.svg$/, use: [ 'svg-sprite-loader' ] },
             {

@@ -1,7 +1,7 @@
 const _serverBase = window.serverBase.replace(/^https?:/, document.location.protocol),
     _sendRequest = function(url, method, params){
         return new Promise((resolve, reject) => {
-            const callback = response => {
+            const callback = function(response) {
                 if (!response.Status || response.Status.toLowerCase() != 'ok' || !response.Result) {
                     reject(response);
                 }
@@ -10,8 +10,10 @@ const _serverBase = window.serverBase.replace(/^https?:/, document.location.prot
             };
             if (!method || method == 'GET')
                 sendCrossDomainJSONRequest(url, callback);
-            if (method == 'POST') 
+            if (method == 'POST') {
+                params.WrapStyle='message';
                 sendCrossDomainPostRequest(url, params, callback);
+            }
         });
     },
     _getQueryString = function(params){

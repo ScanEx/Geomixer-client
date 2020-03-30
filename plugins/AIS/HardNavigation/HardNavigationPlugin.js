@@ -221,24 +221,7 @@ const _toMidnight = nsGmx.DateInterval.toMidnight,
 
 module.exports = function (options) {
   $el = $('<div class="CalendarWidget ui-widget"></div>');
-  this.template = Handlebars.compile(`
-    <table>
-    <tr>
-        <td><div class = "CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open"></div></td>
-        <td class = "CalendarWidget-inputCell"><input class = "gmx-input-text CalendarWidget-dateBegin"></td>
-        <td class = "CalendarWidget-inputCell CalendarWidget-onlyMaxVersion"><input class = "gmx-input-text CalendarWidget-dateEnd"></td>
-        <td><div class = "CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open" ></div></td>
-        <td><div class = "CalendarWidget-iconMore {{moreIconClass}}" title = "{{moreIconTitle}}"></div></td>
-        <td><div class = "CalendarWidget-forecast" hidden>{{forecast}}</div></td>
-    </tr><tr>
-        <td></td>
-        <td class = "CalendarWidget-dateBeginInfo"></td>
-        <td class = "CalendarWidget-dateEndInfo"></td>
-        <td></td>
-        <td></td>
-    </tr>
-</table>
-<div class="CalendarWidget-footer"></div>`);
+  this.template = Handlebars.compile("\n    <table>\n    <tr>\n        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin\"></td>\n        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd\"></td>\n        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n        <td><div class = \"CalendarWidget-iconMore {{moreIconClass}}\" title = \"{{moreIconTitle}}\"></div></td>\n        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n    </tr><tr>\n        <td></td>\n        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n        <td class = \"CalendarWidget-dateEndInfo\"></td>\n        <td></td>\n        <td></td>\n    </tr>\n</table>\n<div class=\"CalendarWidget-footer\"></div>");
   options = $.extend({
     minimized: true,
     showSwitcher: true,
@@ -2108,7 +2091,11 @@ var _serverBase = window.serverBase.replace(/^https?:/, document.location.protoc
     };
 
     if (!method || method == 'GET') sendCrossDomainJSONRequest(url, callback);
-    if (method == 'POST') sendCrossDomainPostRequest(url, params, callback);
+
+    if (method == 'POST') {
+      params.WrapStyle = 'message';
+      sendCrossDomainPostRequest(url, params, callback);
+    }
   });
 },
     _getQueryString = function _getQueryString(params) {
