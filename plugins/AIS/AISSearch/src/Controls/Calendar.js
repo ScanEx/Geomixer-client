@@ -69,7 +69,7 @@ module.exports = function (options) {
             }),
           _endCtl = _calendar.find( ".CalendarWidget-dateEnd" ).datepicker({
               onSelect: _onChangeHandler,
-              maxDate: _current
+              //maxDate: _current
             });
 
     _beginCtl.datepicker( "setDate", _begin);

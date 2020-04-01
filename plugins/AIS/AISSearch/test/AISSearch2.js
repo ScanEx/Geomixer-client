@@ -51,7 +51,7 @@
 	    BETA = false;
 	if (true) SIDEBAR2 = true;
 	if (false) PRODUCTION = true;
-	if (true) BETA = true;
+	if (false) BETA = true;
 	
 	__webpack_require__(1);
 	__webpack_require__(3);
@@ -5075,8 +5075,8 @@
 	        maxDate: _current
 	    }),
 	        _endCtl = _calendar.find(".CalendarWidget-dateEnd").datepicker({
-	        onSelect: _onChangeHandler,
-	        maxDate: _current
+	        onSelect: _onChangeHandler
+	        //maxDate: _current
 	    });
 	
 	    _beginCtl.datepicker("setDate", _begin);
