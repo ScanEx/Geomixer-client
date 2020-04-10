@@ -84,23 +84,22 @@ module.exports = function (options) {
     });
     _calendar.find('.CalendarWidget-iconScrollRight').on('click', function() {
         let newEnd = new Date(_end), newBegin = new Date(_begin), 
-            shift = (newEnd.getTime() - newBegin.getTime()) / MS_DAY, maxDate = _endCtl.datepicker( "option", "maxDate");
+            shift = (newEnd.getTime() - newBegin.getTime()) / MS_DAY, 
+            maxDate = _endCtl.datepicker( "option", "maxDate");
         newEnd.setDate(newEnd.getDate() + shift);  newBegin.setDate(newBegin.getDate() + shift);
-        if (maxDate)
+        if (maxDate){
             if (newEnd.getTime() - MS_DAY > maxDate.getTime())
                 newEnd = new Date(maxDate.getTime() + MS_DAY);
             if (newBegin.getTime() > maxDate.getTime())
-                newBegin = new Date(maxDate.getTime());            
+                newBegin = new Date(maxDate.getTime()); 
+        }           
         _thisInstance.interval = { begin: newBegin, end: newEnd };
-//console.log(newBegin, newEnd, shift);
     });
     _calendar.find('.CalendarWidget-iconScrollLeft').on('click', function() {
         const newEnd = new Date(_end), newBegin = new Date(_begin), 
         shift = (newEnd.getTime() - newBegin.getTime()) / MS_DAY, maxDate = _endCtl.datepicker( "option", "maxDate");
         newEnd.setDate(newEnd.getDate() - shift);  newBegin.setDate(newBegin.getDate() - shift);
-
         _thisInstance.interval = { begin: newBegin, end: newEnd };
-//console.log(newBegin, newEnd, shift);
     });
 
     const _thisInstance =  {
