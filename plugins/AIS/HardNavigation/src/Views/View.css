@@ -1,0 +1,195 @@
+.hardnav-view * {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+
+.hardnav-view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.hardnav-view .calendar {
+  padding-bottom: 20px;
+}
+.hardnav-view .calendar table{  
+  margin-left: 10px;
+}
+.hardnav-view .calendar .select {
+  font-family: roboto;
+  font-weight: 700;
+  padding: 9px 2px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+.hardnav-view .calendar .select select{
+  width: 36px;
+  border: none;
+}
+
+.hardnav-view .calendar .gmx-input-text {
+  font-family: roboto;
+  font-weight: 700;
+  padding: 12px 2px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}
+
+.hardnav-view .calendar .CalendarWidget-inputCell{
+  background-color: #e1e8ed;
+}
+
+.hardnav-view .color-transparent{
+  color: transparent;
+}
+.hardnav-view .color-blue{
+  color:blue;
+}
+.hardnav-view .color-red{
+  color:red;
+}
+.hardnav-view .color-green{
+  color: green;
+}
+.hardnav-view .color-yellow{
+  color: #e0d901;
+}
+.hardnav-view .header {
+  padding-top: 0px; 
+  background-color: #e1e8ed;
+}
+ .hardnav-view .instruments {
+   width: 100%;
+   margin-bottom: 0px;
+}
+.hardnav-view .instruments td{
+  padding: 20px;
+  padding-top: 10px;
+  width: 50%;
+  text-align: center;
+  font-weight: 700;
+}
+.hardnav-view .instruments td:hover{
+  color: #48aff1;
+}
+.hardnav-view .instruments td.active{
+  color:#f57c00;
+}
+
+.hardnav-view .hint{
+  padding: 15px;
+  padding-right: 10px;
+} 
+ .hardnav-view .refresh{
+   width: 30px;
+}
+
+.hardnav-view .grid-header{
+  width: 100%;
+  margin-top: 0px;
+  color: #394b59;
+  border-top: solid 1px #bbb;
+}
+.hardnav-view .grid-header td{
+  padding: 12px 5px;
+  font-weight: 700;
+}
+.hardnav-view .grid-header td.visibility-all{
+  cursor: pointer;
+}
+.hardnav-view .grid-header td svg{
+  width:14px;
+  height:14px;
+}
+.hardnav-view .grid-header td:nth-of-type(2),
+.hardnav-view .grid-header td:nth-of-type(3),
+.hardnav-view .grid-header td:nth-of-type(4){
+  width: 80px;
+}
+
+.hardnav-view .grid{
+  width: 100%;
+  color: #394b59;
+}
+.hardnav-view .grid tr.nonactual{
+  opacity: 0.7;
+}
+.hardnav-view .grid td{
+  padding: 10px 5px;
+  border-bottom: solid 1px #ddd;
+  cursor: pointer;
+}
+.hardnav-view .grid td:nth-of-type(4){
+  font-weight: 700;
+}
+.hardnav-view .grid td:nth-of-type(2),
+.hardnav-view .grid td:nth-of-type(3),
+.hardnav-view .grid td:nth-of-type(4)
+{
+  cursor: default;
+}
+.hardnav-view .grid td svg{
+  width:14px;
+  height:14px;
+}
+.hardnav-view .grid td:nth-of-type(2),
+.hardnav-view .grid td:nth-of-type(3),
+.hardnav-view .grid td:nth-of-type(4){
+  width: 80px;
+}
+
+.hardnav-view .footer{
+  padding-bottom: 15px;
+} 
+.hardnav-view .footer .pager{
+  width: 100%;
+  visibility: hidden;
+}
+.hardnav-view .footer .pager td{
+ text-align: center;
+ padding: 5px 5px;
+} 
+.hardnav-view .footer .pager .arrow{
+  width: 33%;
+  color: #6B707B;
+}
+.hardnav-view .footer .pager .arrow svg{ 
+  width: 16px;
+  height: 16px;
+}
+.hardnav-view .footer .but-attributes{
+    width: 70%;
+    text-align: center;
+    margin: 15px auto 0;
+    line-height: 30px;
+    background-color: #ddd;
+}
+.hardnav-view .but{
+  cursor: pointer;
+}
+.hardnav-view .instruments .but svg{
+  width: 20px;
+  height: 20px;
+  top: -4px;
+  position: relative;
+  vertical-align: middle;
+}
+.hardnav-view .instruments .but.choose svg{
+  width: 14px;
+  height: 18px;
+  top: -2px;
+  left: -6px;
+}
+.hardnav-view .msg{
+  text-align: center;
+  padding: 10px;
+  font-weight: 700;
+}

@@ -1,0 +1,488 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700);
+.TrackExport.hardnav-sidebar-icon svg
+{
+    width:16px;
+    height:16px;
+}
+
+.trackexport-view * {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+
+.trackexport-view .unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.trackexport-view .calendar {
+  padding-bottom: 20px;
+}
+.trackexport-view .calendar table{  
+  margin-left: 10px;
+}
+.trackexport-view .calendar .select {
+  font-family: roboto;
+  font-weight: 700;
+  padding: 9px 2px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+.trackexport-view .calendar .select select{
+  width: 36px;
+  border: none;
+}
+
+.trackexport-view .calendar .gmx-input-text {
+  font-family: roboto;
+  font-weight: 700;
+  padding: 12px 2px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}
+
+.trackexport-view .calendar .CalendarWidget-inputCell{
+  background-color: #e1e8ed;
+}
+
+.trackexport-view .color-transparent{
+  color: transparent;
+}
+.trackexport-view .color-blue{
+  color:blue;
+}
+.trackexport-view .color-red{
+  color:red;
+}
+.trackexport-view .color-green{
+  color: green;
+}
+.trackexport-view .color-yellow{
+  color: #e0d901;
+}
+.trackexport-view .header {
+  padding-top: 0px; 
+  background-color: #e1e8ed;
+}
+ .trackexport-view .instruments {
+   width: 100%;
+   margin-bottom: 0px;
+}
+.trackexport-view .instruments td{
+  padding: 20px;
+  padding-top: 10px;
+  width: 50%;
+  text-align: center;
+  font-weight: 700;
+}
+.trackexport-view .instruments td:hover{
+  color: #48aff1;
+}
+.trackexport-view .instruments td.active{
+  color:#f57c00;
+}
+
+.trackexport-view .hint{
+  padding: 15px;
+  padding-right: 10px;
+} 
+ .trackexport-view .refresh{
+   width: 30px;
+}
+
+.trackexport-view .footer{
+  display: none;
+  padding-bottom: 15px;
+} 
+.trackexport-view .footer .pager{
+  width: 100%;
+  visibility: hidden;
+}
+.trackexport-view .footer .pager td{
+ text-align: center;
+ padding: 5px 5px;
+} 
+.trackexport-view .footer .pager .arrow{
+  width: 33%;
+  color: #6B707B;
+}
+.trackexport-view .footer .pager .arrow svg{ 
+  width: 16px;
+  height: 16px;
+}
+.trackexport-view .footer .but-attributes{
+    width: 70%;
+    text-align: center;
+    margin: 15px auto 0;
+    line-height: 30px;
+    background-color: #ddd;
+}
+.trackexport-view .but{
+  cursor: pointer;
+}
+.trackexport-view .instruments .but svg{
+  width: 20px;
+  height: 20px;
+  top: -4px;
+  position: relative;
+  vertical-align: middle;
+}
+.trackexport-view .instruments .but.choose svg{
+  width: 14px;
+  height: 18px;
+  top: -2px;
+  left: -6px;
+}
+.trackexport-view .msg{
+  text-align: center;
+  padding: 10px;
+  font-weight: 700;
+}
+
+.trackexport-view .reload{
+margin: 6px 0 0 30px; 
+color: #2f3c47; 
+cursor: pointer;
+}
+
+.trackexport-view .reload:hover{
+color: #48aff1; 
+}
+
+.trackexport-view .track-table{
+  width:100%;
+  background-color: #f5f8fa;
+  border-bottom: solid 1px #e1e8ed;
+  color:#182026;
+  font-weight: 700;
+  height:31px;
+}
+.trackexport-view .track-table td{
+  padding:6px;
+}
+.trackexport-view .track-table td .date{
+  font-weight:500;
+}
+.trackexport-view .track-table td div.track{
+  vertical-align: middle;
+}
+.trackexport-view .track-table td div.track input[type="checkbox"]{
+  margin-top:-4px;
+  vertical-align: middle;
+}  
+.trackexport-view .track-table td .count{
+  font-weight:700;
+  width: 30px;
+}
+.trackexport-view .track-table td:nth-of-type(1){
+  width:1%;
+  padding-right:0;
+}
+.trackexport-view .track-table td:nth-of-type(3){
+  width:1%;
+}
+.trackexport-view .track-table td:nth-of-type(4){
+  text-align: right;
+  opacity: 0.8;
+  padding-right:12px;
+  color:#394b59;
+  width:1%;
+}
+
+.trackexport-view .open_positions{
+  cursor: pointer;
+  font-size:14px;
+}
+
+.trackexport-view .positions-table{
+  width:100%;
+  border-collapse: initial;
+  border-spacing: 0;
+}
+
+.trackexport-view .positions-table td{
+  padding:10px 5px 10px 0px;
+  cursor:pointer;
+  border-top: solid 1px white;
+}
+.trackexport-view .positions-table tr td:nth-of-type(1){
+  border-left: solid 1px white;
+  padding-left:8px;
+  color:#182026;
+  /*padding-left:28px;*/
+  width:55px; 
+  /*border-left: solid 1px white;*/
+}
+.trackexport-view .positions-table tr td:nth-of-type(6){
+  border-right:solid 1px #fff;
+}
+
+.trackexport-view .positions-table td.more{
+  border-bottom: solid 1px #e1e8ed;
+  border-top: none;
+  border-left: none;
+  cursor:default;
+  padding:0;
+}
+.trackexport-view .positions-table td.more .vi_more{
+  display:none;
+}
+.trackexport-view .positions-table td.more hr{
+  border-top: solid 1px #e1e8ed;
+  border-bottom: none;
+  margin: 0 28px 10px 0px;
+  display:none;
+}
+.trackexport-view .positions-table td.more .vi_more::after {
+  content: "";
+  clear: both;
+  /*display: table;*/
+}
+.trackexport-view .positions-table td.more .vi_more div {
+  float:left;
+}
+.trackexport-view .positions-table td.more .vi_more .c1 {
+  width:100px;
+  padding: 9px;
+}
+.trackexport-view .positions-table td.more .vi_more .c2 {
+  /*width:200px;*/
+  width:165px;
+  padding: 9px 0 9px 0;
+}
+
+.trackexport-view .positions-table td.active{
+  border-top:solid 1px #48aff1;
+  background-color: #f5f8fa;
+}
+.trackexport-view .positions-table td.more.active{
+  border:solid 1px #48aff1;
+  border-top:none;
+  background-color: #f5f8fa;
+  padding:0 0 10px 28px;
+}
+.trackexport-view .positions-table td.more.active .vi_more, 
+.trackexport-view .positions-table td.more.active hr{
+  display:block;
+}
+.trackexport-view .positions-table tr td:nth-of-type(1).active{    
+  border-left:solid 1px #48aff1;
+}
+.trackexport-view .positions-table tr td:nth-of-type(6).active{    
+  border-right:solid 1px #48aff1;
+}
+
+
+.trackexport-view .positions-table td:nth-of-type(2){
+  width:70px;
+}
+.trackexport-view .positions-table td:nth-of-type(2) span{
+  opacity: 0.6;
+}
+.trackexport-view .positions-table .local_time{
+  display:none;
+}
+.trackexport-view .positions-table .local_date{
+  display:none;
+}
+.trackexport-view .positions-table tr .show_pos{
+  visibility: hidden;
+}
+.trackexport-view .positions-table tr:hover .show_pos{
+  visibility: visible;
+}
+.trackexport-view .positions-table tr .show_info{
+  visibility: hidden;
+}
+.trackexport-view .positions-table tr:hover .show_info{
+  visibility: visible;
+}
+
+.trackexport-view .track-table .export:hover{
+  background-color: #48aff1;
+      color: white;
+  }
+.trackexport-view .track-table .export{
+    border-radius: 16px;
+    padding: 2px 5px 2px 5px;
+    margin-right: 4px;
+    cursor: pointer;
+}
+
+.trackexport-view .filter .preferences{
+    width:16px;
+    height:19px;            
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cline style='stroke:%23384b50;stroke-width:2;' x1='0' y1='4' x2='16' y2='4'/%3E %3Cline style='stroke:%23384b50;stroke-width:2;' x1='0' y1='12' x2='16' y2='12'/%3E    %3Cline style='stroke:white;stroke-width:2;' x1='8' y1='0' x2='8' y2='19'/%3E    %3Cline style='stroke:%23384b50;stroke-width:4;' x1='5' y1='0' x2='5' y2='8'/%3E    %3Cline style='stroke:%23384b50;stroke-width:4;' x1='11' y1='8' x2='11' y2='16'/%3E    %3C/svg%3E") no-repeat;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.trackexport-view .preferences{
+    background-color: white;
+    height: 180px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    border-radius: 5px;
+    width: 270px;
+}
+
+.trackexport-view .preferences div.section{
+    padding: 15px 12px 15px 12px;
+}
+.trackexport-view .preferences .line:hover{
+    background-color: #ddd
+}
+.trackexport-view .preferences .line{
+    margin: 0px 10px 0px 10px;
+    padding: 5px 10px 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.trackexport-view .preferences .checkbox{
+    float: left;
+    width: 12px;
+    height: 12px;
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' rx='3' ry='3' width='12' height='12' fill='%2348aff1' stroke='%23ccc' stroke-width='1'/%3E%3C/svg%3E") no-repeat 0px 0px;  
+    padding-right: 0;
+}
+
+.trackexport-view .preferences .checkbox.checked{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' rx='3' ry='3' width='12' height='12' fill='%2348aff1' stroke='%23ccc' stroke-width='1'/%3E%3Cline x1='3' x2='5' y1='5' y2='8' stroke='white' fill='transparent' stroke-width='2'/%3E%3Cline x1='5' x2='9' y1='8' y2='3' stroke='white' fill='transparent' stroke-width='2'/%3E%3C/svg%3E") no-repeat 0px 0px;  
+}
+
+.trackexport-view .preferences .checkbox.disabled{
+    background: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' rx='3' ry='3' width='12' height='12' fill='%23ddd' stroke='%23ccc' stroke-width='1'/%3E%3Cline x1='3' x2='5' y1='5' y2='8' stroke='white' fill='transparent' stroke-width='2'/%3E%3Cline x1='5' x2='9' y1='8' y2='3' stroke='white' fill='transparent' stroke-width='2'/%3E%3C/svg%3E") no-repeat 0px 0px;  
+}
+
+.trackexport-view .preferences .label{
+    float: left;
+    margin-left: 10px;
+}
+.trackexport-view .preferences .line::after{
+    clear: both; 
+    content: "";   
+    display: block;
+}
+
+.trackexport-view .filter{
+    background-color: #fff;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    width:99%;
+    border: 1px solid #DDD;
+    margin-top:5px;
+    margin-bottom:5px;
+    border-radius: 3px;
+  }
+  .trackexport-view .filter div{
+      float:right;
+      margin-right:14px;
+  }
+  .trackexport-view .filter div.searchremove {
+    border-right: solid 1px #ddd;
+    margin-top: -14px;
+    height: 29px;
+    padding-top: 14px;
+    padding-right: 15px;
+}
+  .trackexport-view .filter input{
+    width: 70%;
+    padding-left: 10px;
+    border: none;  
+    background: transparent;
+    text-transform: uppercase;
+    font-weight:700;
+  }
+  .trackexport-view .filter input::-webkit-input-placeholder { /* WebKit browsers */
+      text-transform: none;
+  }
+  .trackexport-view .filter input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+      text-transform: none;
+  }
+  .trackexport-view .filter input::-moz-placeholder { /* Mozilla Firefox 19+ */
+      text-transform: none;
+  }
+  .trackexport-view .filter input:-ms-input-placeholder { /* Internet Explorer 10+ */
+      text-transform: none;
+  }
+  .trackexport-view .filter input::placeholder { /* Recent browsers */
+      text-transform: none;
+  }
+  .trackexport-view .filter .remove{
+    display: none;
+    margin-top:2px;
+    cursor: pointer;
+  }
+  .trackexport-view .filter i{
+    font-size:16px;
+  }
+
+  .trackexport-view .suggestions{
+    background-color: white;
+    position:absolute;
+    display:none;
+    border-radius: 0 0 3px 3px;
+    border: 1px solid #DDD;
+    border-top:none;
+}
+.trackexport-view .suggestions .suggestion{
+    padding: 5px;
+    border-top: solid 1px #DDD;
+    cursor: pointer;
+}
+.trackexport-view .suggestions .suggestion.selected{
+    background-color: #fafafa;
+}
+.trackexport-view .suggestions .suggestion span{
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+
+
+.trackexport-view.select-list{
+    border: 1px solid #DDD;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    background-color: #fff;
+    display:none;
+    position:absolute;
+}
+.trackexport-view .select-options{
+    padding: 5px 0 5px 15px;
+    cursor: pointer;
+}
+.trackexport-view .select-options.selected, .select-options.selected:hover{
+    background-color: #ccc;
+}
+.trackexport-view .select-options:hover{
+    background-color: #ddd;
+}
+.trackexport-view .select-control{
+    background-color: #fff;
+    padding: 14px;
+    border: 1px solid #DDD;
+    margin-top: 0;
+    border-radius: 3px;
+    width: 160px;
+    cursor: pointer;
+    margin-top: -15px;
+}
+.trackexport-view .select-control .select-active{    
+    font-weight: 700;
+}
+.trackexport-view .select-control .icon-down-open, .select-control .icon-up-open{    
+    float: right
+}
+
+
+/*# sourceMappingURL=TrackExportPlugin.css.map*/

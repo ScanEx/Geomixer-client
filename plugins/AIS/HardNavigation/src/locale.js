@@ -1,0 +1,46 @@
+
+    _translationsHash.addtext('rus', {
+        "HardNavigation.title": "Тяжелые районы судоходства",
+        "HardNavigation.page_lbl": "Страница",
+        "HardNavigation.choose_reg": "Выбор района",
+        "HardNavigation.create_reg": "Новый район",
+        "HardNavigation.instr_hint": "Очертите новый район или выберите существующий для редактирования",
+        "HardNavigation.attr_tbl": "Таблица атрибутов",
+        "HardNavigation.reg_id": "ID района",
+        "HardNavigation.reg_created": "Создан",
+        "HardNavigation.reg_updated": "Изменен",
+        "HardNavigation.add_new": "Добавить новый объект",
+        "HardNavigation.add_copy": "Добавить выбранный объект",
+        "HardNavigation.no_origin": "нет",
+        "HardNavigation.save": "Сохранить",
+        "HardNavigation.cancel": "Отмена",
+        "HardNavigation.description_lbl": "Описание",
+        "HardNavigation.description_ttl": "Медиа описание",
+        "HardNavigation.edit_description_lbl": "Редактировать",
+        "HardNavigation.edit_description_ttl": "Редактировать медиа описание",
+        "HardNavigation.calendar_today": "сегодня",
+        "HardNavigation.layer_error": 'Ошибка слоя'
+        
+    });
+    _translationsHash.addtext('eng', {
+        "HardNavigation.title": "Hard navigation",
+        "HardNavigation.page_lbl": "Page",
+        "HardNavigation.choose_reg": "Choose region",
+        "HardNavigation.create_reg": "Create region",
+        "HardNavigation.instr_hint": "Draw a region or choose existing",
+        "HardNavigation.attr_tbl": "Table of attrobutes",
+        "HardNavigation.reg_id": "Region ID",
+        "HardNavigation.reg_created": "Created",
+        "HardNavigation.reg_updated": "Changed",
+        "HardNavigation.add_new": "Добавить новый объект",
+        "HardNavigation.add_copy": "Добавить выбранный объект",
+        "HardNavigation.no_origin": "no",
+        "HardNavigation.save": "Save",
+        "HardNavigation.cancel": "Cancel",
+        "HardNavigation.description_lbl": "Description",
+        "HardNavigation.description_ttl": "Media description",
+        "HardNavigation.edit_description_lbl": "Edit description",
+        "HardNavigation.edit_description_ttl": "Edit media description",
+        "HardNavigation.calendar_today": "today",
+        "HardNavigation.layer_error": 'Layer error'
+    });

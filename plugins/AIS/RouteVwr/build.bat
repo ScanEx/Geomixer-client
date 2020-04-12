@@ -1,0 +1,1 @@
+copy ..\common\controls\SelectControl.js .\src\SelectControl.js /Y & copy ..\common\Request.js .\src\Request.js /Y & npm run build
