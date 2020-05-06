@@ -28,7 +28,7 @@
         "HardNavigation.choose_reg": "Choose region",
         "HardNavigation.create_reg": "Create region",
         "HardNavigation.instr_hint": "Draw a region or choose existing",
-        "HardNavigation.attr_tbl": "Table of attrobutes",
+        "HardNavigation.attr_tbl": "Table of attributes",
         "HardNavigation.reg_id": "Region ID",
         "HardNavigation.reg_created": "Created",
         "HardNavigation.reg_updated": "Changed",
