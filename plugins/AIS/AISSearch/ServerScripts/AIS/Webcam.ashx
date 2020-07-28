@@ -155,11 +155,13 @@ public class Webcam : IHttpAsyncHandler {
 	private delegate object AsyncMethodCaller();	
 	private HttpContext _context;
     private AsyncMethodCaller _caller;	
+	private string _origin;
 	
     public IAsyncResult BeginProcessRequest(HttpContext context, 
                         AsyncCallback cb, object extraData)
     {
 		_context = context;
+		_origin =  _context.Request.Headers["Origin"];
 		_connStr = GetConnectionString(context);
         _caller = new AsyncMethodCaller(GetResult);
 		IAsyncResult asyncResult = _caller.BeginInvoke(cb, extraData);	
@@ -185,6 +187,10 @@ public class Webcam : IHttpAsyncHandler {
 			response.Clear();  
 			response.Buffer = true;  
 			response.Charset = "";  
+			if (String.IsNullOrEmpty(_origin))
+				_origin = "*";
+			response.Headers.Add("Access-Control-Allow-Origin", _origin);		
+			response.Headers.Add("Access-Control-Allow-Credentials", "true");
 			response.Cache.SetCacheability(HttpCacheability.NoCache);  
 			response.ContentType = "image/jpg"; 
 			response.BinaryWrite((byte[])result);  

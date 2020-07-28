@@ -15,7 +15,7 @@ module.exports = function (options) {
           _mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval();
 
     const _viewCalendar1 = new ViewCalendar({id:'vc1', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit}),
-          _viewCalendar2 = new ViewCalendar({id:'vc2', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit});
+          _viewCalendar2 = new ViewCalendar({id:'vc2', begin: _mapDateInterval.get('dateBegin'), end: _mapDateInterval.get('dateEnd'), daysLimit: _daysLimit + 16});
 
     _viewCalendar1.onChange = function(e){
         _viewCalendar2.interval = e.interval;

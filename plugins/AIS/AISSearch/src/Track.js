@@ -15,7 +15,7 @@ module.exports = function (options) {
                 weight: 2,
                 color: 'SPEED' ? p.color.value : (p.colorAlt ? p.colorAlt.value : p.color.value),
                 cog: parseInt(p.cog),
-                img: style != 'SPEED' ? p.img : (p.imgAlt ? p.imgAlt : p.img),
+                img: style != 'SPEED' ? p.img : p.imgAlt,
                 renderer: _canvas,
                 pid: p.id,
                 next: !ep ? null : L.latLng(ep.ymax, ep.xmax < 0 ? 360 + ep.xmax : ep.xmax),
