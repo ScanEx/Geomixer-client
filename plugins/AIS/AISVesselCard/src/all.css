@@ -1,0 +1,210 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700');
+
+.left_aispanel{
+  margin-bottom: 8px;
+  border: 1px solid #DDD;
+ }
+
+.ais_tabs *{
+  font-family: 'Roboto', sans-serif;  
+  font-weight: 400;
+}
+.ais_tabs{
+  width: 100%;
+}
+.ais_tab{
+  text-align: center;
+  cursor:pointer;
+  background-color: #e1e8ed;
+  border-bottom: solid 1px #d8e1e4;
+  color: #182026;
+}
+.ais_tab div{
+  padding:10px;
+  border-bottom: solid 3px #e1e8e4;
+  font-family: 'Roboto', sans-serif;
+  font-weight:500;
+  font-size:14px;
+}
+.ais_tab.active {
+  border-bottom:solid 1px #48aff1;
+}
+.ais_tab.active div{
+  border-bottom: solid 3px #48aff1;
+}
+.ais_tab.unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }
+        		
+.VesselSearchTool:hover{
+	background-color: #eee;
+}	
+.leaflet-gmx-icon-active.VesselSearchTool > span{
+	color:#f57c00;
+}	
+.VesselSearchTool{
+	box-shadow: 0px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+	background-color: white;
+}
+.VesselSearchTool > span{
+	color:black;
+	font-weight:bold;
+	margin-top: 6px;
+	margin-right: 10px;
+	margin-left: 8px;
+}
+
+.leaflet-marker-icon.ais_highlight-icon {
+	pointer-events: none;
+}
+
+.ais_sidebar-icon-active{
+	fill:white;
+}
+.ais_sidebar-icon{
+	fill:#d8e1e8;
+}
+
+.start_screen{
+  width:100%;
+}
+.start_screen td{
+  text-align: center;
+}
+.start_screen td div{
+  opacity: 0.3;
+  font-size: 18px;
+}
+
+.ais_panel_footer{
+  background-color:#48aff1; 
+  /*height:55px*/
+}
+
+.ais_legend_switch{
+  width: 100%;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+}
+.ais_legend_switch td{
+  padding: 12px;
+  padding-left: 0;
+}
+.ais_legend_switch td.show_info{
+  padding-top: 14px;
+  cursor: pointer;
+}
+.ais_legend_switch td span{
+  padding: 3px 15px 4px 15px;
+  cursor: pointer;
+}
+.ais_legend_switch td span.label{
+  cursor: default;
+}
+.ais_legend_switch td span.on{
+background-color: white;
+color: #48aff1;
+border-radius: 16px;
+}
+.ais_legend_switch td span.info{
+background-color: white;
+color: #48aff1;
+border-radius: 16px;
+padding: 2px 8px 3px 9px;
+font-weight: 600;
+margin: 25px;
+}
+.ais_legend_info{
+ background-color:white;
+ position: absolute;
+ border-radius: 3px;
+ box-shadow: 2px 4px 4px #888;
+}
+
+.ais_legend_info .colors{
+  width:100%
+}
+.ais_legend_info .colors td{
+  padding: 5px;
+  padding-top: 2px;
+}
+.ais_legend_info .colors td.color{
+  padding:5px;
+  padding-left:10px;
+  width:1px
+}
+.ais_legend_info .colors tr:first-of-type td{
+  padding-top: 8px;
+}
+.ais_legend_info .colors tr:first-of-type td.color{
+  padding-top:10px;
+}
+.ais_legend_info .movement td{
+  padding: 8px 0px 8px 5px;
+}
+.ais_legend_info .movement td:nth-of-type(2n){
+  padding-right: 10px;
+}
+
+.ais_legend_info .movement_colors{
+  margin: 5px 25px 5px 0px;
+}
+.ais_legend_info .movement_colors td{
+  padding: 1px 0px 1px 2px;
+}
+.ais_legend_info .movement_colors td:nth-of-type(2n){
+  padding-right: 10px;
+  padding-left: 2px;
+  padding-top: 0;
+}
+
+.leaflet-aistracks-layer{
+  pointer-events: none;
+}
+
+
+.mf_group_menu{
+  display: none;
+  position:absolute;
+  background-color: #fff;
+  border: solid 1px #bbb;
+  cursor: pointer;
+  width: 165px;
+  }
+  .mf_group_menu div{
+      padding: 5px;
+      overflow:hidden;
+  }
+  .mf_group_menu div span{
+      margin-left: 5px;
+  }
+  
+  .mf_group_menu div.command.remove{
+      border-top:solid 1px #bbb;
+  }
+  .mf_group_menu div.command.remove.lonely{
+      border:none;
+  }
+  .mf_group_menu div.command.remove.lonely:hover{
+      background-color:#fff;
+  }
+  
+  .mf_group_menu div.command:hover{
+      background-color: #bbb;
+  }
+  .mf_group_menu .colorSelector{
+      float:left;
+      height:0;
+      width:5px;
+  }
+  
