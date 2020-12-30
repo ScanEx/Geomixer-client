@@ -30,14 +30,21 @@ const LegendControl = function (tools, aisLastPointLayer, lastPointLayerAlt) {
             });
 // console.log(_icons);
 // console.log(_iconsAlt);
-        },
+        },        
         _getSvgPromise = ic => {
             return new Promise(resolve => {
                 let httpRequest = new XMLHttpRequest();
                 httpRequest.onreadystatechange = function () {
                     if (httpRequest.readyState === 4) {
                         ic.svg = httpRequest.responseText;
+                        if (_iconsDict[ic.filter])
+                            _iconsDict[ic.filter].svg = ic.svg;
+                        else
+                            _iconsAltDict[ic.filter].svg = ic.svg;
                         let a = /\.cls-1{fill:(#[^};]+)/.exec(ic.svg);
+                        if (!a)
+                            a = /<svg[^<]+<[^>]+fill="([#a-z0-9]+)"/i.exec(ic.svg);
+//console.log(a && a[1])
                         ic.color = '#888';
                         if (a && a.length)
                             ic.color = a[1];
@@ -126,35 +133,63 @@ const LegendControl = function (tools, aisLastPointLayer, lastPointLayerAlt) {
                     legendDiv = null;
                     return;
                 }
+
+
                 legendDiv = document.createElement('div');
                 legendDiv.className = 'ais_legend_info';
 
                 let loader = !tools.needAltLegend ? _svgLoader : _svgAltLoader,
                     iconCollection = !tools.needAltLegend ? _icons : _iconsAlt;
                 loader.then(r => {
-//console.log(r);
-                    let template = !tools.needAltLegend ? '<table class="colors">' : '<table class="movement_colors">';
-                    iconCollection.forEach((ic, i) => {
-                        if (ic.name.search(/\S/) != -1) {
-                            // let a = /\.cls-1{fill:(#[^};]+)/.exec(ic.svg);
-                            // ic.color = '#fff';
-                            // if (a && a.length)
-                            //     ic.color = a[1];
+                    //console.log(r);
+                    let template = !tools.needAltLegend ? '<table class="colors">' : '<table class="movement colors">';
+
+                    const colorsCollection = {}, svgCollection = {};
+                    iconCollection.forEach(ic=>{
+                        colorsCollection[ic.name.replace(/,[\s\S]+$/, '')] = ic.color
+                        svgCollection[(tools.needAltLegend ? ic.name.replace(/\b(?!stand)(,*)[\s\S]+$/,'$1') : '') + ic.name.replace(/^[^,]+,/, '')] = ic.svg.replace(/fill="(?!none)[#a-z0-9]+"/ig, 'fill="currentColor"')
+                    }) 
+//console.log(colorsCollection, svgCollection)                  
+                    //iconCollection.forEach((ic, i) => {                    
+                    Object.keys(colorsCollection).forEach((k,i) => {  
+                        let ic = {color: colorsCollection[k], name: k};
+                        if (/\S/.test(ic.name)) {
                             if (!tools.needAltLegend)
-                                template += '<tr><td class="color"><div style="width:10px; height:10px; background-color:' + ic.color + '"></div></td><td>' + ic.name + '</td></tr>';
-                            else{
-                                let svg = i==iconCollection.length-1 ? '<div style="padding-top:2px">' + _getAtAnchorIcon(0, ic.color, '#fff') + '</div>'
-                                : _getUnderWayIcon(0, ic.color, '#fff')
-                                template += '<tr><td class="color">'+ svg + '</td><td>' + ic.name + '</td></tr>';
+                                template += '<tr><td class="color"><div style="width:15px; height:15px; background-color:' + ic.color + '"></div></td><td>' + ic.name +
+                                '</td></tr>';
+                            else {
+                                //if (i<3)
+                                template += '<tr><td class="color"><div style="width:15px; height:15px; background-color:' + ic.color + '"></div></td><td>' + ic.name +
+                                '</td></tr>';                               
                             }
                         }
-                    });
-                    if (!tools.needAltLegend) {
-                        template += '<tr><td colspan="2" style="padding: 8px 10px 0;"><div style="border-bottom: solid 1px #e1e8ed;width: 100%;"></div></td></tr>'
-                        template += '</table><table class="movement"><tr><td>' + _getUnderWayIcon(0, '#888', '#fff') + '</td><td>' + _gtxt("AISSearch2.moving") + '</td>' +
-                            '<td style="padding-top:10px">' + _getAtAnchorIcon(0, '#888', '#fff') + '</td><td>' + _gtxt("AISSearch2.standing") + '</td></tr></table>';
-                    }
-//console.log(template)
+                    });            
+
+//                 legendDiv = document.createElement('div');
+//                 legendDiv.className = 'ais_legend_info';
+
+//                 let loader = !tools.needAltLegend ? _svgLoader : _svgAltLoader,
+//                     iconCollection = !tools.needAltLegend ? _icons : _iconsAlt;
+//                 loader.then(r => {
+// //console.log(r);
+//                     let template = !tools.needAltLegend ? '<table class="colors">' : '<table class="movement_colors">';
+//                     iconCollection.forEach((ic, i) => {
+//                         if (ic.name.search(/\S/) != -1) {
+//                             if (!tools.needAltLegend)
+//                                 template += '<tr><td class="color"><div style="width:10px; height:10px; background-color:' + ic.color + '"></div></td><td>' + ic.name + '</td></tr>';
+//                             else{
+//                                 let svg = i==iconCollection.length-1 ? '<div style="padding-top:2px">' + _getAtAnchorIcon(0, ic.color, '#fff') + '</div>'
+//                                 : _getUnderWayIcon(0, ic.color, '#fff')
+//                                 template += '<tr><td class="color">'+ svg + '</td><td>' + ic.name + '</td></tr>';
+//                             }
+//                         }
+//                     });
+//                     if (!tools.needAltLegend) {
+//                         template += '<tr><td colspan="2" style="padding: 8px 10px 0;"><div style="border-bottom: solid 1px #e1e8ed;width: 100%;"></div></td></tr>'
+//                         template += '</table><table class="movement"><tr><td>' + _getUnderWayIcon(0, '#888', '#fff') + '</td><td>' + _gtxt("AISSearch2.moving") + '</td>' +
+//                             '<td style="padding-top:10px">' + _getAtAnchorIcon(0, '#888', '#fff') + '</td><td>' + _gtxt("AISSearch2.standing") + '</td></tr></table>';
+//                     }
+// console.log(template)
                     legendDiv.innerHTML = template;
                     document.body.append(legendDiv);
                     let rc = legendDiv.getClientRects()[0];
@@ -181,37 +216,72 @@ const LegendControl = function (tools, aisLastPointLayer, lastPointLayerAlt) {
         get iconsAlt(){return _iconsAlt;},
         //get iconsDict(){return _iconsDict;},
         //get iconsAltDict(){return _iconsAltDict;},
-        getIconAlt: function(vessel_name, sog){           
-            // speed icon
-            for(let f in _iconsAltDict){
-                let cond = f.replace(/"sog"/ig,  sog);
-                if (vessel_name)
-                    cond = cond.replace(/"vessel_name"/ig,  
-                    "'" + vessel_name.replace(/'/g, "\\\'").replace(/\\[^']/g, "\\\\") + "'");
-//console.log(cond + " " + "eval(cond)")
-                if(eval(cond))
-                    return _iconsAltDict[f];
-            }
-        },
-        getIcon: function(vessel_type, sog){ 
-            for(let f in _iconsDict){
-                let re1 = new RegExp("'"+vessel_type+"'"),
-                re2 = new RegExp(sog != 0 ? ">0" : "=0");
-//console.log(vessel_type+" "+sog+" "+f+" "+f.search(re1)+" "+f.search(re2))
-                if(f.search(re1)!=-1 && f.search(re2)!=-1){
-//console.log( _iconsDict[f])
-                    return _iconsDict[f];
+//////////////////////////////////////////////////////////////////
+        getIconAlt: function(vessel){ 
+    //console.log(vessel)
+                let{vessel_name, sog, length} = vessel; 
+                vessel_name = 'ABC';        
+                // speed icon
+                for(let f in _iconsAltDict){
+                    let cond = f.replace(/"sog"/ig,  sog);
+                    if (vessel_name)
+                        cond = cond.replace(/"vessel_name"/ig,  
+                        "'" + vessel_name.replace(/'/g, "\\\'").replace(/\\[^']?/g, "\\\\") + "'");
+                        
+                    cond = cond.replace(/"length"/ig,
+                        length == '' || length == null || isNaN(length) ? '\'\'' : length);
+                    
+                    //cond = cond.replace(/==/g, '===')
+    
+                    if(eval(cond)){
+    //if (vessel.vessel_name=='OTCHIZNA')
+    //console.log(cond,f)
+    //console.log(cond,_iconsAltDict[f])
+                        return _iconsAltDict[f];
+                    }
                 }
-            }
-        },
-        getIconAltUrl: function(vessel_name, sog){ 
-            let icon = this.getIconAlt(vessel_name, sog)
-            return icon && icon.url; 
-        },
-        getIconUrl: function(vessel_type, sog){ 
-            let icon = this.getIcon(vessel_type, sog)
-            return icon && icon.url; 
-        }
+            },
+            getIcon: function(vessel){  
+//console.log(_iconsDict, vessel)
+                const{vessel_type, sog, length} = vessel; 
+                let defaultIcon, defaultIconUrl;
+                for(let f in _iconsDict){
+                    let re1 = new RegExp("'"+vessel_type+"'"),
+                    re2 = new RegExp(sog != 0 ? ">0" : "=0");
+//console.log(vessel_type+" "+sog+" "+f+" "+f.search(re1)+" "+f.search(re2))
+                    if (!defaultIcon && f.search(/other/i)>-1 && _iconsDict[f].name.search(/\S/)>-1)
+                        defaultIcon = _iconsDict[f];
+                    if (!defaultIconUrl && f.search(/other/i)>-1 && f.search(/=0/i)>-1)
+                        defaultIconUrl = _iconsDict[f].url;
+                    
+                    if (/length/.test(f)){
+                        const cond = f.replace(/[\S\s]+\sin\s*\(([^\)]+)\)/gi, `/${vessel_type}/i.test("$1")`)
+                        .replace(/([^>])=([^>])/g, '$1===$2')
+                        .replace(/\band\b/ig, '&&').replace(/\bor\b/ig, '||')
+                        .replace(/"vessel_type"/g, `'${vessel_type}'`)
+                        .replace(/"sog"/gi, sog)
+                        .replace(/"length"/gi, length==''||length==null||isNaN(length)?'\'\'':length);
+    
+                        if (eval(cond)){
+    //if (vessel.vessel_name=='OTCHIZNA')
+    //console.log(cond,f)
+                            return _iconsDict[f];
+                        }
+                    }
+                    else{
+                        if(re1.test(f) && re2.test(f)){
+    //console.log(_iconsDict[f].url)
+                            return _iconsDict[f];
+                        }
+                    }
+                }
+//console.log(vessel, vessel_type, sog, length) 
+               
+                if (defaultIconUrl)
+                    defaultIcon.url = defaultIconUrl;
+                return defaultIcon;
+            },
+//////////////////////////////////////////////////////////////////
     }
 }
 

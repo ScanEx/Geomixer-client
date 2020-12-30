@@ -226,14 +226,21 @@ ScreenSearchView.prototype.repaint = function () {
     //BaseView.prototype.repaint.apply(this, arguments);
 
     this.frame.find('.groups')[0].innerHTML = '';
-    if (this.model.data.groups && this.model.data.groups.length && arrowHead == 'icon-down-open')
+    const groupsRef = !_tools.needAltLegend ? this.model.data.groups :  this.model.data.groupsAlt;
+    groupsRef.forEach(g=>{if(/length/i.test(g.name)) g.name = g.name.replace(/,.+/, '') })
+    if (this.model.data.groups && this.model.data.groups.length && arrowHead == 'icon-down-open') //{
         this.frame.find('.groups')[0].innerHTML = (Handlebars.compile('<table>' +
             '{{#each groups}}' +
-            '<tr><td><img src="{{url}}" style="width:20px;height:20px"></td><td><div class="group_name">{{name}}</div></td><td>{{count}}</td></tr>' +
+            '<tr><td><table style="margin:0"><tr><td style="width:22px; height:24px; padding:0"><img src="{{url}}" ></td></tr></table></td><td><div class="group_name">{{name}}</div></td><td>{{count}}</td></tr>' +
             '{{/each}}' +
-            '</table>')({groups: !_tools.needAltLegend ? this.model.data.groups :  this.model.data.groupsAlt}));
-        
-    BaseView.prototype.resize.apply(this, arguments);   
+            '</table>')({groups: groupsRef}));
+    //     this.frame.find('.groups img').each((i,img)=>$(img).on('load', ()=>{
+    //         if(i==groupsRef.length-1) BaseView.prototype.resize.apply(this, arguments);
+    //     } ));  
+    // }
+    // else{
+        BaseView.prototype.resize.apply(this, arguments);   
+    //}
      
     ////////////////////////////////////////////////////
     this.container.find('.info').off('click');

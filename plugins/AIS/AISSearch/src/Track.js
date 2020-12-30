@@ -90,8 +90,9 @@ module.exports = function (options) {
                 }
                 return [];
             }
-
             for (let i = 0; i < vessels.length; ++i) {
+                 if (!vessels[i]) continue;  
+//console.log(i,vessels[i])
                 let trackId = vessels[i].mmsi + '_' + vessels[i].imo + '_' + vessels[i].ts;
                 if (vessels[i].positions.length) {
                     if (!_tracks[trackId]) {

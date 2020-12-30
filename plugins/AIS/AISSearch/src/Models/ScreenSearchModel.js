@@ -71,9 +71,9 @@ ScreenSearchModel.prototype.setFilter = function (s) {
                             v=a[i];
                             if (v.vessel_name.search(filter)>-1){
                                 thisModel.data.vessels.push(v);
-                                let ic = _vesselLegend.getIcon(v.vessel_type, 1);
+                                let ic = _vesselLegend.getIcon(v);
                                 setGroups(ic, thisModel.data.groups);
-                                ic = _vesselLegend.getIconAlt(v.vessel_, parseInt(v.sog));
+                                ic = _vesselLegend.getIconAlt(v);
                                 setGroups(ic, thisModel.data.groupsAlt);
                             }
                         }
@@ -90,29 +90,6 @@ ScreenSearchModel.prototype.setFilter = function (s) {
             thisModel.view.inProgress(false);
             thisModel.view.repaint(); 
         }, ()=>{});
-
-        // this.data.vessels = [], this.data.groups = [], this.data.groupsAlt = [];
-        // const filter = new RegExp(`^${this.filterString}| ${this.filterString}`, "ig");
-        // let icons = {}, setGroups = function(ic, a){
-        //         if (icons[ic.name]==undefined){
-        //             icons[ic.name] = a.length;
-        //             a.push({ url: ic.url, name: ic.name, count: 1})
-        //         }
-        //         else
-        //             a[icons[ic.name]].count = a[icons[ic.name]].count + 1;
-        // };
-        // this.dataSrc.vessels.forEach(v=>{
-        //     if (v.vessel_name.search(filter)>-1){
-        //         this.data.vessels.push(v);
-        //         let ic = _vesselLegend.getIcon(v.vessel_type, 1);
-        //         setGroups(ic, this.data.groups);
-        //         ic = _vesselLegend.getIconAlt(v.vessel_, parseInt(v.sog));
-        //         setGroups(ic, this.data.groupsAlt);
-        //     }
-        // });
-        // this.sortData();
-        // this.view.inProgress(false);
-        // this.view.repaint(); 
     }
 };
 
@@ -135,15 +112,30 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
                     s = new Date();
 
                     // thisInst.filterString = thisInst.filterString.replace(/\r+$/, ""); !!!!!!TO DO FILTER
+                    const mmsi = json.Result.columns.indexOf("mmsi"),
+                    vessel_name = json.Result.columns.indexOf("vessel_name"),
+                    ts_pos_utc = json.Result.columns.indexOf("ts_pos_utc"),
+                    imo = json.Result.columns.indexOf("imo"),
+                    xmin = json.Result.columns.indexOf("xmin"),
+                    xmax = json.Result.columns.indexOf("xmax"),
+                    ymin = json.Result.columns.indexOf("ymin"),
+                    ymax = json.Result.columns.indexOf("ymax"),
+                    maxid = json.Result.columns.indexOf("maxid"),
+                    vt = json.Result.columns.indexOf("vessel_type"),
+                    cog = json.Result.columns.indexOf("cog"),
+                    sog = json.Result.columns.indexOf("sog"),
+                    heading = json.Result.columns.indexOf("heading"),
+                    length = json.Result.columns.indexOf("length");
 
                     thisInst.dataSrc = {
                         vessels: json.Result.values.map(function (v) {
-                            let d = new Date(v[12]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
+                            let d = new Date(v[ts_pos_utc]),//nsGmx.widgets.commonCalendar.getDateInterval().get('dateBegin'),
                             vessel = {
-                                vessel_name: v[0], mmsi: v[1], imo: v[2], mf_member: 'visibility:hidden', 
+                                vessel_name: v[vessel_name], mmsi: v[mmsi], imo: v[imo], mf_member: 'visibility:hidden', 
                                 ts_pos_utc: _aisLayerSearcher.formatDate(d), ts_pos_org: Math.floor(d.getTime()/1000),
-                                xmin: v[4], xmax: v[5], ymin: v[6], ymax: v[7], maxid: v[3],
-                                vessel_type: v[8], sog: v[9], cog: v[10], heading: v[11]
+                                xmin: v[xmin], xmax: v[xmax], ymin: v[ymin], ymax: v[ymax], maxid: v[maxid],
+                                vessel_type: v[vt], sog: v[sog], cog: v[cog], heading: v[heading],
+                                length: v[length]
                             };
                             //if (_myFleetModel.findIndex(vessel)>=0)
                             //    vessel.mf_member = "visibility:visible";
@@ -157,12 +149,12 @@ ScreenSearchModel.prototype.load = function (actualUpdate) {
 
                     thisInst.data = { groups: [], groupsAlt: [] }; 
                     for (let k in json.Result.groups){
-                        let ic = _vesselLegend.getIcon(k, 1)
+                        let ic = _vesselLegend.getIcon({vessel_type: k, sog: 1, length: 100})
                         thisInst.data.groups.push({ url: ic.url, name: ic.name, count: json.Result.groups[k]});
                     }
                     for (let k in json.Result.groupsAlt){
                         if (!isNaN(k)){
-                            let ic = _vesselLegend.getIconAlt("ABC", parseInt(k))
+                            let ic = _vesselLegend.getIconAlt({vessel_name:"ABC", sog:parseInt(k), length:100})
                             if (ic)
                                 thisInst.data.groupsAlt.push({ url: ic.url, name: ic.name, count: json.Result.groupsAlt[k]});
                         }

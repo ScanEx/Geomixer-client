@@ -131,21 +131,64 @@ module.exports = function (options) {
         if (!_markers)
             _markers = L.layerGroup().addTo(_lmap);
         else{
-            let layers = _markers.getLayers(), layer;
+            let layers = _markers.getLayers();
             for (var i in layers)
                 if (layers[i].id==mmsi){
-                    layer = layers[i];
-                    break;
+                    _markers.removeLayer(layers[i]);
                 }
-            layer && _markers.removeLayer(layer);
         }
     },
-    _drawMyFleetMarker = function(args, markerTemplate, group, ai, isVisible){ 
-        let data = args.properties;
-        let di = nsGmx.widgets.commonCalendar.getDateInterval();
-        let icon = args.parsedStyleKeys.iconUrl;//args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '')
-        _eraseMyFleetMarker(data[ai.mmsi]);
+    // _drawMyFleetMarker2 = function(args, markerTemplate, group, ai, isVisible){ 
+    //     let data = args.properties;
+    //     let di = nsGmx.widgets.commonCalendar.getDateInterval();
+    //     let icon = args.parsedStyleKeys.iconUrl;//args.parsedStyleKeys.iconUrl.replace(/.+(\/|%5C)(?=[^\/]+$)/, '')
+    //     _eraseMyFleetMarker(data[ai.mmsi]);
 
+    //     if (!isVisible)
+    //         return;
+
+    //     let label_line = function(label, label_color, label_shadow){
+    //         if (label!="")
+    //         return '<div style="height:14px;">'+
+    //         '<div class="label_shadow" style="height:14px;color' + label_shadow.color + ";text-shadow:" + label_shadow.text_shadow + '">' + label + '</div>'+
+    //         '<div class="label_color" style="position:relative;top:-14px;color:' + label_color + '">' + label + '</div></div>';
+    //         else
+    //         return "";
+    //     }
+    //     if (di.get("dateBegin").getTime()<=data[ai.ts_pos_utc]*1000 && data[ai.ts_pos_utc]*1000<di.get("dateEnd").getTime()){ 
+    //         _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style).then(marker=>{
+
+    //             _eraseMyFleetMarker(data[ai.mmsi]);
+
+    //             let temp = {};
+    //             temp.group_name = label_line(group.default?"":(group.title), group.label_color, group.label_shadow)
+    //             temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);    
+    //             temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);  
+    //             temp.cog = label_line(isNaN(data[ai.cog])?"":data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);                 
+    //             temp.marker = marker;
+    //             let m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
+    //                 {
+    //                     id:data[ai.mmsi],
+    //                     icon: L.divIcon({
+    //                         className: 'mf_label gr' + group.id,
+    //                         html: Handlebars.compile(markerTemplate)(temp)
+    //                     }),
+    //                     zIndexOffset:1000
+    //                 });
+    //             m.id = data[ai.mmsi];
+    //             _markers.addLayer(m);
+    //         });
+    //     }
+
+    // },
+
+    _drawMyFleetMarker = function(args, markerTemplate, group, ai, isVisible, marker){ 
+        let data = args.properties;
+        //let di = nsGmx.calendars.mapCalendar.interval;
+        let di = nsGmx.widgets.commonCalendar.getDateInterval();
+
+        _eraseMyFleetMarker(data[ai.mmsi]);
+        
         if (!isVisible)
             return;
 
@@ -158,7 +201,7 @@ module.exports = function (options) {
             return "";
         }
         if (di.get("dateBegin").getTime()<=data[ai.ts_pos_utc]*1000 && data[ai.ts_pos_utc]*1000<di.get("dateEnd").getTime()){ 
-            _markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style).then(marker=>{
+            //_markerIcon(icon, data[ai.cog], data[ai.sog], data[ai.vessel_type], group.marker_style).then(marker=>{
 
                 _eraseMyFleetMarker(data[ai.mmsi]);
 
@@ -167,19 +210,53 @@ module.exports = function (options) {
                 temp.vessel_name = label_line(data[ai.vessel_name], group.label_color, group.label_shadow);    
                 temp.sog = label_line(data[ai.sog] + _gtxt("AISSearch2.KnotShort"), group.label_color, group.label_shadow);  
                 temp.cog = label_line(isNaN(data[ai.cog])?"":data[ai.cog].toFixed(1) + "&deg;", group.label_color, group.label_shadow);                 
-                temp.marker = marker;
+                temp.marker = '';
+                let svg = _needAltLegend?marker.svgAlt: marker.svg;
+//console.log(svg)
+
+                let re = /\.([^\.\{\}]+){([^\{\}]+)}/g, a, searchStyles = svg, counter = 0;
+                //let str = '<defs><style>.cls-1{fill:#246cbd;}.cls-2{fill:#00ff;}</style></defs>';
+                while ((a = re.exec(searchStyles)) !== null) {
+//console.log(a)
+                    svg = svg.replace(new RegExp(`class="${a[1]}"`), `style="${counter==1?'opacity:0;':a[2]}"${!counter?' stroke=" "':''}`);
+                    counter++;
+                }
+
+                svg = svg.replace(/<svg/, '<svg style="transform:rotate(' + (!data[ai.cog] ? 0 : data[ai.cog]) + 'deg)"')
+                              .replace(/stroke="[^"]+"/, 'stroke-width="2" stroke="'+group.marker_style+'"');
+                const w = svg.replace(/[\s\S]+ width="([^"]+)"[\s\S]+/, '$1'),
+                      h = svg.replace(/[\s\S]+ height="([^"]+)"[\s\S]+/, '$1');
+//console.log(w, h, svg)
                 let m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
                     {
                         id:data[ai.mmsi],
                         icon: L.divIcon({
                             className: 'mf_label gr' + group.id,
-                            html: Handlebars.compile(markerTemplate)(temp)
+                            iconAnchor: [w/2==3.5?4:w/2,h/2==3.5?6:h/2],
+                            html: svg
                         }),
                         zIndexOffset:1000
                     });
                 m.id = data[ai.mmsi];
                 _markers.addLayer(m);
-            });
+
+                m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
+                    {
+                        id:data[ai.mmsi],
+                        icon: L.divIcon({
+                            className: 'mf_label gr' + group.id,
+                            iconAnchor: [-16,2],
+                            html: (function(o){
+                                return eval('`' + 
+                                markerTemplate.replace(/\{\{\{foo\}\}\}/g, '').replace(/\{\{\{?/g, '${o.').replace(/\}\}\}?/g, '}') + 
+                                '`');
+                            })(temp) 
+                        }),
+                        zIndexOffset:1000
+                    });
+                m.id = data[ai.mmsi];
+                _markers.addLayer(m);
+            //});
         }
 
     },
@@ -287,10 +364,24 @@ module.exports = function (options) {
         drawMyFleetMarker: _drawMyFleetMarker,
 
         highlightMarker: function(i, group){
+            // $('.mf_label.gr'+group.id+' svg').each((i,e)=>{
+            //     let paths = e.querySelectorAll('path');
+            //     if(paths[1])
+            //         paths[1].style.fill = group.marker_style;
+            // })
+            // $('.mf_label.gr'+group.id+' svg rect').css({"stroke":group.marker_style});
+
+            // $('.mf_label.gr'+group.id+' .label_color').css({"color":group.label_color});
+            // $('.mf_label.gr'+group.id+' .label_shadow').css({"color":group.label_shadow.color, "text-shadow":group.label_shadow.text_shadow});
             $('.mf_label.gr'+group.id+' svg').each((i,e)=>{
-                let paths = e.querySelectorAll('path');
-                if(paths[1])
-                    paths[1].style.fill = group.marker_style;
+                let paths = e.querySelectorAll('path'),
+                    circle = e.querySelectorAll('circle');
+                // if(paths[1])
+                //     paths[1].style.fill = group.marker_style;
+                if(paths[0])
+                    paths[0].style.stroke = group.marker_style;
+                if(circle[0])
+                    circle[0].style.stroke = group.marker_style;
             })
             $('.mf_label.gr'+group.id+' svg rect').css({"stroke":group.marker_style});
 

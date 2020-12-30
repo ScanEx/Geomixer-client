@@ -102,6 +102,7 @@ _parseVoyageInfo = function (response, vessels) {
             vt = response.Result.fields.indexOf("vessel_type"),
             cog = response.Result.fields.indexOf("cog"),
             sog = response.Result.fields.indexOf("sog"),
+            length = response.Result.fields.indexOf("length"),
             data,
             eg;
         if (_data){ // _data.groups.length>1 || _data.groups[0].vessels_length>0
@@ -129,7 +130,8 @@ _parseVoyageInfo = function (response, vessels) {
                     ts_pos_utc: _aisLayerSearcher.formatDateTime(d), dt_pos_utc: _aisLayerSearcher.formatDate(d),
                     ts_pos_org: c[ts_pos_utc],
                     xmin: c[lat], xmax: c[lat], ymin: c[lon], ymax: c[lon],
-                    vessel_type: c[vt], cog: c[cog], sog: c[sog]
+                    vessel_type: c[vt], cog: c[cog], sog: c[sog],
+                    length: c[length]
                 };
             member.icon_rot = Math.round(member.cog / 15) * 15;
             _aisLayerSearcher.placeVesselTypeIcon(member);
@@ -202,7 +204,9 @@ module.exports = function ({aisLayerSearcher, toolbox, modulePath}) {
     _modulePath = modulePath;
     _tools = toolbox;
     _aisLayerSearcher = aisLayerSearcher;
-    _mapID = String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID);
+    _mapID = String($(_queryMapLayers.buildedTree).find("[MapID]")[0].gmxProperties.properties.MapID);    
+    if (_mapID=='LTGVP')
+        _mapID = 'KGEJB';
     let addGroupField = function(lid, resolve, reject, vessels){
 console.log("add group and style field");
         sendCrossDomainJSONRequest(aisLayerSearcher.baseUrl + 'VectorLayer/Update.ashx?VectorLayerID=' + lid +
@@ -332,18 +336,25 @@ console.log("add group and style field");
         _tools.specialVesselFilters = {key: "drawMarker", value: (args, ai, displayed)=>{          
             let vessel = Polyfill.find(_vessels, v=>{
                 return v.mmsi && v.mmsi==args.properties[ai.mmsi];
-            })
+            });
             if (vessel){
                 let group = Polyfill.find(_vessels, v=>(!v.mmsi && !v.imo && v.group==vessel.group));
                 if (vessel.group)
                     group = emptyGroup(vessel.group, false, group.gmx_id, group.style);
                 else
                     group = emptyGroup(_defaultGroup, true, group.gmx_id, group.style);
+                let marker;
+                if (!vessel.svg){
+                    marker = {vessel_type: args.properties[ai.vessel_type], sog: args.properties[ai.sog], length: args.properties[ai.length]};
+                    _aisLayerSearcher.placeVesselTypeIcon(marker);
+                }  
+                else
+                    marker = vessel;         
                 _tools.drawMyFleetMarker(args, _markerTemplate, group, ai, 
-                    (displayed=="all" || displayed.indexOf(vessel.mmsi.toString())>=0) && _view.notDisplayed.indexOf(vessel.mmsi.toString())<0);
+                    (displayed=="all" || displayed.indexOf(vessel.mmsi.toString())>=0) && _view.notDisplayed.indexOf(vessel.mmsi.toString())<0,
+                    marker);
             }
         }}
-        // _repaintMap(vessels); // only on init
         return Promise.resolve();
     }).bind(this));
 
@@ -396,7 +407,7 @@ console.log("add group and style field");
                 this.view.repaint()
                 return;
             }
-console.log('UPDATE')
+//console.log('UPDATE')
 
             _actualUpdate = new Date().getTime();
             let thisModel = this,

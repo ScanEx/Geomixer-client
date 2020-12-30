@@ -107,22 +107,27 @@ module.exports = function (options) {
             }
         },
         placeVesselTypeIcon: function(vessel){
+            if (vessel.icon)
+                return;
             let protocol = document.location.protocol,
             icon;            
             // speed icon
-            icon = _vesselLegend.getIconAlt("vessel.vessel_name", vessel.sog);
+            icon = _vesselLegend.getIconAlt({vessel_name: "vessel.vessel_name", sog:vessel.sog, length:vessel.length});
             if (icon){
                 vessel.iconAlt = protocol + icon.url; 
                 vessel.imgAlt =  icon.img;
                 vessel.colorAlt = icon.color;
+                vessel.svgAlt = icon.svg;
             }         
             // type icon
-            icon = _vesselLegend.getIcon(vessel.vessel_type, vessel.sog);
+            icon = _vesselLegend.getIcon(vessel);
             if (icon){
                 vessel.icon = protocol + icon.url;
                 vessel.img =  icon.img;
                 vessel.color = icon.color;
+                vessel.svg = icon.svg;
             }
+//console.log(vessel)
         },
         searchPositionsAgg2: function (mmsi, dateInterval, callback) {
             fetch(`${_baseUrl}plugins/AIS/SearchPositionsAsync.ashx?layer=${_historyLayer}&mmsi=${mmsi}&s=${dateInterval.dateBegin.toISOString()}&e=${dateInterval.dateEnd.toISOString()}`, {
