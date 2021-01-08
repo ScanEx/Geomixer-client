@@ -49,11 +49,13 @@ const RouteView = function ({ model, layer }) {
             if (r.Status && r.Status.toLowerCase() == 'ok' && r.Result) {
                 vesselList = r.Result.values.map(v => { return { mmsi: v[0], name: v[1] } });
                 this.vessel = vesselList[0];
-                this.selectVessel = new SelectControl(this.frame.find('.select_container')[0], vesselList.map(l => l.name), 0,
+                this.selectVessel = new SelectControl(this.frame.find('.select_container')[0], vesselList.reduce((p,c) => {if(c.name)p.push(c.name);return p;}, []), 0,
                     selected => {
                         thisView.route = null;
-                        if (routeLine)
-                            lmap.removeLayer(routeLine);
+                        if (routeLines.length){
+                            routeLines.forEach(rl=>lmap.removeLayer(rl));
+                            routeLines.length = 0;
+                        }
                         if (routeNodes.length) {
                             routeNodes.forEach(n => lmap.removeLayer(n));
                             routeNodes.length = 0;
@@ -110,7 +112,7 @@ const RouteView = function ({ model, layer }) {
         }
     });
 
-    let routeLine, routeNodes = [];
+    let routeLines = [], routeNodes = [];
     this.route = null;
     const drawMarkers = function () {
         if (!this.route || !this.route.markers)
@@ -122,9 +124,11 @@ const RouteView = function ({ model, layer }) {
             routeNodes.length = 0;
         }
 
+        const isMulti = this.route.wkb_geometry.type.toLowerCase()=='multilinestring';
         this.route.markers.forEach(m => {
-            let nw = lmap.layerPointToLatLng(lmap.latLngToLayerPoint([m.lat, m.lon]).subtract([5, 5]));
-            se = lmap.layerPointToLatLng(lmap.latLngToLayerPoint([m.lat, m.lon]).add([4, 4]));
+            let pt = [m.lat, isMulti && m.lon<0 ?  m.lon+360 :  m.lon];
+            let nw = lmap.layerPointToLatLng(lmap.latLngToLayerPoint(pt).subtract([5, 5]));
+            se = lmap.layerPointToLatLng(lmap.latLngToLayerPoint(pt).add([4, 4]));
             let marker = L.rectangle([nw, se], { color: "red", weight: 1 }).addTo(lmap);
             marker.bindPopup(Object.keys(m).map(k => {
                 return k != 'wkb_geometry' && k != 'id' ? `<b>${k}:</b> ${m[k] != null ? m[k] : ''}` : '';
@@ -141,14 +145,16 @@ const RouteView = function ({ model, layer }) {
                 let tr = e.currentTarget.parentElement,
                     i = parseInt(tr.id);
 
-                if (tr.className.search(/\bactive\b/)!=-1 && e.currentTarget.querySelector('svg.position-icon') && routeLine){
-                    lmap.fitBounds(routeLine.getBounds());
+                if (tr.className.search(/\bactive\b/)!=-1 && e.currentTarget.querySelector('svg.position-icon') && routeLines.length){
+                    lmap.fitBounds(routeLines[0].getBounds());
                     return;
                 }
                 
                 this.route = null;
-                if (routeLine)
-                    lmap.removeLayer(routeLine);
+                if (routeLines.length){
+                    routeLines.forEach(rl=>lmap.removeLayer(rl));
+                    routeLines.length = 0;
+                }
 
                 if (tr.className.search(/\bactive\b/)!=-1){
                     tr.className = tr.className.replace(/ active/, '');
@@ -166,25 +172,34 @@ const RouteView = function ({ model, layer }) {
                 }
 
                 this.route = this.model.data.routes[i];
-                let distance = 0,
-                    route = this.route,
-                    prev,
-                    coords = this.route.wkb_geometry.coordinates.map(c => {
-                        if (prev)
-                            distance += lmap.distance(prev, [c[1], c[0]]);
-                        prev = [c[1], c[0]];
-                        return [c[1], c[0]];
+
+                const thisRoute = this.route,
+                      isMulti = thisRoute.wkb_geometry.type.toLowerCase()=='multilinestring',
+                      lines = !isMulti ?
+                [thisRoute.wkb_geometry.coordinates] : thisRoute.wkb_geometry.coordinates;
+               
+                lines.forEach(line=>{
+                    let distance = 0,
+                        prev,
+                        coords = line.map(c => {
+                            const cur = [c[1], isMulti && c[0]<0 ? c[0]+360 : c[0]];
+                            if (prev)
+                                distance += lmap.distance(prev, cur);
+                            prev = cur;
+                            return cur;
+                        });
+                    const rl = L.polyline(coords, { color: 'red', weight: 2 })
+                    routeLines.push(rl);
+                    rl.addTo(lmap);
+                    let popup = [];
+                    Object.keys(thisRoute).forEach(k => {
+                        if (k != 'wkb_geometry' && k != 'id' && k != 'markers')
+                            popup.push(`<b>${k}:</b> ${thisRoute[k] != null ? thisRoute[k] : ''}`);
                     });
-                routeLine = L.polyline(coords, { color: 'red', weight: 2 }).addTo(lmap);
-                lmap.fitBounds(routeLine.getBounds());
-
-                let popup = [];
-                Object.keys(route).forEach(k => {
-                    if (k != 'wkb_geometry' && k != 'id' && k != 'markers')
-                        popup.push(`<b>${k}:</b> ${route[k] != null ? route[k] : ''}`);
-                })
-                routeLine.bindPopup(popup.join('<br>') + `<br><br><b>${_gtxt('RouteVwr.dist')}</b> ${Math.round(distance / 1000)} ${_gtxt('RouteVwr.km')}`);
-
+                    rl.bindPopup(popup.join('<br>') + `<br><br><b>${_gtxt('RouteVwr.dist')}</b> ${Math.round(distance / 1000)} ${_gtxt('RouteVwr.km')}`);
+              
+                });
+                lmap.fitBounds(routeLines[0].getBounds());
                 drawMarkers.call(this);
 
                 break;

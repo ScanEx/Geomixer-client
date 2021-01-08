@@ -580,7 +580,8 @@ var xlink$1 = namespaces_1.xlink;
 
 var defaultConfig = {
   attrs: ( obj = {
-    style: ['position: absolute', 'width: 0', 'height: 0'].join('; ')
+    style: ['position: absolute', 'width: 0', 'height: 0'].join('; '),
+    'aria-hidden': 'true'
   }, obj[svg$1.name] = svg$1.uri, obj[xlink$1.name] = xlink$1.uri, obj )
 };
 var obj;
@@ -913,7 +914,7 @@ var locationChangeAngularEmitter = function (eventName) {
   }]);
 };
 
-var defaultSelector = 'linearGradient, radialGradient, pattern';
+var defaultSelector = 'linearGradient, radialGradient, pattern, mask, clipPath';
 
 /**
  * @param {Element} svg
@@ -1135,7 +1136,7 @@ var BrowserSprite = (function (Sprite$$1) {
     }
 
     if (typeof cfg.locationChangeAngularEmitter === 'undefined') {
-      config.locationChangeAngularEmitter = 'angular' in window;
+        config.locationChangeAngularEmitter = typeof window.angular !== 'undefined';
     }
 
     if (typeof cfg.moveGradientsOutsideSymbol === 'undefined') {
@@ -1441,7 +1442,7 @@ var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WE
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
+function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
 
 var Request = __webpack_require__(/*! ../Request */ "./src/Request.js");
 
@@ -1903,11 +1904,18 @@ var RouteView = function RouteView(_ref) {
         };
       });
       _this.vessel = vesselList[0];
-      _this.selectVessel = new SelectControl(_this.frame.find('.select_container')[0], vesselList.map(function (l) {
-        return l.name;
-      }), 0, function (selected) {
+      _this.selectVessel = new SelectControl(_this.frame.find('.select_container')[0], vesselList.reduce(function (p, c) {
+        if (c.name) p.push(c.name);
+        return p;
+      }, []), 0, function (selected) {
         thisView.route = null;
-        if (routeLine) lmap.removeLayer(routeLine);
+
+        if (routeLines.length) {
+          routeLines.forEach(function (rl) {
+            return lmap.removeLayer(rl);
+          });
+          routeLines.length = 0;
+        }
 
         if (routeNodes.length) {
           routeNodes.forEach(function (n) {
@@ -1949,7 +1957,7 @@ var RouteView = function RouteView(_ref) {
       return this.frame.find('.footer')[0].getBoundingClientRect().height;
     }
   });
-  var routeLine,
+  var routeLines = [],
       routeNodes = [];
   this.route = null;
 
@@ -1963,9 +1971,11 @@ var RouteView = function RouteView(_ref) {
       routeNodes.length = 0;
     }
 
+    var isMulti = this.route.wkb_geometry.type.toLowerCase() == 'multilinestring';
     this.route.markers.forEach(function (m) {
-      var nw = lmap.layerPointToLatLng(lmap.latLngToLayerPoint([m.lat, m.lon]).subtract([5, 5]));
-      se = lmap.layerPointToLatLng(lmap.latLngToLayerPoint([m.lat, m.lon]).add([4, 4]));
+      var pt = [m.lat, isMulti && m.lon < 0 ? m.lon + 360 : m.lon];
+      var nw = lmap.layerPointToLatLng(lmap.latLngToLayerPoint(pt).subtract([5, 5]));
+      se = lmap.layerPointToLatLng(lmap.latLngToLayerPoint(pt).add([4, 4]));
       var marker = L.rectangle([nw, se], {
         color: "red",
         weight: 1
@@ -1985,13 +1995,19 @@ var RouteView = function RouteView(_ref) {
         var tr = e.currentTarget.parentElement,
             i = parseInt(tr.id);
 
-        if (tr.className.search(/\bactive\b/) != -1 && e.currentTarget.querySelector('svg.position-icon') && routeLine) {
-          lmap.fitBounds(routeLine.getBounds());
+        if (tr.className.search(/\bactive\b/) != -1 && e.currentTarget.querySelector('svg.position-icon') && routeLines.length) {
+          lmap.fitBounds(routeLines[0].getBounds());
           return;
         }
 
         this.route = null;
-        if (routeLine) lmap.removeLayer(routeLine);
+
+        if (routeLines.length) {
+          routeLines.forEach(function (rl) {
+            return lmap.removeLayer(rl);
+          });
+          routeLines.length = 0;
+        }
 
         if (tr.className.search(/\bactive\b/) != -1) {
           tr.className = tr.className.replace(/ active/, '');
@@ -2015,24 +2031,31 @@ var RouteView = function RouteView(_ref) {
         }
 
         this.route = this.model.data.routes[i];
-        var distance = 0,
-            route = this.route,
-            prev,
-            coords = this.route.wkb_geometry.coordinates.map(function (c) {
-          if (prev) distance += lmap.distance(prev, [c[1], c[0]]);
-          prev = [c[1], c[0]];
-          return [c[1], c[0]];
+        var thisRoute = this.route,
+            isMulti = thisRoute.wkb_geometry.type.toLowerCase() == 'multilinestring',
+            lines = !isMulti ? [thisRoute.wkb_geometry.coordinates] : thisRoute.wkb_geometry.coordinates;
+        lines.forEach(function (line) {
+          var distance = 0,
+              prev,
+              coords = line.map(function (c) {
+            var cur = [c[1], isMulti && c[0] < 0 ? c[0] + 360 : c[0]];
+            if (prev) distance += lmap.distance(prev, cur);
+            prev = cur;
+            return cur;
+          });
+          var rl = L.polyline(coords, {
+            color: 'red',
+            weight: 2
+          });
+          routeLines.push(rl);
+          rl.addTo(lmap);
+          var popup = [];
+          Object.keys(thisRoute).forEach(function (k) {
+            if (k != 'wkb_geometry' && k != 'id' && k != 'markers') popup.push("<b>".concat(k, ":</b> ").concat(thisRoute[k] != null ? thisRoute[k] : ''));
+          });
+          rl.bindPopup(popup.join('<br>') + "<br><br><b>".concat(_gtxt('RouteVwr.dist'), "</b> ").concat(Math.round(distance / 1000), " ").concat(_gtxt('RouteVwr.km')));
         });
-        routeLine = L.polyline(coords, {
-          color: 'red',
-          weight: 2
-        }).addTo(lmap);
-        lmap.fitBounds(routeLine.getBounds());
-        var popup = [];
-        Object.keys(route).forEach(function (k) {
-          if (k != 'wkb_geometry' && k != 'id' && k != 'markers') popup.push("<b>".concat(k, ":</b> ").concat(route[k] != null ? route[k] : ''));
-        });
-        routeLine.bindPopup(popup.join('<br>') + "<br><br><b>".concat(_gtxt('RouteVwr.dist'), "</b> ").concat(Math.round(distance / 1000), " ").concat(_gtxt('RouteVwr.km')));
+        lmap.fitBounds(routeLines[0].getBounds());
         drawMarkers.call(this);
         break;
     }
