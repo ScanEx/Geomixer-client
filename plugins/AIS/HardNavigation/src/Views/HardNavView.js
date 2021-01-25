@@ -327,7 +327,7 @@ const MyCollectionView = function ({ model, layer }) {
                                 });  
                                 const borderStatusRow = $(`<tr><td>${_gtxt("HardNavigation.BorderStatus")}</td><td class="selector"></td></tr>`),
                                       borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
-                                      borderStatusSelect = $(`<select style="border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;"><option>${borderStatusOptions[0]}</option><option>${borderStatusOptions[1]}</option></select>`);
+                                      borderStatusSelect = $(`<select style="border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;background-color: #FFFFFF;"><option>${borderStatusOptions[0]}</option><option>${borderStatusOptions[1]}</option></select>`);
                                 borderStatusSelect[0].selectedIndex = borderStatusOptions.indexOf(borderStatus);
                                 borderStatusSelect.on('change', e=>dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val()));
                                 borderStatusRow.find('.selector').append(borderStatusSelect) ;     
@@ -406,7 +406,7 @@ const MyCollectionView = function ({ model, layer }) {
             });
             const borderStatusRow = $(`<tr><td>${_gtxt("HardNavigation.BorderStatus")}</td><td class="selector"></td></tr>`),
                   borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
-                  borderStatusSelect = $(`<select style="border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;"><option>${borderStatusOptions[0]}</option><option>${borderStatusOptions[1]}</option></select>`);
+                  borderStatusSelect = $(`<select style="border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;background-color: #FFFFFF;"><option>${borderStatusOptions[0]}</option><option>${borderStatusOptions[1]}</option></select>`);
                   borderStatusSelect[0].selectedIndex = -1;
             borderStatusSelect.on('change', e=>dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val()));
             borderStatusRow.find('.selector').append(borderStatusSelect) ;     
@@ -439,6 +439,11 @@ const MyCollectionView = function ({ model, layer }) {
                 if (_stateUI == 'create_region')
                     _createBut.click();
             });
+        });
+        $(eoc).on('close', e => {
+            //L.gmxUtil.loaderStatus('HardNav', true);
+            if (_stateUI == 'create_region')
+                _createBut.click();
         });
     },
     _createRegion = function(){

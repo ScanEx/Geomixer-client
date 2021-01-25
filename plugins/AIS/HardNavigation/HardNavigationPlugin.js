@@ -2526,7 +2526,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
           });
           var borderStatusRow = $("<tr><td>".concat(_gtxt("HardNavigation.BorderStatus"), "</td><td class=\"selector\"></td></tr>")),
               borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
-              borderStatusSelect = $("<select style=\"border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;\"><option>".concat(borderStatusOptions[0], "</option><option>").concat(borderStatusOptions[1], "</option></select>"));
+              borderStatusSelect = $("<select style=\"border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;background-color: #FFFFFF;\"><option>".concat(borderStatusOptions[0], "</option><option>").concat(borderStatusOptions[1], "</option></select>"));
           borderStatusSelect[0].selectedIndex = borderStatusOptions.indexOf(borderStatus);
           borderStatusSelect.on('change', function (e) {
             return dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val());
@@ -2614,7 +2614,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
     });
     var borderStatusRow = $("<tr><td>".concat(_gtxt("HardNavigation.BorderStatus"), "</td><td class=\"selector\"></td></tr>")),
         borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
-        borderStatusSelect = $("<select style=\"border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;\"><option>".concat(borderStatusOptions[0], "</option><option>").concat(borderStatusOptions[1], "</option></select>"));
+        borderStatusSelect = $("<select style=\"border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;background-color: #FFFFFF;\"><option>".concat(borderStatusOptions[0], "</option><option>").concat(borderStatusOptions[1], "</option></select>"));
     borderStatusSelect[0].selectedIndex = -1;
     borderStatusSelect.on('change', function (e) {
       return dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val());
@@ -2648,6 +2648,10 @@ var MyCollectionView = function MyCollectionView(_ref) {
 
       if (_stateUI == 'create_region') _createBut.click();
     });
+  });
+  $(eoc).on('close', function (e) {
+    //L.gmxUtil.loaderStatus('HardNav', true);
+    if (_stateUI == 'create_region') _createBut.click();
   });
 },
     _createRegion = function _createRegion() {
