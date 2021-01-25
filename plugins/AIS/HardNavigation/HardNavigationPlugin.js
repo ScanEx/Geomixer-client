@@ -811,7 +811,8 @@ var xlink$1 = namespaces_1.xlink;
 
 var defaultConfig = {
   attrs: ( obj = {
-    style: ['position: absolute', 'width: 0', 'height: 0'].join('; ')
+    style: ['position: absolute', 'width: 0', 'height: 0'].join('; '),
+    'aria-hidden': 'true'
   }, obj[svg$1.name] = svg$1.uri, obj[xlink$1.name] = xlink$1.uri, obj )
 };
 var obj;
@@ -1144,7 +1145,7 @@ var locationChangeAngularEmitter = function (eventName) {
   }]);
 };
 
-var defaultSelector = 'linearGradient, radialGradient, pattern';
+var defaultSelector = 'linearGradient, radialGradient, pattern, mask, clipPath';
 
 /**
  * @param {Element} svg
@@ -1366,7 +1367,7 @@ var BrowserSprite = (function (Sprite$$1) {
     }
 
     if (typeof cfg.locationChangeAngularEmitter === 'undefined') {
-      config.locationChangeAngularEmitter = 'angular' in window;
+        config.locationChangeAngularEmitter = typeof window.angular !== 'undefined';
     }
 
     if (typeof cfg.moveGradientsOutsideSymbol === 'undefined') {
@@ -1773,6 +1774,14 @@ module.exports = function (options) {
       IsIdentity: false,
       IsComputed: false,
       expression: '"_mediadescript_"'
+    });
+    if (props.attributes.indexOf("BorderStatus") < 0) columns.push({
+      Name: 'BorderStatus',
+      ColumnSimpleType: 'String',
+      IsPrimary: false,
+      IsIdentity: false,
+      IsComputed: false,
+      expression: '"BorderStatus"'
     });
 
     if (columns.length == props.attributes.length) {
@@ -2493,6 +2502,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
             name = result.values[0][result.fields.indexOf('Name')],
             type = result.values[0][result.fields.indexOf('Type')],
             media = result.values[0][result.fields.indexOf('_mediadescript_')],
+            borderStatus = result.values[0][result.fields.indexOf('BorderStatus')],
             eoc = new nsGmx.EditObjectControl(props.name, null, {
           drawingObject: obj[0]
         }),
@@ -2503,6 +2513,7 @@ var MyCollectionView = function MyCollectionView(_ref) {
           eoc.set('Type', type);
           eoc.set('State', 'active1');
           eoc.set('_mediadescript_', media);
+          eoc.set('BorderStatus', borderStatus);
           eoc.set('Time', date + time);
           eoc.set('Date', date + time);
           eoc.set('TimeChange', dt.getTime() / 1000);
@@ -2512,6 +2523,18 @@ var MyCollectionView = function MyCollectionView(_ref) {
             var name = el.querySelectorAll('td')[0].innerText;
             if (name.search(/\b(gmx_id|Name|Type|Date|Time|DateChange|TimeChange)\b/i) < 0) //if (i==0 || name.search(/\b(State)\b/i)==0)
               el.style.display = 'none';
+          });
+          var borderStatusRow = $("<tr><td>".concat(_gtxt("HardNavigation.BorderStatus"), "</td><td class=\"selector\"></td></tr>")),
+              borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
+              borderStatusSelect = $("<select style=\"border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;\"><option>".concat(borderStatusOptions[0], "</option><option>").concat(borderStatusOptions[1], "</option></select>"));
+          borderStatusSelect[0].selectedIndex = borderStatusOptions.indexOf(borderStatus);
+          borderStatusSelect.on('change', function (e) {
+            return dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val());
+          });
+          borderStatusRow.find('.selector').append(borderStatusSelect);
+          dlg.find('table').append(borderStatusRow);
+          ['Name', 'Type', 'TimeChange', 'DateChange', 'Date', 'Time'].forEach(function (k) {
+            dlg.find("td:contains(\"".concat(k, "\")")).css('white-space', 'nowrap').text(_gtxt("HardNavigation." + k));
           });
           dlg.find(".buttonLink:contains(\"".concat(_gtxt("Создать"), "\")")).on('click', function (e) {
             _thisView.inProgress(true);
@@ -2588,6 +2611,18 @@ var MyCollectionView = function MyCollectionView(_ref) {
     dlg.find('tr').each(function (i, el) {
       var name = el.querySelectorAll('td')[0].innerText;
       if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0) el.style.display = 'none';
+    });
+    var borderStatusRow = $("<tr><td>".concat(_gtxt("HardNavigation.BorderStatus"), "</td><td class=\"selector\"></td></tr>")),
+        borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
+        borderStatusSelect = $("<select style=\"border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;\"><option>".concat(borderStatusOptions[0], "</option><option>").concat(borderStatusOptions[1], "</option></select>"));
+    borderStatusSelect[0].selectedIndex = -1;
+    borderStatusSelect.on('change', function (e) {
+      return dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val());
+    });
+    borderStatusRow.find('.selector').append(borderStatusSelect);
+    dlg.find('table').append(borderStatusRow);
+    ['Name', 'Type', 'Time', 'Date'].forEach(function (k) {
+      dlg.find("td:contains(\"".concat(k, "\")")).text(_gtxt("HardNavigation." + k));
     });
     dlg.find(".buttonLink:contains(\"".concat(_gtxt("Создать"), "\")")).on('click', function (e) {
       _thisView.inProgress(true);
@@ -3073,7 +3108,16 @@ _translationsHash.addtext('rus', {
   "HardNavigation.edit_description_lbl": "Редактировать",
   "HardNavigation.edit_description_ttl": "Редактировать медиа описание",
   "HardNavigation.calendar_today": "сегодня",
-  "HardNavigation.layer_error": 'Ошибка слоя'
+  "HardNavigation.layer_error": 'Ошибка слоя',
+  "HardNavigation.Name": "Название",
+  "HardNavigation.Type": "Тип",
+  "HardNavigation.Date": "Дата",
+  "HardNavigation.Time": "Время",
+  "HardNavigation.BorderStatus": "Статус границ",
+  "HardNavigation.DateChange": "Дата изменения",
+  "HardNavigation.TimeChange": "Время изменения",
+  "HardNavigation.defined": "определенные",
+  "HardNavigation.undefined": "неопределенные"
 });
 
 _translationsHash.addtext('eng', {
@@ -3082,7 +3126,7 @@ _translationsHash.addtext('eng', {
   "HardNavigation.choose_reg": "Choose region",
   "HardNavigation.create_reg": "Create region",
   "HardNavigation.instr_hint": "Draw a region or choose existing",
-  "HardNavigation.attr_tbl": "Table of attrobutes",
+  "HardNavigation.attr_tbl": "Table of attributes",
   "HardNavigation.reg_id": "Region ID",
   "HardNavigation.reg_created": "Created",
   "HardNavigation.reg_updated": "Changed",
@@ -3096,7 +3140,16 @@ _translationsHash.addtext('eng', {
   "HardNavigation.edit_description_lbl": "Edit description",
   "HardNavigation.edit_description_ttl": "Edit media description",
   "HardNavigation.calendar_today": "today",
-  "HardNavigation.layer_error": 'Layer error'
+  "HardNavigation.layer_error": 'Layer error',
+  "HardNavigation.Name": "Name",
+  "HardNavigation.Type": "Type",
+  "HardNavigation.Date": "Date",
+  "HardNavigation.Time": "Time",
+  "HardNavigation.BorderStatus": "Border status",
+  "HardNavigation.DateChange": "Change date",
+  "HardNavigation.TimeChange": "Change time",
+  "HardNavigation.defined": "defined",
+  "HardNavigation.undefined": "undefined"
 });
 
 /***/ })

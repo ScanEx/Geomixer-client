@@ -19,7 +19,17 @@
         "HardNavigation.edit_description_lbl": "Редактировать",
         "HardNavigation.edit_description_ttl": "Редактировать медиа описание",
         "HardNavigation.calendar_today": "сегодня",
-        "HardNavigation.layer_error": 'Ошибка слоя'
+        "HardNavigation.layer_error": 'Ошибка слоя',
+
+        "HardNavigation.Name":"Название",	
+        "HardNavigation.Type":"Тип",		
+        "HardNavigation.Date":"Дата",	
+        "HardNavigation.Time":"Время",	
+        "HardNavigation.BorderStatus":"Статус границ",
+        "HardNavigation.DateChange":"Дата изменения",	
+        "HardNavigation.TimeChange":"Время изменения",	
+        "HardNavigation.defined":"определенные",	
+        "HardNavigation.undefined":"неопределенные",
         
     });
     _translationsHash.addtext('eng', {
@@ -42,5 +52,15 @@
         "HardNavigation.edit_description_lbl": "Edit description",
         "HardNavigation.edit_description_ttl": "Edit media description",
         "HardNavigation.calendar_today": "today",
-        "HardNavigation.layer_error": 'Layer error'
+        "HardNavigation.layer_error": 'Layer error',
+
+        "HardNavigation.Name":"Name",	
+        "HardNavigation.Type":"Type",		
+        "HardNavigation.Date":"Date",	
+        "HardNavigation.Time":"Time",	
+        "HardNavigation.BorderStatus":"Border status",
+        "HardNavigation.DateChange":"Change date",	
+        "HardNavigation.TimeChange":"Change time",	
+        "HardNavigation.defined":"defined",	
+        "HardNavigation.undefined":"undefined",	
     });

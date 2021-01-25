@@ -302,7 +302,8 @@ const MyCollectionView = function ({ model, layer }) {
                                 time = parseInt(result.values[0][result.fields.indexOf('Time')]),
                                 name = result.values[0][result.fields.indexOf('Name')],
                                 type = result.values[0][result.fields.indexOf('Type')],    
-                                media = result.values[0][result.fields.indexOf('_mediadescript_')],                   
+                                media = result.values[0][result.fields.indexOf('_mediadescript_')],
+                                borderStatus = result.values[0][result.fields.indexOf('BorderStatus')],                   
                                 eoc = new nsGmx.EditObjectControl(props.name, null, {drawingObject: obj[0]}),
                                 dt = new Date(); 
                             eoc.initPromise.done(()=>{      
@@ -310,7 +311,8 @@ const MyCollectionView = function ({ model, layer }) {
                                 eoc.set('Name', name); 
                                 eoc.set('Type', type); 
                                 eoc.set('State', 'active1');  
-                                eoc.set('_mediadescript_', media);       
+                                eoc.set('_mediadescript_', media);  
+                                eoc.set('BorderStatus', borderStatus);     
                                 eoc.set('Time', date + time); 
                                 eoc.set('Date', date + time);       
                                 eoc.set('TimeChange', dt.getTime()/1000); 
@@ -323,6 +325,16 @@ const MyCollectionView = function ({ model, layer }) {
                                     //if (i==0 || name.search(/\b(State)\b/i)==0)
                                         el.style.display = 'none';
                                 });  
+                                const borderStatusRow = $(`<tr><td>${_gtxt("HardNavigation.BorderStatus")}</td><td class="selector"></td></tr>`),
+                                      borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
+                                      borderStatusSelect = $(`<select style="border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;"><option>${borderStatusOptions[0]}</option><option>${borderStatusOptions[1]}</option></select>`);
+                                borderStatusSelect[0].selectedIndex = borderStatusOptions.indexOf(borderStatus);
+                                borderStatusSelect.on('change', e=>dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val()));
+                                borderStatusRow.find('.selector').append(borderStatusSelect) ;     
+                                dlg.find('table').append(borderStatusRow); 
+                                ['Name','Type','TimeChange','DateChange','Date','Time'].forEach(k=>{
+                                    dlg.find(`td:contains("${k}")`).css('white-space', 'nowrap').text(_gtxt("HardNavigation." + k));
+                                });   
                                 dlg.find(`.buttonLink:contains("${_gtxt("Создать")}")`).on('click', e=>{
                                     _thisView.inProgress(true);
                                 });  
@@ -392,6 +404,16 @@ const MyCollectionView = function ({ model, layer }) {
                 if (name.search(/\b(gmx_id|Name|Type|Date|Time)\b/i) < 0)
                     el.style.display = 'none';
             });
+            const borderStatusRow = $(`<tr><td>${_gtxt("HardNavigation.BorderStatus")}</td><td class="selector"></td></tr>`),
+                  borderStatusOptions = [_gtxt("HardNavigation.defined"), _gtxt("HardNavigation.undefined")],
+                  borderStatusSelect = $(`<select style="border: 1px solid #AFC0D5;padding: 2px;margin: 1px 3px;"><option>${borderStatusOptions[0]}</option><option>${borderStatusOptions[1]}</option></select>`);
+                  borderStatusSelect[0].selectedIndex = -1;
+            borderStatusSelect.on('change', e=>dlg.find('.field-name-BorderStatus input').val(borderStatusSelect.val()));
+            borderStatusRow.find('.selector').append(borderStatusSelect) ;     
+            dlg.find('table').append(borderStatusRow);
+            ['Name','Type','Time','Date'].forEach(k=>{
+                dlg.find(`td:contains("${k}")`).text(_gtxt("HardNavigation." + k));
+            })  
             dlg.find(`.buttonLink:contains("${_gtxt("Создать")}")`).on('click', e => {
                 _thisView.inProgress(true);
             });

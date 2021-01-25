@@ -47,7 +47,10 @@ module.exports = function (options) {
             columns.push({ Name: 'Origin', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"Origin"' });
         if (props.attributes.indexOf("_mediadescript_") < 0)
             columns.push({ Name: '_mediadescript_', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"_mediadescript_"' });
-
+       
+        if (props.attributes.indexOf("BorderStatus") < 0)
+            columns.push({ Name: 'BorderStatus', ColumnSimpleType: 'String', IsPrimary: false, IsIdentity: false, IsComputed: false, expression: '"BorderStatus"' });
+ 
         if (columns.length==props.attributes.length){
             resolve(columns.length); 
         }
