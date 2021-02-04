@@ -1,0 +1,34 @@
+.imagecount-view.select-list{
+    border: 1px solid #DDD;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    background-color: #fff;
+    display:none;
+    position:absolute;
+}
+.imagecount-view .select-options{
+    padding: 5px 0 5px 15px;
+    cursor: pointer;
+}
+.imagecount-view .select-options.selected, .select-options.selected:hover{
+    background-color: #ccc;
+}
+.imagecount-view .select-options:hover{
+    background-color: #ddd;
+}
+.imagecount-view .select-control{
+    background-color: #fff;
+    padding: 14px;
+    border: 1px solid #DDD;
+    margin-top: 0;
+    border-radius: 3px;
+    width: 160px;
+    cursor: pointer;
+    margin-top: -15px;
+}
+.imagecount-view .select-control .select-active{    
+    font-weight: 700;
+}
+.imagecount-view .select-control .icon-down-open, .select-control .icon-up-open{    
+    float: right
+}
