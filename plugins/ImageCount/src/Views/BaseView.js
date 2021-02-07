@@ -23,7 +23,7 @@ BaseView.prototype = function () {
             if(!this.frame)
                 return;
 
-console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset)
+//console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset)
             let h = $('.iconSidebarControl-pane').height() - this.topOffset - this.bottomOffset;
             // if (this.startScreen){
             //     this.startScreen.height(h);
@@ -44,10 +44,7 @@ console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomO
                 return;
 
             let scrollCont = this.container.find('.mCSB_container'),
-            content = $(
-                //Handlebars.compile(this.tableTemplate)(this.model.data)
-                this.tableTemplate
-            ); 
+            content = $(this.drawTable(this.model.data)); 
 
             if (!scrollCont[0]) {
                 this.container.append(content).mCustomScrollbar(this.mcsbOptions);

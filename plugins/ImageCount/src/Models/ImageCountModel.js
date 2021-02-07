@@ -5,14 +5,14 @@
 
 module.exports = function (options) {
 
-    const _lmap = nsGmx.leafletMap, _data = {system:'', interval:{}, polygon:{}};
+    const _lmap = nsGmx.leafletMap, _data = {system:'', interval:null, polygon:null};
   
     return {
         isDirty: true,
         get data() { return _data },
         set data(value) { _data = value; },
         update: function () {
-console.log('IMC UPDATE', this.isDirty)
+console.log('IMC UPDATE', _data, this.isDirty)
             if (!this.isDirty)
                 return;
 

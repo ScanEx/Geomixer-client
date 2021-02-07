@@ -1435,6 +1435,212 @@ module.exports = g;
 
 /***/ }),
 
+/***/ "./src/Calendar.js":
+/*!*************************!*\
+  !*** ./src/Calendar.js ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var SIMPLE_MODE = 1,
+    ADVANCED_MODE = 2;
+
+var _toMidnight = nsGmx.DateInterval.toMidnight,
+    _fromUTC = function _fromUTC(date) {
+  if (!date) return null;
+  var timeOffset = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.valueOf() - timeOffset);
+},
+    _toUTC = function _toUTC(date) {
+  if (!date) return null;
+  var timeOffset = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.valueOf() + timeOffset);
+},
+    _setMode = function _setMode(mode) {
+  if (this._curMode === mode) {
+    return this;
+  } //this.reset();
+
+
+  this._dateInputs.datepicker('hide');
+
+  this._curMode = mode;
+  var isSimple = mode === SIMPLE_MODE;
+  $el.find('.CalendarWidget-onlyMaxVersion').toggle(!isSimple);
+
+  this._moreIcon.toggleClass('icon-calendar', isSimple).toggleClass('icon-calendar-empty', !isSimple).attr('title', isSimple ? _gtxt('CalendarWidget.ExtendedViewTitle') : _gtxt('CalendarWidget.MinimalViewTitle'));
+
+  var dateBegin = this._dateBegin.datepicker('getDate'),
+      dateEnd = this._dateEnd.datepicker('getDate');
+
+  if (isSimple && dateBegin && dateEnd && dateBegin.valueOf() !== dateEnd.valueOf()) {
+    _selectFunc.call(this, this._dateEnd);
+
+    _updateModel().call(this);
+  } //this.trigger('modechange');
+
+
+  return this;
+},
+    _selectFunc = function _selectFunc(activeInput) {
+  var begin = this._dateBegin.datepicker('getDate');
+
+  var end = this._dateEnd.datepicker('getDate');
+
+  if (end && begin && begin > end) {
+    var dateToFix = activeInput[0] == this._dateEnd[0] ? this._dateBegin : this._dateEnd;
+    dateToFix.datepicker('setDate', $(activeInput[0]).datepicker('getDate'));
+  } else if (this._curMode === SIMPLE_MODE) {
+    //либо установлена только одна дата, либо две, но отличающиеся
+    if (!begin != !end || begin && begin.valueOf() !== end.valueOf()) {
+      this._dateEnd.datepicker('setDate', this._dateBegin.datepicker('getDate'));
+    }
+  }
+},
+    _updateModel = function _updateModel() {
+  var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
+      dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
+
+  this.dateInterval.set({
+    dateBegin: dateBegin ? _toMidnight(dateBegin) : null,
+    dateEnd: dateEnd ? _toMidnight(dateEnd.valueOf() + nsGmx.DateInterval.MS_IN_DAY) : null
+  });
+},
+    _updateWidget = function _updateWidget() {
+  var dateBegin = this.dateInterval.get('dateBegin'),
+      dateEnd = this.dateInterval.get('dateEnd'),
+      dayms = nsGmx.DateInterval.MS_IN_DAY;
+
+  if (!dateBegin || !dateEnd) {
+    return;
+  }
+
+  ;
+  var isValid = !(dateBegin % dayms) && !(dateEnd % dayms);
+
+  var newDateBegin = _toUTC(dateBegin),
+      newDateEnd;
+
+  if (isValid) {
+    newDateEnd = _toUTC(new Date(dateEnd - dayms));
+
+    if (dateEnd - dateBegin > dayms) {
+      _setMode.call(this, ADVANCED_MODE);
+    }
+  } else {
+    newDateEnd = _toUTC(dateEnd);
+
+    _setMode.call(this, ADVANCED_MODE);
+  } //если мы сюда пришли после выбора интервала в самом виджете, вызов setDate сохраняет фокус на input-поле
+  //возможно, это какая-то проблема jQueryUI.datepicker'ов.
+  //чтобы этого избежать, явно проверяем, нужно ли изменять дату
+
+
+  var prevDateBegin = this._dateBegin.datepicker('getDate'),
+      prevDateEnd = this._dateEnd.datepicker('getDate');
+
+  if (!prevDateBegin || prevDateBegin.valueOf() !== newDateBegin.valueOf()) {
+    this._dateBegin.datepicker('setDate', newDateBegin);
+  }
+
+  if (!prevDateEnd || prevDateEnd.valueOf() !== newDateEnd.valueOf()) {
+    this._dateEnd.datepicker('setDate', newDateEnd);
+  }
+},
+    _shiftDates = function _shiftDates(delta) {
+  var dateBegin = _fromUTC(this._dateBegin.datepicker('getDate')),
+      dateEnd = _fromUTC(this._dateEnd.datepicker('getDate'));
+
+  if (!dateBegin || !dateEnd) {
+    return;
+  }
+
+  var shift = (dateEnd - dateBegin + nsGmx.DateInterval.MS_IN_DAY) * delta,
+      newDateBegin = new Date(dateBegin.valueOf() + shift),
+      newDateEnd = new Date(dateEnd.valueOf() + shift);
+
+  if ((!this._dateMin || _toMidnight(this._dateMin) <= _toMidnight(newDateBegin)) && (!this._dateMax || _toMidnight(this._dateMax) >= _toMidnight(newDateEnd))) {
+    this._dateBegin.datepicker('setDate', _toUTC(newDateBegin));
+
+    this._dateEnd.datepicker('setDate', _toUTC(newDateEnd));
+
+    _updateModel.call(this);
+  }
+};
+
+module.exports = function (options) {
+  $el = $('<div class="CalendarWidget ui-widget"></div>');
+  this.template = Handlebars.compile("\n    <table>\n    <tr>\n        <td><div class = \"CalendarWidget-iconScrollLeft ui-helper-noselect icon-left-open\"></div></td>\n        <td class = \"CalendarWidget-inputCell\"><input class = \"gmx-input-text CalendarWidget-dateBegin\"></td>\n        <td class = \"CalendarWidget-inputCell CalendarWidget-onlyMaxVersion\"><input class = \"gmx-input-text CalendarWidget-dateEnd\"></td>\n        <td><div class = \"CalendarWidget-iconScrollRight ui-helper-noselect icon-right-open\" ></div></td>\n        <td><div class = \"CalendarWidget-iconMore {{moreIconClass}}\" title = \"{{moreIconTitle}}\"></div></td>\n        <td><div class = \"CalendarWidget-forecast\" hidden>{{forecast}}</div></td>\n    </tr><tr>\n        <td></td>\n        <td class = \"CalendarWidget-dateBeginInfo\"></td>\n        <td class = \"CalendarWidget-dateEndInfo\"></td>\n        <td></td>\n        <td></td>\n    </tr>\n</table>\n<div class=\"CalendarWidget-footer\"></div>");
+  options = $.extend({
+    minimized: true,
+    showSwitcher: true,
+    dateMax: null,
+    dateMin: null,
+    dateFormat: 'dd.mm.yy',
+    name: null
+  }, options);
+  this._dateMin = options.dateMin;
+  this._dateMax = options.dateMax;
+  this.dateInterval = options.dateInterval;
+  $el.html(this.template({
+    moreIconClass: options.minimized ? 'icon-calendar' : 'icon-calendar-empty',
+    moreIconTitle: options.minimized ? _gtxt('CalendarWidget.ExtendedViewTitle') : _gtxt('CalendarWidget.MinimalViewTitle'),
+    forecast: _gtxt('CalendarWidget.forecast')
+  }));
+  this._moreIcon = $el.find('.CalendarWidget-iconMore').toggle(!!options.showSwitcher);
+  this._dateBegin = $el.find('.CalendarWidget-dateBegin');
+  this._dateEnd = $el.find('.CalendarWidget-dateEnd');
+  this._dateInputs = this._dateBegin.add(this._dateEnd);
+  $el.find('.CalendarWidget-iconScrollLeft').on('click', function () {
+    _shiftDates.call(this, -1);
+  }.bind(this));
+  $el.find('.CalendarWidget-iconScrollRight').on('click', function () {
+    _shiftDates.call(this, 1);
+  }.bind(this));
+
+  this._dateInputs.datepicker({
+    onSelect: function (dateText, inst) {
+      _selectFunc.call(this, inst.input);
+
+      _updateModel.call(this);
+    }.bind(this),
+    showAnim: 'fadeIn',
+    changeMonth: true,
+    changeYear: true,
+    minDate: this._dateMin ? _toUTC(this._dateMin) : null,
+    maxDate: this._dateMax ? _toUTC(this._dateMax) : null,
+    dateFormat: options.dateFormat,
+    defaultDate: _toUTC(this._dateMax || new Date()),
+    showOn: options.buttonImage ? 'both' : 'focus',
+    buttonImageOnly: true
+  }); //устанавливаем опцию после того, как добавили календарик в canvas
+
+
+  if (options.buttonImage) {
+    this._dateInputs.datepicker('option', 'buttonImage', options.buttonImage);
+  }
+
+  $el.find('.CalendarWidget-onlyMaxVersion').toggle(!options.minimized);
+  options.dateBegin && this._dateBegin.datepicker('setDate', _toUTC(options.dateBegin));
+  options.dateEnd && this._dateEnd.datepicker('setDate', _toUTC(options.dateEnd));
+
+  if (options.container) {
+    if (typeof options.container === 'string') $('#' + options.container).append($el);else $(options.container).append($el);
+  }
+
+  _setMode.call(this, options.minimized ? SIMPLE_MODE : ADVANCED_MODE);
+
+  _updateWidget.call(this);
+
+  this.dateInterval.on('change', function () {
+    _updateWidget.call(this);
+  }.bind(this), this); //for backward compatibility
+
+  this.canvas = $el;
+};
+
+/***/ }),
+
 /***/ "./src/Models/ImageCountModel.js":
 /*!***************************************!*\
   !*** ./src/Models/ImageCountModel.js ***!
@@ -1450,8 +1656,8 @@ module.exports = function (options) {
   var _lmap = nsGmx.leafletMap,
       _data = {
     system: '',
-    interval: {},
-    polygon: {}
+    interval: null,
+    polygon: null
   };
   return {
     isDirty: true,
@@ -1465,7 +1671,7 @@ module.exports = function (options) {
     },
 
     update: function update() {
-      console.log('IMC UPDATE', this.isDirty);
+      console.log('IMC UPDATE', _data, this.isDirty);
       if (!this.isDirty) return;
       var thisModel = this;
       return Promise.resolve().then(function () {
@@ -1549,8 +1755,8 @@ BaseView.prototype = function () {
     },
 
     resize: function resize(clean) {
-      if (!this.frame) return;
-      console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset);
+      if (!this.frame) return; //console.log($('.iconSidebarControl-pane').height(), this.topOffset, this.bottomOffset)
+
       var h = $('.iconSidebarControl-pane').height() - this.topOffset - this.bottomOffset; // if (this.startScreen){
       //     this.startScreen.height(h);
       //     this.container.css({ position:"relative", top: -h+"px" });
@@ -1568,8 +1774,7 @@ BaseView.prototype = function () {
       this.inProgress(false);
       if (!this.model.data) return;
       var scrollCont = this.container.find('.mCSB_container'),
-          content = $( //Handlebars.compile(this.tableTemplate)(this.model.data)
-      this.tableTemplate);
+          content = $(this.drawTable(this.model.data));
 
       if (!scrollCont[0]) {
         this.container.append(content).mCustomScrollbar(this.mcsbOptions);
@@ -1620,69 +1825,123 @@ __webpack_require__(/*! ../../icons.svg */ "./icons.svg");
 
 __webpack_require__(/*! ./ImageCountView.css */ "./src/Views/ImageCountView.css");
 
-var BaseView = __webpack_require__(/*! ./BaseView.js */ "./src/Views/BaseView.js"); //,
-//Request = require('../Request'),
-//Calendar = require('../Calendar'),
-//SearchControl = require('../SearchControl'),
-//SelectControl = require('../SelectControl');
+var BaseView = __webpack_require__(/*! ./BaseView.js */ "./src/Views/BaseView.js");
 
+Calendar = __webpack_require__(/*! ../Calendar */ "./src/Calendar.js"); //   STIntersects("gmx_geometry", geometryFromWKT('POLYGON((-71.1776585052917 42.3902909739571,-71.1776820268866 42.3903701743239,
+//     -71.1776063012595 42.3903825660754,-71.1775826583081 42.3903033653531,-71.1776585052917 42.3902909739571)'))
 
 var ImageCountView = function ImageCountView(layers, model) {
-  var _thisView = this;
+  var _thisView = this,
+      _drawPolygons = [],
+      _borderPolygons = [],
+      _addCalendar = function _addCalendar() {
+    var calendar = this.frame.find('.calendar')[0]; // walkaround with focus at first input in ui-dialog
+
+    calendar.innerHTML = '<span class="ui-helper-hidden-accessible"><input type="text"/></span>';
+    var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
+        dateInterval = new nsGmx.DateInterval(),
+        msd = 24 * 3600000;
+    dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
+      var d = new Date(e.attributes.dateEnd.getTime() - msd * 7);
+
+      _thisView.calendar._dateInputs.datepicker('option', 'minDate', d);
+
+      if (e.attributes.dateBegin.getTime() < d.getTime()) e.attributes.dateBegin = new Date(d.getTime()); // console.log(d)
+      // console.log(_thisView.calendar.dateInterval.get('dateBegin'))
+    });
+    this.calendar = new Calendar({
+      dateInterval: dateInterval,
+      name: 'catalogInterval',
+      container: calendar,
+      dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd * 6),
+      //dateMax: new Date(),
+      dateFormat: 'dd.mm.yy',
+      minimized: false,
+      showSwitcher: false
+    });
+    var tr = calendar.querySelector('tr:nth-of-type(1)');
+    tr.insertCell(2).innerHTML = '&nbsp; - &nbsp;';
+    tr.insertCell(6).innerHTML = '<img class="default_date" style="cursor:pointer; padding:10px" title="' + _gtxt('ImageCount.calendar_today') + '" src="plugins/AIS/AISSearch/svg/calendar.svg">';
+    calendar.querySelector('.default_date').addEventListener('click', function () {
+      var db = nsGmx.DateInterval.getUTCDayBoundary(new Date());
+      dateInterval.set({
+        dateBegin: db.dateBegin,
+        dateEnd: db.dateEnd
+      });
+    });
+  },
+      _selectBorder = function _selectBorder(e) {
+    console.log(e.target);
+
+    _thisView.frame.find('.choose').click();
+
+    _thisView.model.data.polygon = e.target;
+    _thisView.model.isDirty = true;
+
+    _thisView.model.update();
+  };
 
   BaseView.call(this, model);
-  this.frame = $("<div class=\"imagecount-view\">\n        <div class=\"header\">\n        <div class=\"system\">\n        ".concat(Object.keys(layers).map(function (k) {
+  this.frame = $("<div class=\"imagecount-view\">\n        <div class=\"header\">\n        <div class=\"select-label label1\">".concat(_gtxt('ImageCount.SelectSystem'), "</div>\n        <div class=\"system\">\n        ").concat(Object.keys(layers).map(function (k) {
     return "<label><input id=\"system\" name=\"system\" type=\"radio\" value=\"".concat(k, "\">").concat(layers[k], "</label><br>");
-  }).join(''), "\n        </div>\n        <div class=\"but choose\"><svg><use xlink:href=\"#icons_selectreg\"></use></svg>\u0412\u044B\u0431\u043E\u0440 \u0440\u0430\u0439\u043E\u043D\u0430</div>\n        <div class=\"calendar\"></div>\n        </div>\n        <div class=\"results\" style=\"border: solid 1px red\"></div>\n        </div>"));
+  }).join(''), "\n        </div>\n        <div class=\"but choose\">").concat(_gtxt('ImageCount.SelectBorder'), "<svg><use xlink:href=\"#icons_selectreg\"></use></svg></div>\n        \n        <style>#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}</style>    \n \n        <div class=\"select-label label2\">").concat(_gtxt('ImageCount.SelectInterval'), "</div>       \n        <div class=\"calendar\" style=\"padding: 0px 0 20px 20px;\"></div>\n        </div>\n        <div class=\"results\" style=\"border: solid 1px red\"></div>\n        </div>"));
   this.container = this.frame.find('.results');
   this.frame.find('.choose').on('click', function (e) {
     var drawObjects = nsGmx.leafletMap.gmxDrawing.items,
         mapLayers = nsGmx.leafletMap._layers;
     $(e.target).toggleClass('active');
-    console.log(e.target);
 
     if ($(e.target).is('.active')) {
+      _drawPolygons.length = 0;
+      _borderPolygons.length = 0;
       drawObjects.forEach(function (l) {
         var t = l.options.type.toLowerCase();
 
         if (t == 'rectangle' || t == 'polygon') {
-          console.log(t, l._layers);
+          _drawPolygons.push(l);
+
           l.disableEdit();
         }
-      });
-      Object.keys(mapLayers).forEach(function (k) {
-        var l = mapLayers[k],
-            t = l.feature && l.feature.geometry.type.toLowerCase();
-        if (t == 'polygon' || t == 'rectangle') console.log(k, mapLayers[k]);
-      });
-    } else {
-      Object.keys(mapLayers).forEach(function (k) {
-        var l = mapLayers[k],
-            t = l.feature && l.feature.geometry.type.toLowerCase();
-        if (t == 'polygon' || t == 'rectangle') console.log(k, mapLayers[k]);
-      });
-      drawObjects.forEach(function (l) {
-        var t = l.options.type.toLowerCase();
+      }); //console.log(_drawPolygons)
 
-        if (t == 'rectangle' || t == 'polygon') {
-          console.log(t, l._layers);
-          l.enableEdit();
+      Object.keys(mapLayers).forEach(function (k) {
+        var l = mapLayers[k],
+            t = l.feature && l.feature.geometry.type.toLowerCase();
+
+        if (t == 'polygon' || t == 'rectangle') {
+          mapLayers[k].on('click', _selectBorder);
+
+          _borderPolygons.push(mapLayers[k]);
         }
+      }); //console.log(_borderPolygons)
+    } else {
+      _borderPolygons.forEach(function (bp) {
+        return bp.off('click', _selectBorder);
       });
-    } // nsGmx.leafletMap.gmxDrawing.getFeatures().forEach(f=>{
-    //     var t = f.options.type.toLowerCase(); 
-    //     if(t=='rectangle'||t=='polygon'){
-    //         console.log(f.options.type, f._layers)
-    //     }})
 
-  });
-  Object.defineProperty(this, "tableTemplate", {
-    get: function get() {
-      var //totalPositions = this.model.data.total,
-      rv = "<div style=\"width:200px; height: 200px; background-color:green\"></div>";
-      return rv;
+      _drawPolygons.forEach(function (dp) {
+        return dp.enableEdit();
+      });
+
+      _drawPolygons.length = 0;
+      _borderPolygons.length = 0;
     }
   });
+
+  this.drawTable = function (d) {
+    var p = d.polygon,
+        rv = '';
+
+    if (p) {
+      rv += "<div class=\"form\">\n                    <div>".concat(_gtxt('ImageCount.Polygon'), ", ").concat(_gtxt('ImageCount.vertices'), ": ").concat(p.feature.geometry.coordinates[0].length - 1, "</div>\n                    <div>").concat(p._popup ? p._popup._content.replace(/<br\/?>[\s\S]+/i, '') : '', "</div>\n                    <div class=\"icon-refresh-gif\"></div>\n                    </div>");
+      console.log("intersects([geomixergeojson], GeometryFromGeoJson('{\"type\":\"Polygon\",\"coordinates\":[[".concat(p.feature.geometry.coordinates[0].map(function (c) {
+        return "[".concat(c[0], ",").concat(c[1], "]");
+      }).join(','), "]]}', 4326)) and [acqdate]>='07.02.2021' and [acqdate]<='07.02.2021'"));
+    }
+
+    return rv;
+  };
+
   Object.defineProperty(this, "topOffset", {
     get: function get() {
       return this.frame.find('.header')[0] && this.frame.find('.header')[0].getBoundingClientRect().height;
@@ -1693,6 +1952,8 @@ var ImageCountView = function ImageCountView(layers, model) {
       return 20; //this.frame.find('.footer')[0] && this.frame.find('.footer')[0].getBoundingClientRect().height;
     }
   });
+
+  _addCalendar.call(this);
 };
 
 ImageCountView.prototype = Object.create(BaseView.prototype);
@@ -1708,13 +1969,12 @@ ImageCountView.prototype.inProgress = function (state) {
     progress.hide();
     grid.show();
   }
-};
+}; // ImageCountView.prototype.repaint = function () { 
+// console.log('IMC REPAINT')
+//     //_clean.call(this);
+//     BaseView.prototype.repaint.call(this);      
+// };
 
-ImageCountView.prototype.repaint = function () {
-  console.log('IMC REPAINT'); //_clean.call(this);
-
-  BaseView.prototype.repaint.call(this);
-};
 
 ImageCountView.prototype.show = function () {
   console.log('IMC SHOW');
@@ -1806,7 +2066,7 @@ var publicInterface = {
     pluginPanel.sidebarPane = sidebar.setPane(menuId, {
       createTab: function createTab() {
         !tab.querySelector('.ImageCount') && tab.append(tabDiv);
-        tab.querySelector('.ImageCount').innerHTML = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1\" viewBox=\"0 0 24 24\" style=\"height: 18px;width: 18px;\">\n                     <path d=\"M 20 2 C 18.970152 2 18.141273 2.7807107 18.03125 3.78125 L 14.5625 4.78125 C 14.19654 4.3112749 13.641793 4 13 4 C 11.895431 4 11 4.8954305 11 6 C 11 7.1045695 11.895431 8 13 8 C 13.052792 8 13.104488 8.0040159 13.15625 8 L 16.53125 14.6875 C 16.440877 14.788724 16.349735 14.881869 16.28125 15 L 11.9375 14.46875 C 11.705723 13.620636 10.921625 13 10 13 C 8.8954305 13 8 13.895431 8 15 C 8 15.217462 8.0295736 15.428987 8.09375 15.625 L 4.96875 18.25 C 4.6825722 18.092012 4.3500149 18 4 18 C 2.8954305 18 2 18.895431 2 20 C 2 21.104569 2.8954305 22 4 22 C 5.1045695 22 6 21.104569 6 20 C 6 19.782538 5.9704264 19.571013 5.90625 19.375 L 9.03125 16.75 C 9.3174278 16.907988 9.6499851 17 10 17 C 10.754554 17 11.409413 16.585686 11.75 15.96875 L 16.0625 16.53125 C 16.294277 17.379364 17.078375 18 18 18 C 19.104569 18 20 17.104569 20 16 C 20 14.895431 19.104569 14 18 14 C 17.947208 14 17.895512 13.995984 17.84375 14 L 14.5 7.3125 C 14.761761 7.0130168 14.922918 6.6355416 14.96875 6.21875 L 18.4375 5.21875 C 18.80346 5.6887251 19.358207 6 20 6 C 21.104569 6 22 5.1045695 22 4 C 22 2.8954305 21.104569 2 20 2 z\" style=\"&#10;\"/>\n                 </svg>";
+        tab.querySelector('.ImageCount').innerHTML = "<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" class=\"svgIcon\" xmlns=\"http://www.w3.org/2000/svg\">\n                     <path d=\"M11.0181 0H0.847543C0.379458 0 0 0.379203 0 0.846973V13.5516C0 14.0193 0.379458 14.3985 0.847543 14.3985H11.0181C11.4861 14.3985 11.8656 14.0193 11.8656 13.5516V0.846973C11.8656 0.379203 11.4861 0 11.0181 0Z\"></path>\n                     <path d=\"M19.374 6.071L13.815 4.56763L13.3726 6.20313L18.1188 7.48545L15.238 18.1133L5.42009 15.4614L4.97852 17.0969L15.6152 19.9707C15.7226 19.9997 15.8348 20.0072 15.9451 19.9929C16.0555 19.9785 16.162 19.9426 16.2585 19.8872C16.355 19.8317 16.4396 19.7578 16.5075 19.6697C16.5754 19.5816 16.6253 19.481 16.6543 19.3736L19.9707 7.10939C20.0293 6.89263 19.9994 6.66148 19.8875 6.46676C19.7756 6.27205 19.5909 6.1297 19.374 6.071Z\"></path>\n                     </svg>";
         return tab;
       }
     });
@@ -1830,13 +2090,25 @@ gmxCore.addModule(pluginName, publicInterface, {
 
 _translationsHash.addtext('rus', {
   ImageCount: {
-    "title": "XXXXXXXXX"
+    "title": "Подсчет снимков",
+    "Polygon": "Многоугольник",
+    "vertices": "вершин",
+    "SelectBorder": "Выберите контур территории клиента",
+    "SelectSystem": "Выберите съемочную систему",
+    "SelectInterval": "Укажите предполагаемый срок подписки",
+    "calendar_today": "сегодня"
   }
 });
 
 _translationsHash.addtext('eng', {
   ImageCount: {
-    "title": "XXXXXXXXX"
+    "title": "Image Count",
+    "Polygon": "Polygon",
+    "vertices": "vertices",
+    "SelectBorder": "Select client territory border",
+    "SelectSystem": "Select system",
+    "SelectInterval": "Select subscription interval",
+    "calendar_today": "today"
   }
 });
 
