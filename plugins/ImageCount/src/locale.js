@@ -7,7 +7,11 @@
             "SelectBorder": "Выберите контур территории клиента",
             "SelectSystem": "Выберите съемочную систему",
             "SelectInterval": "Укажите предполагаемый срок подписки",
-            "calendar_today": "сегодня"
+            "calendar_today": "сегодня",
+            "NoSystem": "Система не выбрана",
+            "NoBorder": "Район не задан",
+            "Count":"РАССЧИТАТЬ",
+            "Result": "Количество сцен съемки"
         }
         
     });
@@ -19,6 +23,10 @@
             "SelectBorder": "Select client territory border",
             "SelectSystem": "Select system",
             "SelectInterval": "Select subscription interval",
-            "calendar_today": "today"
+            "calendar_today": "today",
+            "NoSystem": "No system",
+            "NoBorder": "No border",
+            "Count":"COUNT",
+            "Result": "Images found"
         }
     });

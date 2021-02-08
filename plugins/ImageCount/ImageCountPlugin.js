@@ -1648,18 +1648,47 @@ module.exports = function (options) {
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
-
 //const Request = require('../Request');
 //////////////////////////
 module.exports = function (options) {
   var _lmap = nsGmx.leafletMap,
-      _data = {
+      _dataChanged = function _dataChanged() {
+    _data.result = null;
+    this.isDirty = true;
+    this.update();
+  };
+
+  _data = {
     system: '',
     interval: null,
-    polygon: null
+    polygon: null,
+    result: null
   };
   return {
+    set interval(v) {
+      var _this = this;
+
+      if (!_data.interval) {
+        _data.interval = v;
+
+        _data.interval.on('change', function () {
+          _dataChanged.call(_this);
+        });
+      }
+    },
+
+    set system(v) {
+      _data.system = v;
+
+      _dataChanged.call(this);
+    },
+
+    set polygon(v) {
+      _data.polygon = v; //v.on('remove', console.log)
+
+      _dataChanged.call(this);
+    },
+
     isDirty: true,
 
     get data() {
@@ -1667,19 +1696,61 @@ module.exports = function (options) {
     },
 
     set data(value) {
-      _data = (_readOnlyError("_data"), value);
+      _data = value;
     },
 
     update: function update() {
-      console.log('IMC UPDATE', _data, this.isDirty);
+      //console.log('IMC UPDATE', _data, this.isDirty)
       if (!this.isDirty) return;
       var thisModel = this;
       return Promise.resolve().then(function () {
         thisModel.view.repaint();
         thisModel.isDirty = false;
       });
-    } // this.update
+    },
+    // this.update
+    count: function count() {
+      var _thisModel = this,
+          p = this.data.polygon,
+          s = this.data.system;
 
+      if (!p) {
+        return Promise.reject('polygon');
+      }
+
+      if (!s) {
+        return Promise.reject('system');
+      } else {
+        var params = {
+          WrapStyle: 'message',
+          layer: s,
+          query: p.feature.geometry.type == 'Polygon' ? "intersects([geomixergeojson], GeometryFromGeoJson('{\"type\":\"".concat(p.feature.geometry.type, "\",\"coordinates\":[").concat(p.feature.geometry.coordinates.map(function (a) {
+            return "[".concat(a.map(function (c) {
+              return "[".concat(c[0], ",").concat(c[1], "]");
+            }).join(','), "]");
+          }).join(','), "]}', 4326)) and [acqdate]>='07.02.2021' and [acqdate]<='07.02.2021'") : "intersects([geomixergeojson], GeometryFromGeoJson('{\"type\":\"".concat(p.feature.geometry.type, "\",\"coordinates\":[").concat(p.feature.geometry.coordinates.map(function (a) {
+            return "[".concat(a.map(function (v) {
+              return "[".concat(v.map(function (c) {
+                return "[".concat(c[0], ",").concat(c[1], "]");
+              }).join(','), "]");
+            }).join(','), "]");
+          }).join(','), "]}', 4326)) and [acqdate]>='07.02.2021' and [acqdate]<='07.02.2021'")
+        };
+        console.log(params);
+        return new Promise(function (resolve) {
+          //setTimeout(
+          sendCrossDomainPostRequest('https://geomixer.scanex.ru/VectorLayer/Search.ashx', params, function (response) {
+            console.log(response);
+            _data.result = 0;
+            _thisModel.isDirty = true;
+
+            _thisModel.update();
+
+            resolve();
+          }); //}, 1000);
+        });
+      }
+    }
   };
 };
 
@@ -1841,19 +1912,19 @@ var ImageCountView = function ImageCountView(layers, model) {
     var mapDateInterval = nsGmx.widgets.commonCalendar.getDateInterval(),
         dateInterval = new nsGmx.DateInterval(),
         msd = 24 * 3600000;
-    dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')).on('change', function (e) {
-      var d = new Date(e.attributes.dateEnd.getTime() - msd * 7);
+    dateInterval.set('dateBegin', mapDateInterval.get('dateBegin')).set('dateEnd', mapDateInterval.get('dateEnd')); //             .on('change', function (e) {
+    //                 //let d = new Date(e.attributes.dateEnd.getTime() - msd*7);
+    //                 //_thisView.calendar._dateInputs.datepicker('option', 'minDate', d);
+    //                 // if (e.attributes.dateBegin.getTime()<d.getTime())
+    //                 //     e.attributes.dateBegin = new Date(d.getTime());
+    // //console.log(_thisView.calendar.dateInterval.get('dateBegin'), _thisView.calendar.dateInterval.get('dateEnd'))
+    //             });
 
-      _thisView.calendar._dateInputs.datepicker('option', 'minDate', d);
-
-      if (e.attributes.dateBegin.getTime() < d.getTime()) e.attributes.dateBegin = new Date(d.getTime()); // console.log(d)
-      // console.log(_thisView.calendar.dateInterval.get('dateBegin'))
-    });
     this.calendar = new Calendar({
       dateInterval: dateInterval,
       name: 'catalogInterval',
       container: calendar,
-      dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd * 6),
+      //dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd*6),
       //dateMax: new Date(),
       dateFormat: 'dd.mm.yy',
       minimized: false,
@@ -1875,17 +1946,27 @@ var ImageCountView = function ImageCountView(layers, model) {
 
     _thisView.frame.find('.choose').click();
 
-    _thisView.model.data.polygon = e.target;
-    _thisView.model.isDirty = true;
-
-    _thisView.model.update();
+    _thisView.model.polygon = e.target;
   };
 
   BaseView.call(this, model);
   this.frame = $("<div class=\"imagecount-view\">\n        <div class=\"header\">\n        <div class=\"select-label label1\">".concat(_gtxt('ImageCount.SelectSystem'), "</div>\n        <div class=\"system\">\n        ").concat(Object.keys(layers).map(function (k) {
     return "<label><input id=\"system\" name=\"system\" type=\"radio\" value=\"".concat(k, "\">").concat(layers[k], "</label><br>");
-  }).join(''), "\n        </div>\n        <div class=\"but choose\">").concat(_gtxt('ImageCount.SelectBorder'), "<svg><use xlink:href=\"#icons_selectreg\"></use></svg></div>\n        \n        <style>#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}</style>    \n \n        <div class=\"select-label label2\">").concat(_gtxt('ImageCount.SelectInterval'), "</div>       \n        <div class=\"calendar\" style=\"padding: 0px 0 20px 20px;\"></div>\n        </div>\n        <div class=\"results\" style=\"border: solid 1px red\"></div>\n        </div>"));
+  }).join(''), "\n        </div>\n        <div class=\"but choose\">").concat(_gtxt('ImageCount.SelectBorder'), "<svg><use xlink:href=\"#icons_selectreg\"></use></svg></div>\n        \n        <style>#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}</style>    \n \n        <div class=\"select-label label2\">").concat(_gtxt('ImageCount.SelectInterval'), "</div>       \n        <div class=\"calendar\" style=\"padding: 0px 0 20px 20px;\"></div>      \n        <div><div class=\"but-count\">").concat(_gtxt("ImageCount.Count"), "</div></div>\n        </div>\n        <div class=\"results\" style=\"border: solid 1px red\"></div>\n        </div>"));
   this.container = this.frame.find('.results');
+  this.frame.find('.system input').on('click', function (e) {
+    _thisView.model.system = e.target.value;
+  });
+  this.frame.find('.but-count').on('click', function (e) {
+    _thisView.inProgress(true);
+
+    _thisView.model.count()["catch"](function (error) {
+      _thisView.inProgress(false);
+
+      if (error == 'polygon' || error == 'system') _thisView.container.find(".exclamation").show();
+      console.log(error);
+    });
+  });
   this.frame.find('.choose').on('click', function (e) {
     var drawObjects = nsGmx.leafletMap.gmxDrawing.items,
         mapLayers = nsGmx.leafletMap._layers;
@@ -1908,7 +1989,7 @@ var ImageCountView = function ImageCountView(layers, model) {
         var l = mapLayers[k],
             t = l.feature && l.feature.geometry.type.toLowerCase();
 
-        if (t == 'polygon' || t == 'rectangle') {
+        if (t == 'polygon' || t == 'multipolygon' || t == 'rectangle') {
           mapLayers[k].on('click', _selectBorder);
 
           _borderPolygons.push(mapLayers[k]);
@@ -1930,15 +2011,24 @@ var ImageCountView = function ImageCountView(layers, model) {
 
   this.drawTable = function (d) {
     var p = d.polygon,
-        rv = '';
+        b = this.frame.find('.CalendarWidget-dateBegin').val(),
+        e = this.frame.find('.CalendarWidget-dateEnd').val(),
+        r = d.result,
+        sl = this.frame.find('.system input:checked').parent(),
+        rv = '<div class="params">';
+    rv += "<div>".concat(sl[0] ? sl.text() : _gtxt("ImageCount.NoSystem") + ' <span class="exclamation">!</span>', "</div>");
 
     if (p) {
-      rv += "<div class=\"form\">\n                    <div>".concat(_gtxt('ImageCount.Polygon'), ", ").concat(_gtxt('ImageCount.vertices'), ": ").concat(p.feature.geometry.coordinates[0].length - 1, "</div>\n                    <div>").concat(p._popup ? p._popup._content.replace(/<br\/?>[\s\S]+/i, '') : '', "</div>\n                    <div class=\"icon-refresh-gif\"></div>\n                    </div>");
-      console.log("intersects([geomixergeojson], GeometryFromGeoJson('{\"type\":\"Polygon\",\"coordinates\":[[".concat(p.feature.geometry.coordinates[0].map(function (c) {
-        return "[".concat(c[0], ",").concat(c[1], "]");
-      }).join(','), "]]}', 4326)) and [acqdate]>='07.02.2021' and [acqdate]<='07.02.2021'"));
+      rv += "\n                    <div class=\"polygon\">".concat(_gtxt('ImageCount.Polygon'), ", ").concat(_gtxt('ImageCount.vertices'), ": ").concat(p.feature.geometry.coordinates[0].length - 1, "</div>\n                    <div>").concat(p._popup ? p._popup._content.replace(/<br\/?>[\s\S]+/i, '') : '', "</div>\n                    ");
+    } else rv += "<div>".concat(_gtxt('ImageCount.NoBorder'), " <span class=\"exclamation\">!</span></div>");
+
+    rv += "<div>".concat(b, " - ").concat(e, "</div>");
+
+    if (r !== null) {
+      rv += "<div>".concat(_gtxt('ImageCount.Result'), ": ").concat(r, "</div>");
     }
 
+    rv += "<div class=\"icon-refresh-gif refresh\"></div>";
     return rv;
   };
 
@@ -1954,33 +2044,36 @@ var ImageCountView = function ImageCountView(layers, model) {
   });
 
   _addCalendar.call(this);
+
+  this.model.interval = this.calendar.dateInterval;
 };
 
 ImageCountView.prototype = Object.create(BaseView.prototype);
 
 ImageCountView.prototype.inProgress = function (state) {
-  var progress = this.frame.find('div.refresh'),
-      grid = this.frame.find('div.grid');
+  var progress = this.frame.find('div.refresh');
 
   if (state) {
-    grid.hide();
     progress.show();
   } else {
     progress.hide();
-    grid.show();
   }
-}; // ImageCountView.prototype.repaint = function () { 
-// console.log('IMC REPAINT')
-//     //_clean.call(this);
-//     BaseView.prototype.repaint.call(this);      
+};
+
+ImageCountView.prototype.repaint = function () {
+  var _this = this;
+
+  //_clean.call(this);
+  BaseView.prototype.repaint.call(this);
+  this.container.find('.polygon').on('click', function () {
+    nsGmx.leafletMap.fitBounds(_this.model.data.polygon._bounds);
+  });
+}; // ImageCountView.prototype.show = function () {
+//     if (!this.frame)
+//         return;
+//     BaseView.prototype.show.apply(this, arguments);
 // };
 
-
-ImageCountView.prototype.show = function () {
-  console.log('IMC SHOW');
-  if (!this.frame) return;
-  BaseView.prototype.show.apply(this, arguments);
-};
 
 module.exports = ImageCountView;
 
@@ -2096,7 +2189,11 @@ _translationsHash.addtext('rus', {
     "SelectBorder": "Выберите контур территории клиента",
     "SelectSystem": "Выберите съемочную систему",
     "SelectInterval": "Укажите предполагаемый срок подписки",
-    "calendar_today": "сегодня"
+    "calendar_today": "сегодня",
+    "NoSystem": "Система не выбрана",
+    "NoBorder": "Район не задан",
+    "Count": "РАССЧИТАТЬ",
+    "Result": "Количество сцен съемки"
   }
 });
 
@@ -2108,7 +2205,11 @@ _translationsHash.addtext('eng', {
     "SelectBorder": "Select client territory border",
     "SelectSystem": "Select system",
     "SelectInterval": "Select subscription interval",
-    "calendar_today": "today"
+    "calendar_today": "today",
+    "NoSystem": "No system",
+    "NoBorder": "No border",
+    "Count": "COUNT",
+    "Result": "Images found"
   }
 });
 

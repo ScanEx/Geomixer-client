@@ -22,21 +22,20 @@ const ImageCountView = function (layers, model) {
     
         dateInterval
             .set('dateBegin', mapDateInterval.get('dateBegin'))
-            .set('dateEnd', mapDateInterval.get('dateEnd'))
-            .on('change', function (e) {
-                let d = new Date(e.attributes.dateEnd.getTime() - msd*7);
-                _thisView.calendar._dateInputs.datepicker('option', 'minDate', d);
-                if (e.attributes.dateBegin.getTime()<d.getTime())
-                    e.attributes.dateBegin = new Date(d.getTime());
-// console.log(d)
-// console.log(_thisView.calendar.dateInterval.get('dateBegin'))
-            });
+            .set('dateEnd', mapDateInterval.get('dateEnd'));
+//             .on('change', function (e) {
+//                 //let d = new Date(e.attributes.dateEnd.getTime() - msd*7);
+//                 //_thisView.calendar._dateInputs.datepicker('option', 'minDate', d);
+//                 // if (e.attributes.dateBegin.getTime()<d.getTime())
+//                 //     e.attributes.dateBegin = new Date(d.getTime());
+// //console.log(_thisView.calendar.dateInterval.get('dateBegin'), _thisView.calendar.dateInterval.get('dateEnd'))
+//             });
 
         this.calendar = new Calendar({
             dateInterval: dateInterval,
             name: 'catalogInterval',
             container: calendar,
-            dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd*6),
+            //dateMin: new Date(nsGmx.DateInterval.getUTCDayBoundary().dateBegin.getTime() - msd*6),
             //dateMax: new Date(),
             dateFormat: 'dd.mm.yy',
             minimized: false,
@@ -58,9 +57,7 @@ const ImageCountView = function (layers, model) {
     _selectBorder = function(e){
 console.log(e.target)
         _thisView.frame.find('.choose').click();
-        _thisView.model.data.polygon = e.target;
-        _thisView.model.isDirty = true;
-        _thisView.model.update();
+        _thisView.model.polygon = e.target;
     };
     BaseView.call(this, model);
 
@@ -75,11 +72,25 @@ console.log(e.target)
         <style>#ui-datepicker-div .ui-datepicker-next {height: 1.8em !important;}#ui-datepicker-div .ui-datepicker-next span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -18px !important;}#ui-datepicker-div .ui-datepicker-next.ui-state-hover span.ui-icon.ui-icon-circle-triangle-e {background: url(img/arrows.png) no-repeat 0 -38px !important;}</style>    
  
         <div class="select-label label2">${_gtxt('ImageCount.SelectInterval')}</div>       
-        <div class="calendar" style="padding: 0px 0 20px 20px;"></div>
+        <div class="calendar" style="padding: 0px 0 20px 20px;"></div>      
+        <div><div class="but-count">${_gtxt("ImageCount.Count")}</div></div>
         </div>
         <div class="results" style="border: solid 1px red"></div>
         </div>`);
         this.container = this.frame.find('.results');
+        this.frame.find('.system input').on('click', function(e){
+            _thisView.model.system = e.target.value;
+        })
+        this.frame.find('.but-count').on('click', function(e){
+            _thisView.inProgress(true);
+            _thisView.model.count()
+            .catch(error=>{
+                _thisView.inProgress(false);
+                if (error=='polygon' || error=='system')
+                    _thisView.container.find(`.exclamation`).show();
+                console.log(error)
+            });
+        })
         this.frame.find('.choose').on('click', e=>{
             const drawObjects  = nsGmx.leafletMap.gmxDrawing.items, mapLayers = nsGmx.leafletMap._layers;
             $(e.target).toggleClass('active');
@@ -96,7 +107,7 @@ console.log(e.target)
 //console.log(_drawPolygons)
                 Object.keys(mapLayers).forEach(k=>{
                     var l = mapLayers[k], t = l.feature && l.feature.geometry.type.toLowerCase(); 
-                    if (t=='polygon' || t=='rectangle') { 
+                    if (t=='polygon' || t=='multipolygon' || t=='rectangle') { 
                         mapLayers[k].on('click', _selectBorder);
                         _borderPolygons.push(mapLayers[k]);             
                     }
@@ -112,16 +123,26 @@ console.log(e.target)
 
         });
         this.drawTable = function(d) {
-                let p = d.polygon,
-                    rv = '';
+                let p = d.polygon, 
+                    b = this.frame.find('.CalendarWidget-dateBegin').val(), e=this.frame.find('.CalendarWidget-dateEnd').val(),
+                    r = d.result,
+                    sl = this.frame.find('.system input:checked').parent(),
+                    rv = '<div class="params">';
+                rv += `<div>${sl[0]?sl.text():_gtxt("ImageCount.NoSystem")+' <span class="exclamation">!</span>'}</div>`;    
                 if (p){
-                    rv += `<div class="form">
-                    <div>${_gtxt('ImageCount.Polygon')}, ${_gtxt('ImageCount.vertices')}: ${p.feature.geometry.coordinates[0].length-1}</div>
+                    rv += `
+                    <div class="polygon">${_gtxt('ImageCount.Polygon')}, ${_gtxt('ImageCount.vertices')}: ${p.feature.geometry.coordinates[0].length-1}</div>
                     <div>${p._popup?p._popup._content.replace(/<br\/?>[\s\S]+/i, ''):''}</div>
-                    <div class="icon-refresh-gif"></div>
-                    </div>`;
-console.log(`intersects([geomixergeojson], GeometryFromGeoJson('{"type":"Polygon","coordinates":[[${p.feature.geometry.coordinates[0].map(c=>`[${c[0]},${c[1]}]`).join(',')}]]}', 4326)) and [acqdate]>='07.02.2021' and [acqdate]<='07.02.2021'`)
+                    `;
                 }
+                else
+                    rv += `<div>${_gtxt('ImageCount.NoBorder')} <span class="exclamation">!</span></div>`;                                        
+                rv += `<div>${b} - ${e}</div>`; 
+                if (r!==null){
+                    rv += `<div>${_gtxt('ImageCount.Result')}: ${r}</div>`; 
+                }
+                rv += `<div class="icon-refresh-gif refresh"></div>`;
+
                 return rv;
         };  
 
@@ -137,33 +158,33 @@ console.log(`intersects([geomixergeojson], GeometryFromGeoJson('{"type":"Polygon
         }); 
 
         _addCalendar.call(this);
+        this.model.interval = this.calendar.dateInterval;
     };
 
 ImageCountView.prototype = Object.create(BaseView.prototype);
 
 ImageCountView.prototype.inProgress = function (state) {
-    let progress = this.frame.find('div.refresh'), grid = this.frame.find('div.grid');
+    let progress = this.frame.find('div.refresh');
     if (state){
-        grid.hide();
         progress.show();
     }
     else{
         progress.hide();
-        grid.show();
     }
 };
 
-// ImageCountView.prototype.repaint = function () { 
-// console.log('IMC REPAINT')
-//     //_clean.call(this);
-//     BaseView.prototype.repaint.call(this);      
-// };
-
-ImageCountView.prototype.show = function () {
-console.log('IMC SHOW')
-    if (!this.frame)
-        return;
-    BaseView.prototype.show.apply(this, arguments);
+ImageCountView.prototype.repaint = function () { 
+    //_clean.call(this);
+    BaseView.prototype.repaint.call(this); 
+    this.container.find('.polygon').on('click', ()=>{
+        nsGmx.leafletMap.fitBounds(this.model.data.polygon._bounds);        
+    })   
 };
+
+// ImageCountView.prototype.show = function () {
+//     if (!this.frame)
+//         return;
+//     BaseView.prototype.show.apply(this, arguments);
+// };
 
 module.exports = ImageCountView;
