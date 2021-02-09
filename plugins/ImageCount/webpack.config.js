@@ -8,7 +8,7 @@ const fileName = isProduction ? 'ImageCountPlugin' : 'ImageCountPluginTest';
 
 module.exports = {
     entry: './src/entry.js',
-    mode: 'development',
+    mode: 'production', //'development',
     output: {
         path: path.join(__dirname, ''),
         filename: fileName + '.js'

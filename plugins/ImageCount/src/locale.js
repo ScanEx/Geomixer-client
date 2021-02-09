@@ -3,6 +3,7 @@
         ImageCount: {
             "title": "Подсчет снимков",
             "Polygon": "Многоугольник",
+            "MultiPolygon": "Многоугольники",
             "vertices": "вершин",
             "SelectBorder": "Выберите контур территории клиента",
             "SelectSystem": "Выберите съемочную систему",
@@ -11,7 +12,8 @@
             "NoSystem": "Система не выбрана",
             "NoBorder": "Район не задан",
             "Count":"РАССЧИТАТЬ",
-            "Result": "Количество сцен съемки"
+            "Result": "Количество сцен съемки",
+            "error": "Ошибка!"
         }
         
     });
@@ -19,6 +21,7 @@
         ImageCount: {
             "title": "Image Count",
             "Polygon": "Polygon",
+            "MultiPolygon": "Polygons",
             "vertices": "vertices",
             "SelectBorder": "Select client territory border",
             "SelectSystem": "Select system",
@@ -27,6 +30,7 @@
             "NoSystem": "No system",
             "NoBorder": "No border",
             "Count":"COUNT",
-            "Result": "Images found"
+            "Result": "Images found",
+            "error": "Error!"
         }
     });

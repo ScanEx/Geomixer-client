@@ -20,9 +20,21 @@ const publicInterface = {
                     '61F54CF35EC44536B527A2168BE6F5A0':'Sentinel-2',
                     'D8CFA7D3A7AA4549B728B37010C051A2':'Landsat-8'
                 }
-            },
+            };
+
+        if (params.layers){
+            try{
+                options.layers = JSON.parse(params.layers);
+            }
+            catch(error){
+                console.log(error);
+            }
+        }
+
+        const
             viewFactory = new ViewsFactory(options),
             pluginPanel = new PluginPanel(viewFactory);
+
         pluginPanel.menuId = menuId;
 
         let sidebar = window.iconSidebarWidget,

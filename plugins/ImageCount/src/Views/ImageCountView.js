@@ -2,10 +2,6 @@ require("../../icons.svg");
 require("./ImageCountView.css");
 const BaseView = require('./BaseView.js')
       Calendar = require('../Calendar');
-
-    //   STIntersects("gmx_geometry", geometryFromWKT('POLYGON((-71.1776585052917 42.3902909739571,-71.1776820268866 42.3903701743239,
-    //     -71.1776063012595 42.3903825660754,-71.1775826583081 42.3903033653531,-71.1776585052917 42.3902909739571)'))
-
 const ImageCountView = function (layers, model) {
     const 
     _thisView = this,
@@ -55,7 +51,7 @@ const ImageCountView = function (layers, model) {
         });
     },
     _selectBorder = function(e){
-console.log(e.target)
+//console.log(e.target)
         _thisView.frame.find('.choose').click();
         _thisView.model.polygon = e.target;
     };
@@ -75,13 +71,14 @@ console.log(e.target)
         <div class="calendar" style="padding: 0px 0 20px 20px;"></div>      
         <div><div class="but-count">${_gtxt("ImageCount.Count")}</div></div>
         </div>
-        <div class="results" style="border: solid 1px red"></div>
+        <div class="results"></div>
         </div>`);
         this.container = this.frame.find('.results');
         this.frame.find('.system input').on('click', function(e){
             _thisView.model.system = e.target.value;
         })
         this.frame.find('.but-count').on('click', function(e){
+            _thisView.container.find('.params .count').text('');
             _thisView.inProgress(true);
             _thisView.model.count()
             .catch(error=>{
@@ -130,16 +127,18 @@ console.log(e.target)
                     rv = '<div class="params">';
                 rv += `<div>${sl[0]?sl.text():_gtxt("ImageCount.NoSystem")+' <span class="exclamation">!</span>'}</div>`;    
                 if (p){
-                    rv += `
-                    <div class="polygon">${_gtxt('ImageCount.Polygon')}, ${_gtxt('ImageCount.vertices')}: ${p.feature.geometry.coordinates[0].length-1}</div>
-                    <div>${p._popup?p._popup._content.replace(/<br\/?>[\s\S]+/i, ''):''}</div>
-                    `;
+                    const g = p.feature.geometry
+                    if (g.type=='Polygon')
+                    rv += `<div class="polygon">${_gtxt('ImageCount.Polygon')}, ${_gtxt('ImageCount.vertices')}: ${g.coordinates[0].length-1}</div>`;
+                    else
+                    rv += `<div class="polygon">${_gtxt('ImageCount.MultiPolygon')}: ${g.coordinates.length}</div>`;
+                    rv += `<div>${p._popup?p._popup._content.replace(/<br\/?>[\s\S]+/i, ''):''}</div>`;
                 }
                 else
                     rv += `<div>${_gtxt('ImageCount.NoBorder')} <span class="exclamation">!</span></div>`;                                        
                 rv += `<div>${b} - ${e}</div>`; 
                 if (r!==null){
-                    rv += `<div>${_gtxt('ImageCount.Result')}: ${r}</div>`; 
+                    rv += `<div class="count">${_gtxt('ImageCount.Result')}: ${r}</div>`; 
                 }
                 rv += `<div class="icon-refresh-gif refresh"></div>`;
 

@@ -10,22 +10,24 @@
     font-family: 'Roboto', sans-serif;
     font-weight: 400;
 }
-.imagecount-view .header
-{
+.imagecount-view .header{
   background-color: #e1e8ed;
-  border: solid 1px blue
+  padding: 20px 0;
 }
 .imagecount-view .select-label{
   font-weight: 600;
 }
 .imagecount-view .select-label.label1{
-  margin: 15px 0 10px 25px;
+  margin: 0 0 10px 25px;
 }
 .imagecount-view .select-label.label2{
   margin: 0 0 15px 25px;
 }
 .imagecount-view .system{
   padding: 0 0 10px 20px;
+}
+.imagecount-view .system label{
+  cursor:pointer;
 }
 .imagecount-view .system input{
   margin:5px;
@@ -65,7 +67,7 @@
   font-weight: 500;
 }
 .imagecount-view .results .params .refresh{
-  margin: 5px auto 5px auto;
+  /*margin: 5px auto 5px auto;*/
   display:none
 }
 .imagecount-view .results b{
@@ -89,7 +91,7 @@
   font-weight: 600;
   text-align: center;
   padding: 10px 20px;
-  margin: 0px auto 15px auto;
+  margin: 0px auto 0px auto;
 }
 
 
