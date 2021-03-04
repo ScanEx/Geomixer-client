@@ -18,10 +18,10 @@ module.exports = function (options) {
                 img: style != 'SPEED' ? p.img : p.imgAlt,
                 renderer: _canvas,
                 pid: p.id,
-                next: !ep ? null : L.latLng(ep.ymax, ep.xmax < 0 ? 360 + ep.xmax : ep.xmax),
+                next: !ep ? null : L.latLng(ep.ymax, (ep.xmax < 0 && ep.xmax < -90) ? 360 + ep.xmax : ep.xmax),
                 ts: new Date()
             },
-                m = vesselMarker(L.latLng(p.ymax, p.xmax < 0 ? 360 + p.xmax : p.xmax), options);
+                m = vesselMarker(L.latLng(p.ymax, (p.xmax < 0 && p.xmax < -90) ? 360 + p.xmax : p.xmax), options);
             m.on('click', e => onclick({ p, pid: p.id }));
             group.addLayer(m);
         },

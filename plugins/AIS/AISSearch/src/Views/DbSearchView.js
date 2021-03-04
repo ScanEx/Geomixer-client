@@ -490,10 +490,10 @@ DbSearchView.prototype.positionMap = function (vessel, interval) {
         ymax = vessel.ymax ? vessel.ymax : vessel.latitude,
         zoom = nsGmx.leafletMap.getZoom();
 
-    nsGmx.leafletMap.setView([ymax, xmax<0?(360+xmax):xmax], (zoom < 9 ? 12 : zoom));
+    nsGmx.leafletMap.setView([ymax, xmax < -90 ? (360 + xmax) : xmax], (zoom < 9 ? 12 : zoom));
     nsGmx.leafletMap.removeLayer(_highlight);
     _highlight.vessel = vessel;
-    _highlight.setLatLng([ymax, xmax<0?(360+xmax):xmax]).addTo(nsGmx.leafletMap);
+    _highlight.setLatLng([ymax, xmax < -90 ? (360 + xmax) : xmax]).addTo(nsGmx.leafletMap);
 };
 
 DbSearchView.prototype.formatDate = function (d, local){

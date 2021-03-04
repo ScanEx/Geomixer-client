@@ -227,7 +227,7 @@ module.exports = function (options) {
                 const w = svg.replace(/[\s\S]+ width="([^"]+)"[\s\S]+/, '$1'),
                       h = svg.replace(/[\s\S]+ height="([^"]+)"[\s\S]+/, '$1');
 //console.log(w, h, svg)
-                let m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
+                let m = L.marker([data[ai.latitude], data[ai.longitude] < -90 ? 360 + data[ai.longitude] : data[ai.longitude]],
                     {
                         id:data[ai.mmsi],
                         icon: L.divIcon({
@@ -240,7 +240,7 @@ module.exports = function (options) {
                 m.id = data[ai.mmsi];
                 _markers.addLayer(m);
 
-                m = L.marker([data[ai.latitude], data[ai.longitude]>0?data[ai.longitude]:360+data[ai.longitude]],
+                m = L.marker([data[ai.latitude], data[ai.longitude] < -90 ? 360 + data[ai.longitude] : data[ai.longitude]],
                     {
                         id:data[ai.mmsi],
                         icon: L.divIcon({
